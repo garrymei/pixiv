@@ -1,0 +1,69 @@
+{
+  "name": "user_profile",
+  "title": "用户档案",
+  "schemas": [
+    {
+      "name": "name",
+      "title": "姓名",
+      "type": "String"
+    },
+    {
+      "name": "nickName",
+      "title": "昵称",
+      "type": "String"
+    },
+    {
+      "name": "avatar",
+      "title": "头像",
+      "type": "Image"
+    },
+    {
+      "name": "userId",
+      "title": "用户ID",
+      "type": "String"
+    },
+    {
+      "name": "age",
+      "title": "年龄",
+      "type": "Number"
+    },
+    {
+      "name": "bio",
+      "title": "个人简介",
+      "type": "MultiLineString"
+    },
+    {
+      "name": "interests",
+      "title": "兴趣标签",
+      "type": "Array",
+      "items": {
+        "type": "String"
+      }
+    },
+    {
+      "name": "type",
+      "title": "账户类型",
+      "type": "String"
+    },
+    {
+      "name": "matchCount",
+      "title": "匹配数量",
+      "type": "Number"
+    },
+    {
+      "name": "likeCount",
+      "title": "喜欢我数量",
+      "type": "Number"
+    },
+    {
+      "name": "chatCount",
+      "title": "聊天数量",
+      "type": "Number"
+    },
+    {
+      "name": "location",
+      "title": "所在地",
+      "type": "String"
+    }
+  ]
+}

@@ -1,0 +1,62 @@
+[
+  {
+    "_id": "post_001",
+    "userId": "user_1",
+    "name": "小樱花",
+    "avatar": "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&h=200&fit=crop",
+    "content": "今天去了一次漫展，看到了好多喜欢的角色！cosplay们都好厉害呀～🎀 #cosplay #动漫",
+    "image": "https://images.unsplash.com/photo-1578632767115-351597cf2477?w=600&h=400&fit=crop",
+    "tags": ["cosplay", "动漫"],
+    "location": "上海",
+    "likeCount": 128,
+    "commentCount": 32,
+    "isLiked": false,
+    "createdAt": 1679200000000,
+    "updatedAt": 1679200000000
+  },
+  {
+    "_id": "post_002",
+    "userId": "user_2",
+    "name": "星空猫",
+    "avatar": "https://images.unsplash.com/photo-1527003211169-0a1dd7228f2d?w=200&h=200&fit=crop",
+    "content": "分享一下今天的绘画进度～还是觉得自己还有好多要学习的地方😢 绘画日常",
+    "image": "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=600&h=400&fit=crop",
+    "tags": ["绘画", "日常"],
+    "location": "北京",
+    "likeCount": 86,
+    "commentCount": 15,
+    "isLiked": false,
+    "createdAt": 1679190000000,
+    "updatedAt": 1679190000000
+  },
+  {
+    "_id": "post_003",
+    "userId": "user_3",
+    "name": "薄荷糖",
+    "avatar": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&h=200&fit=crop",
+    "content": "最近沉迷这个游戏不能自拔！有没有一起玩的小伙伴呀～求组队！🎮",
+    "image": "https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=600&h=400&fit=crop",
+    "tags": ["游戏", "日常"],
+    "location": "深圳",
+    "likeCount": 234,
+    "commentCount": 56,
+    "isLiked": false,
+    "createdAt": 1679180000000,
+    "updatedAt": 1679180000000
+  },
+  {
+    "_id": "post_004",
+    "userId": "user_4",
+    "name": "彩虹酱",
+    "avatar": "https://images.unsplash.com/photo-1438761689735-6d2451b95e6a?w=200&h=200&fit=crop",
+    "content": "终于完成了这个手办！花费了好长时间，但是看到成果真的很开心✨ 手工日常 #手工",
+    "image": null,
+    "tags": ["手工"],
+    "location": "杭州",
+    "likeCount": 189,
+    "commentCount": 41,
+    "isLiked": false,
+    "createdAt": 1679170000000,
+    "updatedAt": 1679170000000
+  }
+]

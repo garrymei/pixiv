@@ -1,0 +1,78 @@
+{
+  "title": "日常发布",
+  "description": "用户发布的日常动态内容",
+  "type": "object",
+  "schemas": [
+    {
+      "name": "_id",
+      "type": "string",
+      "description": "主键"
+    },
+    {
+      "name": "userId",
+      "type": "string",
+      "description": "发布用户的ID",
+      "required": true
+    },
+    {
+      "name": "name",
+      "type": "string",
+      "description": "发布用户的名称",
+      "required": true
+    },
+    {
+      "name": "avatar",
+      "type": "string",
+      "description": "发布用户的头像URL"
+    },
+    {
+      "name": "content",
+      "type": "string",
+      "description": "动态内容",
+      "required": true
+    },
+    {
+      "name": "image",
+      "type": "string",
+      "description": "动态图片URL"
+    },
+    {
+      "name": "tags",
+      "type": "array",
+      "description": "标签列表"
+    },
+    {
+      "name": "location",
+      "type": "string",
+      "description": "发布位置"
+    },
+    {
+      "name": "likeCount",
+      "type": "number",
+      "description": "点赞数量",
+      "defaultValue": 0
+    },
+    {
+      "name": "commentCount",
+      "type": "number",
+      "description": "评论数量",
+      "defaultValue": 0
+    },
+    {
+      "name": "isLiked",
+      "type": "boolean",
+      "description": "当前用户是否点赞",
+      "defaultValue": false
+    },
+    {
+      "name": "createdAt",
+      "type": "number",
+      "description": "创建时间戳"
+    },
+    {
+      "name": "updatedAt",
+      "type": "number",
+      "description": "更新时间戳"
+    }
+  ]
+}
