@@ -2,6 +2,8 @@
 import React, { useState, useEffect } from 'react';
 // @ts-ignore;
 import { useToast } from '@/components/ui';
+// @ts-ignore;
+import { Star, Sparkles, Heart, Zap } from 'lucide-react';
 
 import { PostCard } from '@/components/PostCard';
 import { BottomNav } from '@/components/BottomNav';
@@ -172,46 +174,111 @@ export default function Home({
       description: '评论功能正在开发中'
     });
   };
-  return <div className="min-h-screen bg-gradient-to-br from-[#FFB7C5]/10 via-[#87CEEB]/10 to-[#98FB98]/10 pb-24">
+  return <div className="min-h-screen bg-gradient-to-br from-[#FFB7C5]/20 via-[#87CEEB]/15 to-[#98FB98]/20 pb-24 relative overflow-hidden">
+      {/* 动态背景装饰 */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        {/* 漂浮的星星 */}
+        <div className="absolute top-20 left-8 animate-pulse">
+          <Star size={14} className="text-[#FFB7C5]/30" />
+        </div>
+        <div className="absolute top-40 right-12 animate-pulse delay-300">
+          <Star size={12} className="text-[#87CEEB]/30" />
+        </div>
+        <div className="absolute bottom-60 left-16 animate-pulse delay-500">
+          <Star size={16} className="text-[#98FB98]/30" />
+        </div>
+        <div className="absolute top-1/2 right-8 animate-pulse delay-200">
+          <Sparkles size={18} className="text-[#FFD700]/30" />
+        </div>
+        <div className="absolute bottom-32 right-1/4 animate-pulse delay-400">
+          <Heart size={14} className="text-[#FFB7C5]/20" />
+        </div>
+        <div className="absolute top-1/3 left-1/3 animate-pulse delay-600">
+          <Zap size={12} className="text-[#87CEEB]/20" />
+        </div>
+
+        {/* 可爱的装饰元素 */}
+        <div className="absolute top-28 right-20 text-2xl animate-pulse opacity-40">🌸</div>
+        <div className="absolute bottom-40 left-1/4 text-xl animate-pulse delay-300 opacity-40">🌺</div>
+        <div className="absolute top-2/3 left-10 text-xl animate-pulse delay-500 opacity-40">💫</div>
+        <div className="absolute bottom-24 right-24 text-2xl animate-pulse delay-700 opacity-40">✨</div>
+        <div className="absolute top-1/2 right-1/2 text-xl animate-pulse delay-200 opacity-40">🌟</div>
+
+        {/* 漂浮的圆圈 */}
+        <div className="absolute top-16 left-1/3 w-20 h-20 bg-gradient-to-br from-[#FFB7C5]/10 to-[#FFB7C5]/5 rounded-full animate-bounce" style={{
+        animationDuration: '3s'
+      }} />
+        <div className="absolute bottom-28 right-1/4 w-16 h-16 bg-gradient-to-br from-[#87CEEB]/10 to-[#87CEEB]/5 rounded-full animate-bounce" style={{
+        animationDuration: '4s',
+        animationDelay: '1s'
+      }} />
+        <div className="absolute top-1/3 right-16 w-12 h-12 bg-gradient-to-br from-[#98FB98]/10 to-[#98FB98]/5 rounded-full animate-bounce" style={{
+        animationDuration: '2.5s',
+        animationDelay: '0.5s'
+      }} />
+      </div>
+
       {/* 头部 */}
-      <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-[#FFB7C5]/20">
-        <div className="max-w-md mx-auto px-4 py-4">
-          <h1 className="text-xl font-bold" style={{
-          fontFamily: 'Fredoka One, cursive',
-          color: '#FF6B6B'
-        }}>
-            动态广场
-          </h1>
+      <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-xl border-b-2 border-[#FFB7C5]/30 shadow-lg">
+        <div className="max-w-md mx-auto px-4 py-5 relative">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold" style={{
+              fontFamily: 'Fredoka One, cursive',
+              color: '#FF6B6B'
+            }}>
+                动态广场 ✨
+              </h1>
+              <p className="text-xs text-gray-400 mt-1" style={{
+              fontFamily: 'Nunito, sans-serif'
+            }}>探索二次元的世界～</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-2xl">🎀</span>
+            </div>
+          </div>
         </div>
       </header>
       
       {/* 主要内容 */}
-      <main className="max-w-md mx-auto px-4 py-4">
-        {loading ? <div className="flex flex-col items-center justify-center py-12">
-            <div className="w-16 h-16 rounded-full bg-[#FFB7C5]/20 flex items-center justify-center animate-pulse">
-              <span className="text-2xl">✨</span>
+      <main className="max-w-md mx-auto px-4 py-6 relative z-10">
+        {loading ? <div className="flex flex-col items-center justify-center py-16">
+            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[#FFB7C5] to-[#87CEEB] flex items-center justify-center animate-bounce shadow-lg" style={{
+          animationDuration: '1.5s'
+        }}>
+              <Sparkles size={32} className="text-white" />
             </div>
-            <p className="text-gray-600 text-sm mt-4" style={{
+            <p className="text-gray-600 text-sm mt-6 font-medium" style={{
           fontFamily: 'Nunito, sans-serif'
         }}>
-              加载中...
+              正在加载精彩内容...
             </p>
-          </div> : posts.length > 0 ? <div className="space-y-4">
+            <p className="text-gray-400 text-xs mt-2" style={{
+          fontFamily: 'Nunito, sans-serif'
+        }}>💫 请稍等片刻 💫</p>
+          </div> : posts.length > 0 ? <div className="space-y-5">
             {posts.map(post => <PostCard key={post.id} post={post} onLike={handleLike} onComment={handleComment} />)}
-          </div> : <div className="flex flex-col items-center justify-center py-12">
-            <div className="w-16 h-16 rounded-full bg-[#FFB7C5]/20 flex items-center justify-center">
-              <span className="text-2xl">📭</span>
+          </div> : <div className="flex flex-col items-center justify-center py-16">
+            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[#FFB7C5]/30 to-[#87CEEB]/30 flex items-center justify-center animate-bounce shadow-lg" style={{
+          animationDuration: '2s'
+        }}>
+              <span className="text-4xl">📭</span>
             </div>
-            <p className="text-gray-600 text-sm mt-4" style={{
+            <p className="text-gray-600 text-sm mt-6 font-medium" style={{
           fontFamily: 'Nunito, sans-serif'
         }}>
               还没有动态哦～
             </p>
-            <p className="text-gray-400 text-xs" style={{
+            <p className="text-gray-400 text-xs mt-2" style={{
           fontFamily: 'Nunito, sans-serif'
         }}>
-              发布第一条动态吧！✨
+              成为第一个发布动态的小伙伴吧！✨
             </p>
+            <div className="flex gap-2 mt-4">
+              <span className="text-2xl">🌸</span>
+              <span className="text-2xl">🌺</span>
+              <span className="text-2xl">🌸</span>
+            </div>
           </div>}
       </main>
       

@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 // @ts-ignore;
 import { Button, Avatar, AvatarImage, AvatarFallback, useToast } from '@/components/ui';
 // @ts-ignore;
-import { Heart, MapPin, Calendar, Edit, Settings, ArrowLeft, Star, Message, Trophy } from 'lucide-react';
+import { Heart, MapPin, Calendar, Edit, Settings, ArrowLeft, Star, Message, Trophy, Sparkles, Zap } from 'lucide-react';
 
 import { BottomNav } from '@/components/BottomNav';
 export default function Profile({
@@ -76,91 +76,159 @@ export default function Profile({
       setLoading(false);
     }
   };
-  return <div className="min-h-screen bg-gradient-to-br from-[#FFB7C5]/10 via-[#87CEEB]/10 to-[#98FB98]/10 pb-24">
+  return <div className="min-h-screen bg-gradient-to-br from-[#FFB7C5]/20 via-[#87CEEB]/15 to-[#98FB98]/20 pb-24 relative overflow-hidden">
+      {/* 动态背景装饰 */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        {/* 漂浮的星星 */}
+        <div className="absolute top-20 left-8 animate-pulse">
+          <Star size={14} className="text-[#FFB7C5]/30" />
+        </div>
+        <div className="absolute top-40 right-12 animate-pulse delay-300">
+          <Star size={12} className="text-[#87CEEB]/30" />
+        </div>
+        <div className="absolute bottom-60 left-16 animate-pulse delay-500">
+          <Star size={16} className="text-[#98FB98]/30" />
+        </div>
+        <div className="absolute top-1/2 right-8 animate-pulse delay-200">
+          <Sparkles size={18} className="text-[#FFD700]/30" />
+        </div>
+        <div className="absolute bottom-32 right-1/4 animate-pulse delay-400">
+          <Heart size={14} className="text-[#FFB7C5]/20" />
+        </div>
+        <div className="absolute top-1/3 left-1/3 animate-pulse delay-600">
+          <Zap size={12} className="text-[#87CEEB]/20" />
+        </div>
+
+        {/* 可爱的装饰元素 */}
+        <div className="absolute top-28 right-20 text-2xl animate-pulse opacity-40">🌸</div>
+        <div className="absolute bottom-40 left-1/4 text-xl animate-pulse delay-300 opacity-40">🌺</div>
+        <div className="absolute top-2/3 left-10 text-xl animate-pulse delay-500 opacity-40">💫</div>
+        <div className="absolute bottom-24 right-24 text-2xl animate-pulse delay-700 opacity-40">✨</div>
+        <div className="absolute top-1/2 right-1/2 text-xl animate-pulse delay-200 opacity-40">🌟</div>
+
+        {/* 漂浮的圆圈 */}
+        <div className="absolute top-16 left-1/3 w-20 h-20 bg-gradient-to-br from-[#FFB7C5]/10 to-[#FFB7C5]/5 rounded-full animate-bounce" style={{
+        animationDuration: '3s'
+      }} />
+        <div className="absolute bottom-28 right-1/4 w-16 h-16 bg-gradient-to-br from-[#87CEEB]/10 to-[#87CEEB]/5 rounded-full animate-bounce" style={{
+        animationDuration: '4s',
+        animationDelay: '1s'
+      }} />
+        <div className="absolute top-1/3 right-16 w-12 h-12 bg-gradient-to-br from-[#98FB98]/10 to-[#98FB98]/5 rounded-full animate-bounce" style={{
+        animationDuration: '2.5s',
+        animationDelay: '0.5s'
+      }} />
+      </div>
+
       {/* 头部 */}
-      <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-[#FFB7C5]/20">
-        <div className="max-w-md mx-auto px-4 py-4 flex items-center justify-between">
-          <h1 className="text-xl font-bold" style={{
-          fontFamily: 'Fredoka One, cursive',
-          color: '#FF6B6B'
-        }}>
-            我的档案
-          </h1>
-          <div className="flex gap-2">
-            <Button size="sm" className="bg-gradient-to-r from-[#FFB7C5] to-[#87CEEB] text-white rounded-full hover:shadow-lg transition-all duration-300 hover:scale-105" onClick={() => {
-            toast({
-              title: '编辑功能',
-              description: '编辑功能正在开发中'
-            });
-          }}>
-              <Edit size={16} className="mr-1" />
-              编辑
-            </Button>
+      <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-xl border-b-2 border-[#FFB7C5]/30 shadow-lg">
+        <div className="max-w-md mx-auto px-4 py-5 relative">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold" style={{
+              fontFamily: 'Fredoka One, cursive',
+              color: '#FF6B6B'
+            }}>
+                我的档案 🎀
+              </h1>
+              <p className="text-xs text-gray-400 mt-1" style={{
+              fontFamily: 'Nunito, sans-serif'
+            }}>展示你的二次元魅力～</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-2xl">✨</span>
+              <Button size="sm" className="bg-gradient-to-r from-[#FFB7C5] to-[#87CEEB] text-white rounded-full hover:shadow-xl transition-all duration-300 hover:scale-105" onClick={() => {
+              toast({
+                title: '编辑功能',
+                description: '编辑功能正在开发中'
+              });
+            }}>
+                <Edit size={16} className="mr-1" />
+                编辑
+              </Button>
+            </div>
           </div>
         </div>
       </header>
       
       {/* 主要内容 */}
-      <main className="max-w-md mx-auto px-4 py-6">
-        {loading ? <div className="flex flex-col items-center justify-center py-12">
-            <div className="w-16 h-16 rounded-full bg-[#FFB7C5]/20 flex items-center justify-center animate-pulse">
-              <span className="text-2xl">✨</span>
+      <main className="max-w-md mx-auto px-4 py-6 relative z-10">
+        {loading ? <div className="flex flex-col items-center justify-center py-16">
+            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[#FFB7C5] to-[#87CEEB] flex items-center justify-center animate-bounce shadow-lg" style={{
+          animationDuration: '1.5s'
+        }}>
+              <Sparkles size={32} className="text-white" />
             </div>
-            <p className="text-gray-600 text-sm mt-4" style={{
+            <p className="text-gray-600 text-sm mt-6 font-medium" style={{
           fontFamily: 'Nunito, sans-serif'
         }}>
-              加载中...
+              正在加载档案...
             </p>
+            <p className="text-gray-400 text-xs mt-2" style={{
+          fontFamily: 'Nunito, sans-serif'
+        }}>💫 请稍等片刻 💫</p>
           </div> : userProfile ? <div className="space-y-6">
             {/* 头像卡片 */}
-            <div className="bg-white rounded-3xl shadow-md p-6 overflow-hidden">
+            <div className="bg-white/95 backdrop-blur-xl rounded-[40px] shadow-2xl p-8 overflow-hidden relative border-4 border-white">
+              {/* 卡片装饰 */}
+              <div className="absolute -top-2 -right-2 w-12 h-12 bg-gradient-to-br from-[#FFB7C5] to-[#FF6B6B] rounded-full opacity-80" />
+              <div className="absolute -bottom-2 -left-2 w-10 h-10 bg-gradient-to-br from-[#87CEEB] to-[#98FB98] rounded-full opacity-80" />
+              
               <div className="relative">
-                <div className="h-24 bg-gradient-to-br from-[#FFB7C5] via-[#87CEEB] to-[#98FB98] rounded-2xl mb-4"></div>
-                <div className="absolute top-12 left-6">
-                  <Avatar className="w-24 h-24 ring-4 ring-white ring-offset-2 shadow-lg">
+                <div className="h-28 bg-gradient-to-br from-[#FFB7C5] via-[#87CEEB] to-[#98FB98] rounded-3xl mb-6 relative overflow-hidden">
+                  <div className="absolute inset-0 flex items-center justify-center gap-3 opacity-50">
+                    <span className="text-2xl">🌸</span>
+                    <span className="text-2xl">🌺</span>
+                    <span className="text-2xl">🌸</span>
+                  </div>
+                </div>
+                <div className="absolute top-14 left-8">
+                  <Avatar className="w-28 h-28 ring-4 ring-white ring-offset-4 shadow-2xl border-4 border-[#FFB7C5]/30">
                     <AvatarImage src={userProfile.avatar || currentUser.avatarUrl} alt={userProfile.name} />
-                    <AvatarFallback className="bg-gradient-to-br from-[#FFB7C5] to-[#87CEEB] text-white text-3xl">
+                    <AvatarFallback className="bg-gradient-to-br from-[#FFB7C5] to-[#87CEEB] text-white text-3xl font-bold" style={{
+                  fontFamily: 'Fredoka One, cursive'
+                }}>
                       {userProfile.name?.[0] || currentUser.name?.[0] || 'U'}
                     </AvatarFallback>
                   </Avatar>
                 </div>
               </div>
               
-              <div className="pt-4">
-                <div className="flex items-start justify-between mb-2">
+              <div className="pt-8">
+                <div className="flex items-start justify-between mb-3">
                   <div>
-                    <h2 className="text-2xl font-bold" style={{
+                    <h2 className="text-3xl font-bold mb-1" style={{
                   fontFamily: 'Fredoka One, cursive',
                   color: '#FF6B6B'
                 }}>
                       {userProfile.name || currentUser.name || '小樱花'}
                     </h2>
-                    {userProfile.nickName && <p className="text-sm text-gray-500" style={{
+                    {userProfile.nickName && <p className="text-sm text-gray-500 font-medium" style={{
                   fontFamily: 'Nunito, sans-serif'
                 }}>
                         @{userProfile.nickName}
                       </p>}
                   </div>
-                  <div className="flex items-center gap-1 text-xs text-gray-400">
+                  <div className="flex items-center gap-1 text-xs bg-gradient-to-r from-[#FFD700]/20 to-[#FFA500]/20 px-3 py-1 rounded-full">
                     <Star size={12} className="text-yellow-500" />
-                    <span>普通用户</span>
+                    <span className="text-gray-600 font-medium">普通用户</span>
                   </div>
                 </div>
                 
-                <div className="flex items-center gap-4 text-sm text-gray-600 mb-3" style={{
+                <div className="flex items-center gap-6 text-sm text-gray-600 mb-4 font-medium" style={{
               fontFamily: 'Nunito, sans-serif'
             }}>
-                  <div className="flex items-center gap-1">
-                    <MapPin size={14} />
+                  <div className="flex items-center gap-2 bg-gradient-to-r from-[#FFB7C5]/20 to-[#FFB7C5]/10 px-3 py-2 rounded-full">
+                    <MapPin size={16} className="text-[#FF6B6B]" />
                     <span>{userProfile.location || '未知地点'}</span>
                   </div>
-                  <div className="flex items-center gap-1">
-                    <Calendar size={14} />
+                  <div className="flex items-center gap-2 bg-gradient-to-r from-[#87CEEB]/20 to-[#87CEEB]/10 px-3 py-2 rounded-full">
+                    <Calendar size={16} className="text-[#87CEEB]" />
                     <span>{userProfile.age || 22}岁</span>
                   </div>
                 </div>
                 
-                <p className="text-gray-700 leading-relaxed mb-3" style={{
+                <p className="text-gray-700 leading-relaxed mb-4 text-base" style={{
               fontFamily: 'Nunito, sans-serif'
             }}>
                   {userProfile.bio || '还没有简介哦～✨'}
@@ -168,7 +236,9 @@ export default function Profile({
                 
                 {/* 兴趣标签 */}
                 {userProfile.interests && userProfile.interests.length > 0 && <div className="flex flex-wrap gap-2 mb-4">
-                    {userProfile.interests.map((interest, index) => <span key={index} className="px-3 py-1 bg-gradient-to-r from-[#FFB7C5]/30 to-[#87CEEB]/30 text-gray-700 rounded-full text-xs font-medium">
+                    {userProfile.interests.map((interest, index) => <span key={index} className="px-4 py-2 bg-gradient-to-r from-[#FFB7C5]/30 via-[#87CEEB]/20 to-[#98FB98]/30 text-gray-700 rounded-full text-xs font-bold shadow-sm hover:shadow-md transition-all duration-300 hover:scale-105" style={{
+                fontFamily: 'Fredoka One, cursive'
+              }}>
                         #{interest}
                       </span>)}
                   </div>}
@@ -176,53 +246,57 @@ export default function Profile({
             </div>
             
             {/* 统计数据卡片 */}
-            <div className="bg-white rounded-3xl shadow-md p-6">
-              <h3 className="text-sm font-bold text-gray-700 mb-4" style={{
+            <div className="bg-white/95 backdrop-blur-xl rounded-[40px] shadow-2xl p-8 relative border-4 border-white">
+              {/* 卡片装饰 */}
+              <div className="absolute top-4 right-4 w-8 h-8 bg-gradient-to-br from-[#FFB7C5] to-[#FF6B6B] rounded-full opacity-60" />
+              
+              <h3 className="text-base font-bold text-gray-700 mb-6 flex items-center gap-2" style={{
             fontFamily: 'Fredoka One, cursive'
           }}>
+                <span>✨</span>
                 我的数据
               </h3>
-              <div className="grid grid-cols-3 gap-4">
-                <div className="text-center">
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#FFB7C5] to-[#FF6B6B] flex items-center justify-center mx-auto mb-2">
-                    <Trophy size={20} className="text-white" />
+              <div className="grid grid-cols-3 gap-5">
+                <div className="text-center p-4 rounded-3xl bg-gradient-to-br from-[#FFB7C5]/10 via-[#FFB7C5]/5 to-transparent hover:from-[#FFB7C5]/20 hover:to-transparent transition-all duration-300 hover:scale-105">
+                  <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#FFB7C5] to-[#FF6B6B] flex items-center justify-center mx-auto mb-3 shadow-lg">
+                    <Trophy size={28} className="text-white" />
                   </div>
-                  <p className="text-xl font-bold text-[#FF6B6B]" style={{
+                  <p className="text-2xl font-bold text-[#FF6B6B]" style={{
                 fontFamily: 'Fredoka One, cursive'
               }}>
                     {userProfile.totalPosts || userProfile.matchCount || 128}
                   </p>
-                  <p className="text-xs text-gray-500" style={{
+                  <p className="text-xs text-gray-500 font-medium mt-1" style={{
                 fontFamily: 'Nunito, sans-serif'
               }}>
                     发布动态
                   </p>
                 </div>
-                <div className="text-center">
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#87CEEB] to-[#98FB98] flex items-center justify-center mx-auto mb-2">
-                    <Heart size={20} className="text-white" />
+                <div className="text-center p-4 rounded-3xl bg-gradient-to-br from-[#87CEEB]/10 via-[#87CEEB]/5 to-transparent hover:from-[#87CEEB]/20 hover:to-transparent transition-all duration-300 hover:scale-105">
+                  <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#87CEEB] to-[#98FB98] flex items-center justify-center mx-auto mb-3 shadow-lg">
+                    <Heart size={28} className="text-white" />
                   </div>
-                  <p className="text-xl font-bold text-[#87CEEB]" style={{
+                  <p className="text-2xl font-bold text-[#87CEEB]" style={{
                 fontFamily: 'Fredoka One, cursive'
               }}>
                     {userProfile.totalLikes || userProfile.likeCount || 456}
                   </p>
-                  <p className="text-xs text-gray-500" style={{
+                  <p className="text-xs text-gray-500 font-medium mt-1" style={{
                 fontFamily: 'Nunito, sans-serif'
               }}>
                     收到喜欢
                   </p>
                 </div>
-                <div className="text-center">
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#98FB98] to-[#FFFACD] flex items-center justify-center mx-auto mb-2">
-                    <Message size={20} className="text-white" />
+                <div className="text-center p-4 rounded-3xl bg-gradient-to-br from-[#98FB98]/10 via-[#98FB98]/5 to-transparent hover:from-[#98FB98]/20 hover:to-transparent transition-all duration-300 hover:scale-105">
+                  <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#98FB98] to-[#FFFACD] flex items-center justify-center mx-auto mb-3 shadow-lg">
+                    <Message size={28} className="text-white" />
                   </div>
-                  <p className="text-xl font-bold text-[#98FB98]" style={{
+                  <p className="text-2xl font-bold text-[#98FB98]" style={{
                 fontFamily: 'Fredoka One, cursive'
               }}>
                     {userProfile.chatCount || 89}
                   </p>
-                  <p className="text-xs text-gray-500" style={{
+                  <p className="text-xs text-gray-500 font-medium mt-1" style={{
                 fontFamily: 'Nunito, sans-serif'
               }}>
                     聊天次数
@@ -232,38 +306,46 @@ export default function Profile({
             </div>
             
             {/* 互动统计 */}
-            <div className="bg-white rounded-3xl shadow-md p-6">
-              <h3 className="text-sm font-bold text-gray-700 mb-4" style={{
+            <div className="bg-white/95 backdrop-blur-xl rounded-[40px] shadow-2xl p-8 relative border-4 border-white">
+              {/* 卡片装饰 */}
+              <div className="absolute bottom-4 left-4 w-8 h-8 bg-gradient-to-br from-[#87CEEB] to-[#98FB98] rounded-full opacity-60" />
+              
+              <h3 className="text-base font-bold text-gray-700 mb-6 flex items-center gap-2" style={{
             fontFamily: 'Fredoka One, cursive'
           }}>
+                <span>💫</span>
                 互动统计
               </h3>
-              <div className="space-y-3">
-                <div className="flex items-center justify-between p-3 bg-[#FFB7C5]/10 rounded-xl">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between p-4 bg-gradient-to-r from-[#FFB7C5]/20 via-[#FFB7C5]/10 to-transparent rounded-2xl hover:from-[#FFB7C5]/30 hover:via-[#FFB7C5]/20 transition-all duration-300">
                   <div className="flex items-center gap-3">
-                    <Heart size={18} className="text-[#FF6B6B]" />
-                    <span className="text-sm text-gray-700" style={{
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#FFB7C5] to-[#FF6B6B] flex items-center justify-center shadow-md">
+                      <Heart size={20} className="text-white" />
+                    </div>
+                    <span className="text-sm text-gray-700 font-medium" style={{
                   fontFamily: 'Nunito, sans-serif'
                 }}>
                       喜欢我的人数
                     </span>
                   </div>
-                  <span className="text-lg font-bold text-[#FF6B6B]" style={{
+                  <span className="text-xl font-bold text-[#FF6B6B]" style={{
                 fontFamily: 'Fredoka One, cursive'
               }}>
                     {userProfile.likeCount || 456}
                   </span>
                 </div>
-                <div className="flex items-center justify-between p-3 bg-[#87CEEB]/10 rounded-xl">
+                <div className="flex items-center justify-between p-4 bg-gradient-to-r from-[#87CEEB]/20 via-[#87CEEB]/10 to-transparent rounded-2xl hover:from-[#87CEEB]/30 hover:via-[#87CEEB]/20 transition-all duration-300">
                   <div className="flex items-center gap-3">
-                    <Message size={18} className="text-[#87CEEB]" />
-                    <span className="text-sm text-gray-700" style={{
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#87CEEB] to-[#98FB98] flex items-center justify-center shadow-md">
+                      <Message size={20} className="text-white" />
+                    </div>
+                    <span className="text-sm text-gray-700 font-medium" style={{
                   fontFamily: 'Nunito, sans-serif'
                 }}>
                       匹配成功数
                     </span>
                   </div>
-                  <span className="text-lg font-bold text-[#87CEEB]" style={{
+                  <span className="text-xl font-bold text-[#87CEEB]" style={{
                 fontFamily: 'Fredoka One, cursive'
               }}>
                     {userProfile.matchCount || 128}
@@ -271,15 +353,25 @@ export default function Profile({
                 </div>
               </div>
             </div>
-          </div> : <div className="flex flex-col items-center justify-center py-12">
-            <div className="w-16 h-16 rounded-full bg-[#FFB7C5]/20 flex items-center justify-center">
-              <span className="text-2xl">📭</span>
+          </div> : <div className="flex flex-col items-center justify-center py-16">
+            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[#FFB7C5]/30 to-[#87CEEB]/30 flex items-center justify-center animate-bounce shadow-lg" style={{
+          animationDuration: '2s'
+        }}>
+              <span className="text-4xl">📭</span>
             </div>
-            <p className="text-gray-600 text-sm mt-4" style={{
+            <p className="text-gray-600 text-sm mt-6 font-medium" style={{
           fontFamily: 'Nunito, sans-serif'
         }}>
               还没有档案哦～
             </p>
+            <p className="text-gray-400 text-xs mt-2" style={{
+          fontFamily: 'Nunito, sans-serif'
+        }}>💫 创建你的二次元档案吧 💫</p>
+            <div className="flex gap-2 mt-4">
+              <span className="text-2xl">🌸</span>
+              <span className="text-2xl">🌺</span>
+              <span className="text-2xl">🌸</span>
+            </div>
           </div>}
       </main>
       
