@@ -177,6 +177,51 @@ export default function Home({
   return <div className="min-h-screen bg-gradient-to-br from-[#FFB7C5]/20 via-[#87CEEB]/15 to-[#98FB98]/20 pb-24 relative overflow-hidden">
       {/* 动态背景装饰 */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        {/* 原神角色背景 */}
+        {/* 胡桃 - 左上角 */}
+        <div className="absolute top-0 left-0 w-48 h-48 opacity-8 animate-bounce rounded-2xl" style={{
+        animationDuration: '4s'
+      }}>
+          <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/aa/Hu_Tao_%28Genshin_Impact%29.jpg/500px-Hu_Tao_%28Genshin_Impact%29.jpg" alt="胡桃" className="w-full h-full object-cover rounded-2xl" />
+        </div>
+        
+        {/* 雷电将军 - 右上角 */}
+        <div className="absolute top-5 right-0 w-56 h-64 opacity-8 animate-pulse rounded-2xl" style={{
+        animationDelay: '0.5s'
+      }}>
+          <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/67/Raiden_Shogun_%28Genshin_Impact%29.jpg/500px-Raiden_Shogun_%28Genshin_Impact%29.jpg" alt="雷电将军" className="w-full h-full object-cover rounded-2xl" />
+        </div>
+        
+        {/* 钟离 - 左下角 */}
+        <div className="absolute bottom-0 left-5 w-52 h-60 opacity-8 animate-pulse rounded-2xl" style={{
+        animationDelay: '1s'
+      }}>
+          <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/39/Zhongli_%28Genshin_Impact%29.jpg/500px-Zhongli_%28Genshin_Impact%29.jpg" alt="钟离" className="w-full h-full object-cover rounded-2xl" />
+        </div>
+        
+        {/* 纳西妲 - 右下角 */}
+        <div className="absolute bottom-10 right-5 w-40 h-48 opacity-8 animate-bounce rounded-2xl" style={{
+        animationDelay: '1.5s',
+        animationDuration: '5s'
+      }}>
+          <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/95/Nahida_%28Genshin_Impact%29.jpg/500px-Nahida_%28Genshin_Impact%29.jpg" alt="纳西妲" className="w-full h-full object-cover rounded-2xl" />
+        </div>
+        
+        {/* 可莉 - 中部偏上 */}
+        <div className="absolute top-40 left-1/2 transform -translate-x-1/2 w-44 h-52 opacity-8 animate-pulse rounded-2xl" style={{
+        animationDelay: '2s'
+      }}>
+          <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/61/Klee_%28Genshin_Impact%29.jpg/500px-Klee_%28Genshin_Impact%29.jpg" alt="可莉" className="w-full h-full object-cover rounded-2xl" />
+        </div>
+        
+        {/* 甘雨 - 中部偏右 */}
+        <div className="absolute top-1/3 right-16 w-48 h-56 opacity-8 animate-bounce rounded-2xl" style={{
+        animationDelay: '2.5s',
+        animationDuration: '6s'
+      }}>
+          <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/86/Ganyu_%28Genshin_Impact%29.jpg/500px-Ganyu_%28Genshin_Impact%29.jpg" alt="甘雨" className="w-full h-full object-cover rounded-2xl" />
+        </div>
+
         {/* 漂浮的星星 */}
         <div className="absolute top-20 left-8 animate-pulse">
           <Star size={14} className="text-[#FFB7C5]/30" />
