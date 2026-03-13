@@ -7,6 +7,7 @@ import { ArrowRight, Sparkles, Heart } from 'lucide-react';
 
 // @ts-ignore;
 import { PosterCover } from '@/components/PosterCover';
+import { AnimeEffects, EffectTrigger } from '@/components/AnimeEffects';
 export default function Login({
   $w
 }) {
@@ -63,6 +64,9 @@ export default function Login({
     }
   };
   return <div className="relative min-h-screen">
+      {/* 动漫特效 */}
+      <AnimeEffects type="magic" intensity="high" />
+      
       {/* 海报背景 */}
       <PosterCover />
       

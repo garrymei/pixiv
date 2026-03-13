@@ -3,12 +3,16 @@ import React from 'react';
 // @ts-ignore;
 import { Heart, Star, Sparkles, Zap, Wand2, Crown, Swords, Shield, MapPin } from 'lucide-react';
 
+import { AnimeEffects } from './AnimeEffects';
+
 /**
  * 海报风格封面组件
  * 融合原神、王者荣耀等动漫游戏角色元素
  */
 export function PosterCover() {
   return <div className="relative w-full h-full min-h-screen overflow-hidden bg-gradient-to-br from-[#1a1a2e] via-[#16213e] to-[#0f3460]">
+      {/* 动漫特效 */}
+      <AnimeEffects type="magic" intensity="high" />
       {/* 背景层1 - 渐变光晕 */}
       <div className="absolute inset-0">
         <div className="absolute top-0 left-1/4 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl animate-pulse" />

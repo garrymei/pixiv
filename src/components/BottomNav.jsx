@@ -1,15 +1,39 @@
 // @ts-ignore;
-import React from 'react';
+import React, { useState } from 'react';
 // @ts-ignore;
 import { Home, Pen, Message, User, Sparkles } from 'lucide-react';
 
+import { EffectTrigger } from '@/components/AnimeEffects';
 export function BottomNav({
   $w,
   currentPage
 }) {
+  const [showEffect, setShowEffect] = useState(null);
+  const [effectPosition, setEffectPosition] = useState('center');
   const {
     navigateTo
   } = $w.utils;
+
+  // 处理导航点击，添加特效
+  const handleNavClick = (pageId, index) => {
+    // 设置特效位置
+    const positions = ['left', 'center', 'center', 'right'];
+    setEffectPosition(positions[index] || 'center');
+
+    // 根据页面类型设置不同的特效
+    const effects = ['magic', 'success', 'love', 'magic'];
+    const effectType = effects[index] || 'magic';
+    setShowEffect(effectType);
+
+    // 延迟跳转，让特效有时间显示
+    setTimeout(() => {
+      navigateTo({
+        pageId
+      });
+      // 清除特效
+      setTimeout(() => setShowEffect(null), 1000);
+    }, 300);
+  };
   const navItems = [{
     id: 'home',
     icon: Home,

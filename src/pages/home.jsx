@@ -3,10 +3,33 @@ import React, { useState, useEffect } from 'react';
 // @ts-ignore;
 import { useToast } from '@/components/ui';
 // @ts-ignore;
-import { Star, Sparkles, Heart, Zap } from 'lucide-react';
+import { Star, Sparkles, Heart, Zap, Home } from 'lucide-react';
 
 import { PostCard } from '@/components/PostCard';
 import { BottomNav } from '@/components/BottomNav';
+import { AnimeEffects, EffectTrigger } from '@/components/AnimeEffects';
+// 添加特效触发器状态管理
+function HomeWithEffects({
+  $w
+}) {
+  const [showEffect, setShowEffect] = useState(null);
+
+  // 触发成功特效
+  const triggerSuccessEffect = () => {
+    setShowEffect('success');
+    setTimeout(() => setShowEffect(null), 2000);
+  };
+
+  // 触发爱心特效
+  const triggerLoveEffect = () => {
+    setShowEffect('love');
+    setTimeout(() => setShowEffect(null), 2000);
+  };
+  return <>
+      <Home $w={$w} />
+      {showEffect && <EffectTrigger type={showEffect} />}
+    </>;
+}
 export default function Home({
   $w
 }) {

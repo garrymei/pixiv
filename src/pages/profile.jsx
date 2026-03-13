@@ -6,6 +6,7 @@ import { Button, Avatar, AvatarImage, AvatarFallback, useToast } from '@/compone
 import { Heart, MapPin, Calendar, Edit, Settings, ArrowLeft, Star, Message, Trophy, Sparkles, Zap } from 'lucide-react';
 
 import { BottomNav } from '@/components/BottomNav';
+import { AnimeEffects, EffectTrigger } from '@/components/AnimeEffects';
 export default function Profile({
   $w
 }) {
@@ -77,6 +78,8 @@ export default function Profile({
     }
   };
   return <div className="min-h-screen bg-gradient-to-br from-[#FFB7C5]/20 via-[#87CEEB]/15 to-[#98FB98]/20 pb-24 relative overflow-hidden">
+      {/* 动漫特效 */}
+      <AnimeEffects type="romantic" intensity="medium" />
       {/* 动态背景装饰 */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         {/* 原神角色背景 */}
