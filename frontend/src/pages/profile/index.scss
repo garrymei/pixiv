@@ -1,0 +1,26 @@
+.page-profile {
+  min-height: 100vh;
+  padding-bottom: var(--safe-area-bottom);
+}
+
+.profile-section {
+  padding: 0 var(--space-md);
+  margin-bottom: var(--space-md);
+}
+
+.profile-tags {
+  display: flex;
+  gap: var(--space-sm);
+  padding: 0 var(--space-md);
+}
+
+.profile-menu {
+  padding: 0 var(--space-md);
+}
+
+.profile-menu__item {
+  background-color: var(--color-bg-card);
+  border-radius: var(--radius-md);
+  padding: var(--space-md);
+  margin-bottom: var(--space-sm);
+}

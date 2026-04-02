@@ -1,0 +1,124 @@
+/* 
+  粤次元君 - 前端 Design Tokens 样式变量文件 
+  严格按照第 1 阶段 design-tokens.md 定义落地
+*/
+
+// ==========================================
+// 1. 颜色 Tokens (Color)
+// ==========================================
+
+// 1.1 主题色与强调色
+$color-primary: #7C4DFF;       // 品牌主色调（紫蓝色）
+$color-secondary: #FF4081;     // 辅助强调色（霓虹粉）
+$color-tertiary: #00E5FF;      // 赛博青色
+
+// 1.2 背景色 (深色主题)
+$color-bg-page: #121212;       // 页面最底层背景色
+$color-bg-card: #1E1E1E;       // 卡片背景色
+$color-bg-card-hover: #2A2A2A; // 卡片点击/按压反馈
+$color-bg-overlay: rgba(0,0,0,0.6); // 遮罩层背景色
+
+// 1.3 文字颜色
+$color-text-primary: #FFFFFF;    // 主要文字
+$color-text-regular: #E0E0E0;    // 常规文字
+$color-text-secondary: #9E9E9E;  // 辅助文字
+$color-text-placeholder: #757575;// 占位符文字
+
+// 1.4 功能状态色
+$color-success: #00C853;         // 成功状态
+$color-warning: #FFD600;         // 警告状态
+$color-error: #D50000;           // 错误状态
+
+// ==========================================
+// 2. 字体与排版 Tokens (Typography)
+// ==========================================
+$font-size-xxl: 48rpx; // 超大标题
+$font-size-xl: 40rpx;  // 页面大标题
+$font-size-lg: 36rpx;  // 模块标题
+$font-size-md: 32rpx;  // 基础正文字号
+$font-size-sm: 28rpx;  // 辅助信息
+$font-size-xs: 24rpx;  // 最小字号
+
+$font-weight-bold: 600;
+$font-weight-regular: 400;
+
+// ==========================================
+// 3. 间距 Tokens (Spacing)
+// ==========================================
+$space-xs: 8rpx;   // 极小间距
+$space-sm: 16rpx;  // 紧凑间距
+$space-md: 24rpx;  // 基础间距
+$space-lg: 32rpx;  // 宽松间距
+$space-xl: 48rpx;  // 大区块分隔间距
+
+// ==========================================
+// 4. 圆角 Tokens (Border Radius)
+// ==========================================
+$radius-sm: 8rpx;    // 小元素圆角
+$radius-md: 16rpx;   // 中等圆角
+$radius-lg: 24rpx;   // 大圆角
+$radius-round: 9999rpx; // 全圆角
+
+// ==========================================
+// 5. 阴影与发光 Tokens (Shadow & Glow)
+// ==========================================
+$shadow-card: 0 4rpx 16rpx rgba(0, 0, 0, 0.4);
+$shadow-glow-primary: 0 0 16rpx rgba(124, 77, 255, 0.4);
+$shadow-glow-pink: 0 0 16rpx rgba(255, 64, 129, 0.5);
+
+// ==========================================
+// 6. 层级 Tokens (Z-Index)
+// ==========================================
+$z-index-base: 1;
+$z-index-sticky: 100;
+$z-index-navbar: 500;
+$z-index-tabbar: 600;
+$z-index-overlay: 900;
+$z-index-modal: 1000;
+$z-index-toast: 2000;
+
+// ==========================================
+// 导出为 CSS Variables (原生支持)
+// 方便在行内样式或无法使用scss变量的地方使用
+// ==========================================
+:root, page {
+  --color-primary: #{$color-primary};
+  --color-secondary: #{$color-secondary};
+  --color-tertiary: #{$color-tertiary};
+  
+  --color-bg-page: #{$color-bg-page};
+  --color-bg-card: #{$color-bg-card};
+  --color-bg-card-hover: #{$color-bg-card-hover};
+  --color-bg-overlay: #{$color-bg-overlay};
+  
+  --color-text-primary: #{$color-text-primary};
+  --color-text-regular: #{$color-text-regular};
+  --color-text-secondary: #{$color-text-secondary};
+  --color-text-placeholder: #{$color-text-placeholder};
+  
+  --color-success: #{$color-success};
+  --color-warning: #{$color-warning};
+  --color-error: #{$color-error};
+
+  --font-size-xxl: #{$font-size-xxl};
+  --font-size-xl: #{$font-size-xl};
+  --font-size-lg: #{$font-size-lg};
+  --font-size-md: #{$font-size-md};
+  --font-size-sm: #{$font-size-sm};
+  --font-size-xs: #{$font-size-xs};
+  
+  --space-xs: #{$space-xs};
+  --space-sm: #{$space-sm};
+  --space-md: #{$space-md};
+  --space-lg: #{$space-lg};
+  --space-xl: #{$space-xl};
+  
+  --radius-sm: #{$radius-sm};
+  --radius-md: #{$radius-md};
+  --radius-lg: #{$radius-lg};
+  --radius-round: #{$radius-round};
+  
+  --shadow-card: #{$shadow-card};
+  --shadow-glow-primary: #{$shadow-glow-primary};
+  --shadow-glow-pink: #{$shadow-glow-pink};
+}

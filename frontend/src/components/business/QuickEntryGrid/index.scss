@@ -1,0 +1,59 @@
+.business-quick-entry {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  padding: var(--space-md) 0;
+  margin-bottom: var(--space-md);
+
+  &__item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 20%;
+    margin-bottom: var(--space-md);
+
+    &:active {
+      opacity: 0.8;
+    }
+  }
+
+  &__icon-wrap {
+    width: 96rpx;
+    height: 96rpx;
+    background-color: var(--color-bg-card);
+    border-radius: 32rpx; // 特殊的圆角形状
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: var(--space-xs);
+    box-shadow: 0 4rpx 12rpx rgba(0,0,0,0.2);
+    position: relative;
+    overflow: hidden;
+
+    &::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2rpx;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    }
+  }
+
+  &__icon {
+    width: 56rpx;
+    height: 56rpx;
+  }
+  
+  &__icon-text {
+    font-size: 40rpx;
+    line-height: 1;
+  }
+
+  &__title {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-regular);
+    font-weight: var(--font-weight-regular);
+  }
+}
