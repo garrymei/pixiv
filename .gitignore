@@ -1,5 +1,6 @@
 # Node.js
 node_modules/
+/node_modules
 npm-debug.log
 yarn-error.log
 package-lock.json
@@ -25,6 +26,8 @@ ehthumbs.db
 Thumbs.db
 
 # Frontend Build (UniApp / Miniprogram)
+dist/
+/dist
 frontend/dist/
 frontend/unpackage/
 frontend/.hbuilderx/

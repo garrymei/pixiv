@@ -1,0 +1,33 @@
+.page-discover {
+  min-height: 100vh;
+  padding-bottom: var(--safe-area-bottom);
+}
+
+.discover-section {
+  padding: 0 var(--space-md);
+  margin-bottom: var(--space-lg);
+}
+
+.discover-search {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: 0 var(--space-md);
+  margin: var(--space-md) 0 var(--space-lg);
+}
+
+.discover-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  padding: 0 var(--space-md);
+}
+
+.discover-categories {
+  padding: 0 var(--space-md);
+  margin-top: var(--space-md);
+}
+
+.discover-list {
+  padding: 0 var(--space-md);
+}

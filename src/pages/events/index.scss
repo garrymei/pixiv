@@ -1,0 +1,25 @@
+.page-events {
+  min-height: 100vh;
+  padding-bottom: var(--safe-area-bottom);
+}
+
+.events-tabs {
+  display: flex;
+  gap: var(--space-lg);
+  margin: var(--space-md);
+}
+
+.events-tab {
+  font-size: var(--font-size-md);
+  color: var(--color-text-secondary);
+  padding-bottom: 8rpx;
+}
+
+.events-tab--active {
+  color: var(--color-text-primary);
+  font-weight: var(--font-weight-bold);
+}
+
+.events-list {
+  padding: 0 var(--space-md);
+}

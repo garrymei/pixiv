@@ -11,8 +11,8 @@
 - 前端主配置位于 `frontend/src/app.config.ts`
 - 域名配置位于 `frontend/src/config/env.ts`
 - 图片上传调用位于 `frontend/src/services/uploads.ts`
-- 生产环境当前指向 `https://test-api.yueciyuan.com`
-- 本地开发环境仍使用 `http://127.0.0.1:3000`，仅可用于开发，不能作为发布配置
+- 生产环境当前指向 `http://43.167.164.162:3000`
+- 本地开发环境仍使用 `http://43.167.164.162:3000`，仅可用于开发，不能作为发布配置
 - 当前未发现 `downloadFile` 调用
 - 当前 `tabBar` 已有 5 个入口，但未配置图标资源
 - 当前前端未发现“隐私协议 / 用户协议 / 举报入口”页面或跳转实现
@@ -23,16 +23,16 @@
 
 | 项目 | 当前情况 | 发布要求 | 建议结论 |
 | --- | --- | --- | --- |
-| request 合法域名 | 生产环境 API 基址为 `https://test-api.yueciyuan.com` | 必须在微信公众平台后台配置到“request 合法域名” | 将 `test-api.yueciyuan.com` 加入 request 白名单，并确认正式发布时是否切换为生产域名 |
-| uploadFile 合法域名 | 上传接口走 `resolveApiUrl('/uploads/image')`，实际与 API 同域 | 必须在微信公众平台后台配置到“uploadFile 合法域名” | 将 `test-api.yueciyuan.com` 同步加入 uploadFile 白名单 |
+| request 合法域名 | 生产环境 API 基址为 `http://43.167.164.162:3000` | 必须在微信公众平台后台配置到“request 合法域名” | 将 `43.167.164.162:3000` 加入 request 白名单，并确认正式发布时是否切换为生产域名 |
+| uploadFile 合法域名 | 上传接口走 `resolveApiUrl('/uploads/image')`，实际与 API 同域 | 必须在微信公众平台后台配置到“uploadFile 合法域名” | 将 `43.167.164.162:3000` 同步加入 uploadFile 白名单 |
 | downloadFile 合法域名 | 代码中暂未使用 `Taro.downloadFile` | 若后续接入文件下载、海报保存、音视频缓存，需单独配置 | 当前可标记为“暂不使用”；若后续改为 COS / OSS 下载，需补登记 |
 
 ### 3.2 HTTPS 配置
 
 | 检查项 | 当前情况 | 风险 | 建议 |
 | --- | --- | --- | --- |
-| 生产接口 HTTPS | 已使用 `https://test-api.yueciyuan.com` | 低 | 保持 HTTPS，证书需有效且完整 |
-| 本地接口 HTTP | `http://127.0.0.1:3000` | 高 | 仅用于开发调试，不能出现在提审与正式版环境 |
+| 生产接口 HTTPS | 已使用 `http://43.167.164.162:3000` | 低 | 保持 HTTPS，证书需有效且完整 |
+| 本地接口 HTTP | `http://43.167.164.162:3000` | 高 | 仅用于开发调试，不能出现在提审与正式版环境 |
 | 上传接口 HTTPS | 与 API 同域，生产为 HTTPS | 低 | 发布前实测 1 次图片上传 |
 | 跳转链接 HTTPS | 若后续增加协议页、活动外链、客服页 | 中 | 所有外链统一使用 HTTPS |
 
