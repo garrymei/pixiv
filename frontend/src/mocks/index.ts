@@ -1,7 +1,0 @@
-export * from './user'
-export * from './banners'
-export * from './posts'
-export * from './demands'
-export * from './events'
-export * from './comments'
-export * from './profile'
