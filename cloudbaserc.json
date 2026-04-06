@@ -1,0 +1,22 @@
+{
+  "envId": "replace-with-your-cloudbase-env-id",
+  "hosting": {
+    "root": "dist",
+    "ignore": [
+      ".git/**",
+      ".github/**",
+      "node_modules/**",
+      "backend/**",
+      "docs/**",
+      "config/**",
+      "src/**",
+      "package-lock.json",
+      "tsconfig.json"
+    ]
+  },
+  "functions": {
+    "ignore": [
+      "**"
+    ]
+  }
+}
