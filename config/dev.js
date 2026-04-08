@@ -3,7 +3,7 @@ module.exports = {
     NODE_ENV: '"development"'
   },
   defineConstants: {
-    'process.env.API_MODE': '"real"',
+    'process.env.API_MODE': '"mock"',
     'process.env.APP_ENV': '"local"',
     'process.env.LOCAL_API_BASE_URL': '"http://43.167.164.162:3000"',
     'process.env.TEST_API_BASE_URL': '"http://43.167.164.162:3000"',

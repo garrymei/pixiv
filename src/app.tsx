@@ -1,6 +1,5 @@
-import Taro from '@tarojs/taro'
-import { View } from '@tarojs/components'
+import { PropsWithChildren } from 'react'
 
-export default function App() {
-  return <View />
+export default function App({ children }: PropsWithChildren) {
+  return children
 }
