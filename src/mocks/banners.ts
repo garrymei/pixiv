@@ -19,6 +19,6 @@ export const mockBanners: Banner[] = [
     title: '寻找最美 Coser',
     subtitle: '万元奖金池等你来拿',
     imageUrl: 'https://images.unsplash.com/photo-1541562232579-512a21360020?auto=format&fit=crop&q=80&w=1000',
-    linkUrl: '/pages/explore/index'
+    linkUrl: '/pages/discover/index'
   }
 ]

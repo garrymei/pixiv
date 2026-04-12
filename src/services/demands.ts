@@ -52,10 +52,12 @@ function mapDemandType(type: DemandRecord['demand_type']) {
 }
 
 function parseDemandType(label?: string): DemandRecord['demand_type'] {
-  if (label === '摄影') return 'PHOTOGRAPHY'
-  if (label === '妆娘') return 'MAKEUP'
-  if (label === 'Coser') return 'COSER'
-  if (label === '后期') return 'RETOUCH'
+  if (!label) return 'OTHER'
+  const normalized = label.replace(/^(找|本)/, '')
+  if (normalized === '摄影') return 'PHOTOGRAPHY'
+  if (normalized === '妆娘' || normalized === '毛娘') return 'MAKEUP'
+  if (normalized === 'Coser' || normalized.toLowerCase() === 'coser') return 'COSER'
+  if (normalized === '后期') return 'RETOUCH'
   return 'OTHER'
 }
 
@@ -167,7 +169,7 @@ export async function listDemands(type?: string): Promise<Demand[]> {
     const data = await get<DemandListResponse>(`/demands${suffix}`)
     return (data.list || []).map(mapDemand)
   }
-  return mockResponse(type ? mockDemands.filter((d) => d.type === type) : mockDemands)
+  return mockResponse(type ? mockDemands.filter((d) => d.type === mapDemandType(parseDemandType(type))) : mockDemands)
 }
 
 export async function listMyDemands(): Promise<Demand[]> {

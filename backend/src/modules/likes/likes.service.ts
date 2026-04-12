@@ -1,6 +1,10 @@
 import { Injectable } from '@nestjs/common'
 
-const likesStore = new Map<number, Set<number>>()
+const likesStore = new Map<number, Set<number>>([
+  [1, new Set([1, 1003])],
+  [2, new Set([1002])],
+  [5, new Set([1002])]
+])
 
 export function getLikeCountByPost(postId: number) {
   return (likesStore.get(postId) || new Set<number>()).size

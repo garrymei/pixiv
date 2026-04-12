@@ -2,7 +2,7 @@ import { View, Text } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import './index.scss'
 
-export default function Publish() {
+export default function PublishHub() {
   return (
     <View className="page-publish page-container">
       <View className="publish-grid">

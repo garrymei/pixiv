@@ -51,6 +51,7 @@ export default function MyAppliedDemands() {
             budget={demand.budget}
             location={demand.location}
             time={demand.time}
+            createTime={demand.createTime}
             authorName={demand.authorName}
             authorAvatar={demand.authorAvatar}
             status={demand.status}

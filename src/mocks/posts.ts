@@ -68,5 +68,44 @@ export const mockPosts: Post[] = [
     isLiked: false,
     tags: ['道具教程', '初音未来', '手作'],
     createTime: '2024-03-21T18:20:00Z'
+  },
+  {
+    id: 'p_5',
+    title: '最近广州的漫展总结，这些场馆真的太好拍了！',
+    coverUrl: 'https://images.unsplash.com/photo-1526628953301-3e589a6a8b74?auto=format&fit=crop&q=80&w=600',
+    authorId: mockUsers['u_1002'].id,
+    authorName: mockUsers['u_1002'].nickname,
+    authorAvatar: mockUsers['u_1002'].avatarUrl,
+    likeCount: 890,
+    commentCount: 156,
+    isLiked: false,
+    tags: ['漫展返图', '广州', '日常'],
+    createTime: '2024-03-20T14:10:00Z'
+  },
+  {
+    id: 'p_6',
+    title: '试了新的妆面，感觉很适合出赛博朋克风的角色',
+    coverUrl: 'https://images.unsplash.com/photo-1542038784456-1ea8e935640e?auto=format&fit=crop&q=80&w=600',
+    authorId: 'u_1006',
+    authorName: '美妆小天才',
+    authorAvatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Makeup',
+    likeCount: 345,
+    commentCount: 67,
+    isLiked: true,
+    tags: ['妆容分享', '赛博朋克', '日常'],
+    createTime: '2024-03-19T20:45:00Z'
+  },
+  {
+    id: 'p_7',
+    title: '【正片】明日方舟 琴柳 - 鹤雪尊',
+    coverUrl: 'https://images.unsplash.com/photo-1546561892-65bf811416b9?auto=format&fit=crop&q=80&w=600',
+    authorId: mockUsers['u_1003'].id,
+    authorName: mockUsers['u_1003'].nickname,
+    authorAvatar: mockUsers['u_1003'].avatarUrl,
+    likeCount: 5670,
+    commentCount: 892,
+    isLiked: false,
+    tags: ['明日方舟', '正片', '琴柳', 'Cosplay'],
+    createTime: '2024-03-18T12:30:00Z'
   }
 ]

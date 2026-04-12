@@ -12,12 +12,12 @@ function normalize(url?: string) {
 
 const envMap: Record<RuntimeEnv, EnvConfig> = {
   local: {
-    apiBaseUrl: normalize(process.env.LOCAL_API_BASE_URL),
-    uploadBaseUrl: normalize(process.env.LOCAL_UPLOAD_BASE_URL || process.env.LOCAL_API_BASE_URL)
+    apiBaseUrl: normalize(process.env.LOCAL_API_BASE_URL || 'https://www.pivix.top'),
+    uploadBaseUrl: normalize(process.env.LOCAL_UPLOAD_BASE_URL || process.env.LOCAL_API_BASE_URL || 'https://www.pivix.top')
   },
   test: {
-    apiBaseUrl: normalize(process.env.TEST_API_BASE_URL),
-    uploadBaseUrl: normalize(process.env.TEST_UPLOAD_BASE_URL || process.env.TEST_API_BASE_URL)
+    apiBaseUrl: normalize(process.env.TEST_API_BASE_URL || 'https://www.pivix.top'),
+    uploadBaseUrl: normalize(process.env.TEST_UPLOAD_BASE_URL || process.env.TEST_API_BASE_URL || 'https://www.pivix.top')
   }
 }
 

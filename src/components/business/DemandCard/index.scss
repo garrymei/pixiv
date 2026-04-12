@@ -1,14 +1,19 @@
 .business-demand-card {
-  background-color: var(--color-bg-card);
+  background-color: rgba(30, 20, 50, 0.4);
   border-radius: var(--radius-lg);
   padding: var(--space-md);
   margin-bottom: var(--space-md);
   box-shadow: var(--shadow-card);
   display: flex;
   flex-direction: column;
+  border: 1px solid rgba(0, 229, 255, 0.2);
+  transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+  backdrop-filter: blur(10px);
 
   &:active {
-    background-color: var(--color-bg-card-hover);
+    transform: scale(0.98);
+    box-shadow: 0 0 30rpx rgba(0, 229, 255, 0.3);
+    border-color: rgba(0, 229, 255, 0.5);
   }
 
   &--closed {

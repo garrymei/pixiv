@@ -54,5 +54,31 @@ export const mockDemands: Demand[] = [
     authorAvatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Team',
     status: 'closed',
     createTime: '2024-03-20T10:00:00Z'
+  },
+  {
+    id: 'd_4',
+    type: '后期',
+    title: '求一个修图大手子，赛博朋克风特效修图，9张连拼，急求',
+    budget: '定价: 200元',
+    location: '线上',
+    time: '接单后3天内',
+    authorId: mockUsers['u_1002'].id,
+    authorName: mockUsers['u_1002'].nickname,
+    authorAvatar: mockUsers['u_1002'].avatarUrl,
+    status: 'open',
+    createTime: '2024-03-25T12:00:00Z'
+  },
+  {
+    id: 'd_5',
+    type: '毛娘',
+    title: '找一位毛娘帮忙修整和接驳初音的假发，需要带发网',
+    budget: '50-100元',
+    location: '广州市番禺区',
+    time: '本周末',
+    authorId: 'u_1004',
+    authorName: '手工大佬',
+    authorAvatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Craft',
+    status: 'open',
+    createTime: '2024-03-25T09:30:00Z'
   }
 ]

@@ -1,33 +1,155 @@
 .page-discover {
   min-height: 100vh;
-  padding-bottom: var(--safe-area-bottom);
-}
-
-.discover-section {
-  padding: 0 var(--space-md);
-  margin-bottom: var(--space-lg);
-}
-
-.discover-search {
+  padding-bottom: calc(var(--space-xl) + var(--safe-area-bottom));
+  background: var(--color-bg-page);
   display: flex;
-  align-items: center;
-  gap: var(--space-sm);
-  padding: 0 var(--space-md);
-  margin: var(--space-md) 0 var(--space-lg);
-}
+  flex-direction: column;
 
-.discover-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-sm);
-  padding: 0 var(--space-md);
-}
+  .discover-header {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: rgba(13, 10, 21, 0.85);
+    backdrop-filter: blur(12px);
+    padding: var(--space-md) var(--space-md) var(--space-sm);
+    border-bottom: 1rpx solid rgba(255, 255, 255, 0.05);
+  }
 
-.discover-categories {
-  padding: 0 var(--space-md);
-  margin-top: var(--space-md);
-}
+  .discover-tabs {
+    display: flex;
+    justify-content: center;
+    gap: var(--space-xl);
+  }
 
-.discover-list {
-  padding: 0 var(--space-md);
+  .discover-tab {
+    position: relative;
+    padding-bottom: 12rpx;
+    
+    &__text {
+      font-size: 32rpx;
+      color: rgba(255, 255, 255, 0.6);
+      font-weight: bold;
+      transition: color 0.3s;
+    }
+
+    &--active {
+      .discover-tab__text {
+        color: var(--color-text-primary);
+        text-shadow: 0 0 10rpx rgba(255, 64, 129, 0.6);
+      }
+      
+      &::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 40rpx;
+        height: 6rpx;
+        border-radius: 6rpx;
+        background: linear-gradient(90deg, #FF4081, #7C4DFF);
+        box-shadow: 0 0 10rpx rgba(255, 64, 129, 0.5);
+      }
+    }
+  }
+
+  .discover-content {
+    flex: 1;
+    padding: var(--space-md);
+  }
+
+  .discover-search {
+    margin-bottom: var(--space-md);
+    .base-input__container {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 999rpx;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+  }
+
+  .discover-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-sm);
+    margin-bottom: var(--space-lg);
+  }
+
+  .discover-waterfall {
+    &__cols {
+      display: flex;
+      justify-content: space-between;
+      gap: var(--space-md);
+    }
+    
+    &__col {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-md);
+    }
+  }
+
+  .discover-market {
+    &__main-filters {
+      display: flex;
+      gap: var(--space-md);
+      margin-bottom: var(--space-md);
+      padding: 0 var(--space-sm);
+    }
+
+    &__main-filter {
+      padding: 12rpx 32rpx;
+      font-size: 28rpx;
+      color: rgba(255, 255, 255, 0.6);
+      font-weight: bold;
+      border-radius: 999rpx;
+      background: rgba(255, 255, 255, 0.05);
+      border: 2rpx solid transparent;
+      transition: all 0.3s;
+
+      &--active {
+        color: #00E5FF;
+        background: rgba(0, 229, 255, 0.1);
+        border-color: rgba(0, 229, 255, 0.3);
+        box-shadow: 0 0 20rpx rgba(0, 229, 255, 0.2);
+      }
+    }
+
+    &__filters {
+      display: flex;
+      gap: var(--space-sm);
+      margin-bottom: var(--space-lg);
+      overflow-x: auto;
+      padding-bottom: 10rpx;
+
+      &::-webkit-scrollbar {
+        display: none;
+      }
+    }
+
+    &__filter {
+      flex-shrink: 0;
+      padding: 12rpx 28rpx;
+      border-radius: 999rpx;
+      background: rgba(255, 255, 255, 0.05);
+      color: rgba(255, 255, 255, 0.7);
+      font-size: var(--font-size-sm);
+      border: 1rpx solid rgba(255, 255, 255, 0.1);
+      transition: all 0.2s;
+
+      &--active {
+        background: rgba(0, 229, 255, 0.15);
+        color: #00E5FF;
+        border-color: rgba(0, 229, 255, 0.4);
+        box-shadow: 0 0 15rpx rgba(0, 229, 255, 0.2);
+        font-weight: bold;
+      }
+    }
+
+    &__list {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-md);
+    }
+  }
 }

@@ -4,12 +4,11 @@ export default {
     'pages/home/index',
     'pages/profile/index',
     'pages/discover/index',
-    'pages/explore/index',
     'pages/events/index',
     'pages/event-detail/index',
     'pages/post-detail/index',
     'pages/demand-detail/index',
-    'pages/publish/index',
+    'pages/publish-hub/index',
     'pages/publish-post/index',
     'pages/publish-demand/index',
     'pages/edit-profile/index',
@@ -21,7 +20,7 @@ export default {
   window: {
     backgroundTextStyle: 'light',
     navigationBarTitleText: '粤次元君',
-    navigationBarBackgroundColor: '#4a0080',
+    navigationBarBackgroundColor: '#0d0a15',
     navigationBarTextStyle: 'white'
   },
   tabBar: {
@@ -39,7 +38,7 @@ export default {
         selectedIconPath: 'assets/tabbar/discover-active.png'
       },
       {
-        pagePath: 'pages/publish/index',
+        pagePath: 'pages/publish-hub/index',
         text: '发布',
         iconPath: 'assets/tabbar/publish.png',
         selectedIconPath: 'assets/tabbar/publish-active.png'
@@ -57,8 +56,9 @@ export default {
         selectedIconPath: 'assets/tabbar/profile-active.png'
       }
     ],
-    selectedColor: '#4a0080',
+    selectedColor: '#FF4081',
     color: '#999999',
-    backgroundColor: '#ffffff'
+    backgroundColor: '#0d0a15',
+    borderStyle: 'black'
   }
 }

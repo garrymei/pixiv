@@ -50,5 +50,34 @@ export function Button({
 }
 
 // 快捷组件导出
-export const PrimaryButton = (props: Omit<ButtonProps, 'type'>) => <Button type="primary" {...props} />
-export const SecondaryButton = (props: Omit<ButtonProps, 'type'>) => <Button type="secondary" {...props} />
+export function PrimaryButton(props: Omit<ButtonProps, 'type'>) {
+  return (
+    <Button
+      type="primary"
+      size={props.size}
+      disabled={props.disabled}
+      loading={props.loading}
+      block={props.block}
+      className={props.className}
+      onClick={props.onClick}
+    >
+      {props.children}
+    </Button>
+  )
+}
+
+export function SecondaryButton(props: Omit<ButtonProps, 'type'>) {
+  return (
+    <Button
+      type="secondary"
+      size={props.size}
+      disabled={props.disabled}
+      loading={props.loading}
+      block={props.block}
+      className={props.className}
+      onClick={props.onClick}
+    >
+      {props.children}
+    </Button>
+  )
+}

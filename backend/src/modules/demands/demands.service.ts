@@ -48,19 +48,65 @@ const recentDemandSubmissions = new Map<string, number>()
 const demands: DemandItem[] = [
   {
     id: 1,
+    authorId: 1002,
+    demand_type: DemandType.PHOTOGRAPHY,
+    title: '求一个周末有空的摄影师，拍原神申鹤外景，包车马费和午餐',
+    description: '希望熟悉夜景和外景构图，广州可约。',
+    city: '广州市海珠区',
+    location: '广州市海珠区',
+    event_time: new Date('2026-04-19T14:00:00+08:00').getTime(),
+    budget_type: 'fixed',
+    budget_amount: 500,
+    participant_limit: 1,
+    deadline: new Date('2026-04-18T23:59:59+08:00').getTime(),
+    status: DemandStatus.OPEN,
+    created_at: new Date('2024-03-24T08:00:00Z').getTime()
+  },
+  {
+    id: 2,
+    authorId: 1003,
+    demand_type: DemandType.MAKEUP,
+    title: '五一漫展急求妆娘！三个角色连妆，可接单的请私聊，带价来',
+    description: '需要妆容稳定、能早起到场。',
+    city: '广州',
+    location: '琶洲保利世贸',
+    event_time: new Date('2026-05-01T07:00:00+08:00').getTime(),
+    budget_type: 'negotiable',
+    participant_limit: 1,
+    deadline: new Date('2026-04-28T23:59:59+08:00').getTime(),
+    status: DemandStatus.OPEN,
+    created_at: new Date('2024-03-23T14:20:00Z').getTime()
+  },
+  {
+    id: 3,
+    authorId: 1005,
+    demand_type: DemandType.COSER,
+    title: '寻找能出《葬送的芙莉莲》修塔尔克的男Coser，已有芙莉莲和菲伦',
+    description: '社团组队外拍，走互勉路线。',
+    city: '深圳',
+    location: '深圳市天河区',
+    event_time: new Date('2026-05-18T15:00:00+08:00').getTime(),
+    budget_type: 'free',
+    participant_limit: 1,
+    deadline: new Date('2026-05-10T23:59:59+08:00').getTime(),
+    status: DemandStatus.CLOSED,
+    created_at: new Date('2024-03-20T10:00:00Z').getTime()
+  },
+  {
+    id: 4,
     authorId: 1,
     demand_type: DemandType.PHOTOGRAPHY,
-    title: '广州塔夜景拍摄',
-    description: '需要摄影师一位，夜景霓虹风',
+    title: '官方招募活动跟拍摄影，需会现场抓拍与简单修图',
+    description: '官方线下活动需要 1 位跟拍摄影师，活动结束后 24 小时内返图。',
     city: '广州',
-    location: '广州塔',
-    event_time: Date.now() + 86400000,
+    location: '动漫星城',
+    event_time: new Date('2026-04-20T13:00:00+08:00').getTime(),
     budget_type: 'fixed',
-    budget_amount: 300,
+    budget_amount: 800,
     participant_limit: 1,
-    deadline: Date.now() + 80000000,
+    deadline: new Date('2026-04-18T23:59:59+08:00').getTime(),
     status: DemandStatus.OPEN,
-    created_at: Date.now()
+    created_at: new Date('2024-03-22T12:00:00Z').getTime()
   }
 ]
 

@@ -14,7 +14,9 @@ type CommentItem = {
 
 let seq = 200
 const comments: CommentItem[] = [
-  { id: 1, post_id: 1, user_id: 1, content: '好看！', created_at: Date.now() }
+  { id: 1, post_id: 1, user_id: 1003, content: '这组氛围感绝了！', created_at: new Date('2024-03-24T19:00:00Z').getTime() },
+  { id: 2, post_id: 1, user_id: 1, content: '欢迎多发返图，首页给你安排上。', created_at: new Date('2024-03-24T19:30:00Z').getTime() },
+  { id: 3, post_id: 5, user_id: 1002, content: '收到，准备来发新正片！', created_at: new Date('2024-03-21T19:00:00Z').getTime() }
 ]
 
 export function getCommentCountByPost(postId: number) {

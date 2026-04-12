@@ -51,6 +51,7 @@ export default function MyDemands() {
             budget={d.budget}
             location={d.location}
             time={d.time}
+            createTime={d.createTime}
             authorName={d.authorName}
             authorAvatar={d.authorAvatar}
             status={d.status}

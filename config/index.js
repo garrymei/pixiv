@@ -21,9 +21,14 @@ const config = {
     }
   },
   framework: 'react',
-  compiler: 'webpack5',
+  compiler: {
+    type: 'webpack5',
+    prebundle: {
+      enable: false
+    }
+  },
   cache: {
-    enable: false // Webpack 持久化缓存配置
+    enable: true // Webpack 持久化缓存配置
   },
   alias: {
     '@/components': path.resolve(__dirname, '..', 'src/components'),
@@ -34,6 +39,17 @@ const config = {
     '@/styles': path.resolve(__dirname, '..', 'src/styles')
   },
   mini: {
+    optimizeMainPackage: {
+      enable: true
+    },
+    webpackChain(chain) {
+      chain.plugin('miniCssExtractPlugin').tap((args) => {
+        if (args && args[0]) {
+          args[0].ignoreOrder = true
+        }
+        return args
+      })
+    },
     postcss: {
       pxtransform: {
         enable: true,

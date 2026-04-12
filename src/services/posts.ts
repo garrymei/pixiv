@@ -115,7 +115,7 @@ export async function listPosts(type?: 'work' | 'daily'): Promise<Post[]> {
     const data = await get<PostListResponse>(`/posts${suffix}`)
     return (data.list || []).map(mapPost)
   }
-  const data = type ? mockPosts.filter((p) => (type === 'work' ? p.tags.includes('正片') : p.tags.includes('日常'))) : mockPosts
+  const data = type ? mockPosts.filter((p) => (type === 'work' ? (p.tags || []).includes('正片') : (p.tags || []).includes('日常'))) : mockPosts
   return mockResponse(data)
 }
 

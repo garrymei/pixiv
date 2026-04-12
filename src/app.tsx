@@ -1,5 +1,23 @@
-import { PropsWithChildren } from 'react'
+import React, { Component, PropsWithChildren } from 'react'
+import Taro from '@tarojs/taro'
+import './app.scss'
 
-export default function App({ children }: PropsWithChildren) {
-  return children
+class App extends Component<PropsWithChildren> {
+  componentDidMount() {
+    console.log('App launched.')
+  }
+
+  componentDidShow() {
+    console.log('App shown.')
+  }
+
+  componentDidHide() {
+    console.log('App hidden.')
+  }
+
+  render() {
+    return this.props.children
+  }
 }
+
+export default App

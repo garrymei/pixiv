@@ -3,21 +3,24 @@
   align-items: center;
   justify-content: center;
   border-radius: var(--radius-sm);
-  font-weight: var(--font-weight-regular);
+  font-weight: bold;
   box-sizing: border-box;
   white-space: nowrap;
+  backdrop-filter: blur(8px);
+  text-transform: uppercase;
+  letter-spacing: 2rpx;
 
   // Sizes
   &--small {
     height: 36rpx;
     padding: 0 12rpx;
-    font-size: var(--font-size-xs);
+    font-size: 20rpx;
   }
 
   &--medium {
     height: 48rpx;
     padding: 0 16rpx;
-    font-size: var(--font-size-sm);
+    font-size: 22rpx;
     border-radius: var(--radius-md);
   }
 

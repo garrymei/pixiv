@@ -16,7 +16,7 @@ async function bootstrap() {
   app.useGlobalFilters(new AllExceptionsFilter())
   app.useGlobalPipes(new ValidationPipe({ transform: true, whitelist: true }))
   app.useStaticAssets(join(process.cwd(), 'uploads'), { prefix: '/uploads' })
-  await app.listen(port)
+  await app.listen(port, '0.0.0.0')
 }
 
 bootstrap()

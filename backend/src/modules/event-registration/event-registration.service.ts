@@ -7,7 +7,10 @@ type RegistrationItem = {
   created_at: number
 }
 
-const registrations: RegistrationItem[] = []
+const registrations: RegistrationItem[] = [
+  { event_id: 2, user_id: 1, created_at: new Date('2024-03-21T10:00:00Z').getTime() },
+  { event_id: 2, user_id: 1002, created_at: new Date('2024-03-21T10:05:00Z').getTime() }
+]
 
 @Injectable()
 export class EventRegistrationService {

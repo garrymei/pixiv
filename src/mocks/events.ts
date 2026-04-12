@@ -39,5 +39,25 @@ export const mockEvents: Event[] = [
     status: 'ended',
     price: '¥ 280起',
     organizer: '某演出公司'
+  },
+  {
+    id: 'e_4',
+    title: '【同城集结】2024 广州国漫嘉年华',
+    coverUrl: 'https://images.unsplash.com/photo-1558008258-3256797b43f3?auto=format&fit=crop&q=80&w=800',
+    time: '2024.10.01 - 10.03',
+    location: '广州南丰国际会展中心',
+    status: 'upcoming',
+    price: '¥ 55起',
+    organizer: '国漫组委会'
+  },
+  {
+    id: 'e_5',
+    title: '二次元跳蚤市场 - 闲置周边/谷子交易会',
+    coverUrl: 'https://images.unsplash.com/photo-1511556820780-d912e42b4980?auto=format&fit=crop&q=80&w=800',
+    time: '2024.05.20 10:00 - 18:00',
+    location: '深圳市福田区',
+    status: 'upcoming',
+    price: '免费',
+    organizer: '深大漫研社'
   }
 ]

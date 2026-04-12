@@ -95,8 +95,8 @@ export function setApiMode(next: ApiMode) {
 }
 
 export function getApiMode(): ApiMode {
-  const stored = Taro.getStorageSync(MODE_KEY) as ApiMode | ''
-  return stored || defaultApiMode
+  // 强制使用环境变量中的配置，不再读取本地缓存，避免由于缓存导致一直连接错误的网络
+  return defaultApiMode
 }
 
 export function isMockMode() {
@@ -257,6 +257,11 @@ async function applyResponseInterceptors<T>(context: ResponseContext<T>) {
 }
 
 async function sendRequest<T>(context: RequestContext): Promise<ResponseLike<T>> {
+  if (isMockMode()) {
+    // Mock 模式下拦截网络请求，防止向外网/本地发送真实请求导致 ERR_CONNECTION_REFUSED
+    throw new Error('API_MODE is mock, real request is intercepted')
+  }
+
   const response = await Taro.request<ApiResponse<T>>({
     url: context.url,
     method: context.method,

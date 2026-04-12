@@ -1,5 +1,5 @@
 import { View, Text } from '@tarojs/components'
-import Taro from '@tarojs/taro'
+import Taro, { useLoad } from '@tarojs/taro'
 import { useState } from 'react'
 import { Input } from '../../components/base/Input'
 import { Textarea } from '../../components/base/Textarea'
@@ -8,13 +8,20 @@ import { PrimaryButton } from '../../components/base/Button'
 import { createDemand } from '../../services/demands'
 import './index.scss'
 
-const DEMAND_TYPES = ['摄影', '妆娘', 'Coser', '后期']
+const DEMAND_TYPES = ['摄影', '妆娘', 'Coser', '后期', '找毛娘', '找妆娘', '找摄影', '本毛娘', '本妆娘', '本摄影', '找CP']
 const BUDGETS = ['无偿', '互勉', '面议', '¥ 100-300', '¥ 300-500', '¥ 500+']
 const COUNTS = ['1人', '2-3人', '4-6人', '6人以上']
 
 export default function PublishDemand() {
   const [type, setType] = useState('')
   const [title, setTitle] = useState('')
+  
+  useLoad((options) => {
+    if (options.type && DEMAND_TYPES.includes(options.type)) {
+      setType(options.type)
+      setTitle(`【${options.type}】`)
+    }
+  })
   const [desc, setDesc] = useState('')
   const [time, setTime] = useState('')
   const [deadline, setDeadline] = useState('')

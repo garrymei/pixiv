@@ -8,7 +8,11 @@ type DemandApplyItem = {
   created_at: number
 }
 
-const applies: DemandApplyItem[] = []
+const applies: DemandApplyItem[] = [
+  { demand_id: 1, user_id: 1003, created_at: new Date('2024-03-24T17:00:00Z').getTime() },
+  { demand_id: 4, user_id: 1003, created_at: new Date('2024-03-22T13:00:00Z').getTime() },
+  { demand_id: 2, user_id: 1002, created_at: new Date('2024-03-23T23:00:00Z').getTime() }
+]
 
 @Injectable()
 export class DemandApplicationService {

@@ -43,27 +43,63 @@ const recentPostSubmissions = new Map<string, number>()
 const posts: PostItem[] = [
   {
     id: 1,
-    authorId: 1,
-    title: '正片·初音未来',
-    content: '拍摄于广州塔，夜景霓虹',
+    authorId: 1002,
+    title: '周末去拍了原神同人，真的太开心了！感谢摄影师把我都拍瘦了！',
+    content: '周末去拍了原神同人，真的太开心了！感谢摄影师把我都拍瘦了！',
     post_type: 'work',
-    cover_image: '',
-    images: [],
-    tags: ['cos', 'miku'],
+    cover_image: 'https://images.unsplash.com/photo-1578632767115-351597cf2477?auto=format&fit=crop&q=80&w=600',
+    images: ['https://images.unsplash.com/photo-1578632767115-351597cf2477?auto=format&fit=crop&q=80&w=600'],
+    tags: ['Cosplay', '正片', '原神', '广州场照'],
     location: '广州',
-    created_at: Date.now()
+    created_at: new Date('2024-03-24T10:00:00Z').getTime()
   },
   {
     id: 2,
-    authorId: 1,
-    title: '日常·场记',
-    content: '今天在海心沙踩点',
+    authorId: 1003,
+    title: '接寄拍/场照/正片，风格看主页，设备A7M4，出片快！',
+    content: '接寄拍/场照/正片，风格看主页，设备A7M4，出片快！',
     post_type: 'daily',
-    cover_image: '',
-    images: [],
-    tags: ['daily'],
+    cover_image: 'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&q=80&w=600',
+    images: ['https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&q=80&w=600'],
+    tags: ['摄影接单', '场照', '后期', '日常'],
     location: '广州',
-    created_at: Date.now()
+    created_at: new Date('2024-03-23T15:30:00Z').getTime()
+  },
+  {
+    id: 3,
+    authorId: 1002,
+    title: '有没有一起出刀剑神域的姐妹！缺个亚丝娜！',
+    content: '有没有一起出刀剑神域的姐妹！缺个亚丝娜！',
+    post_type: 'daily',
+    cover_image: 'https://images.unsplash.com/photo-1608889175123-8ee362201f81?auto=format&fit=crop&q=80&w=600',
+    images: ['https://images.unsplash.com/photo-1608889175123-8ee362201f81?auto=format&fit=crop&q=80&w=600'],
+    tags: ['组队', '刀剑神域', '求组队'],
+    location: '广州',
+    created_at: new Date('2024-03-22T09:15:00Z').getTime()
+  },
+  {
+    id: 4,
+    authorId: 1004,
+    title: '分享一下自制的初音未来道具，轻黏土制作教程~',
+    content: '分享一下自制的初音未来道具，轻黏土制作教程~',
+    post_type: 'work',
+    cover_image: 'https://images.unsplash.com/photo-1535378620166-273708d44e4c?auto=format&fit=crop&q=80&w=600',
+    images: ['https://images.unsplash.com/photo-1535378620166-273708d44e4c?auto=format&fit=crop&q=80&w=600'],
+    tags: ['道具教程', '初音未来', '手作'],
+    location: '深圳',
+    created_at: new Date('2024-03-21T18:20:00Z').getTime()
+  },
+  {
+    id: 5,
+    authorId: 1,
+    title: '粤次元君开站啦，欢迎大家来发作品、找搭子、看活动。',
+    content: '粤次元君开站啦，欢迎大家来发作品、找搭子、看活动。',
+    post_type: 'daily',
+    cover_image: 'https://images.unsplash.com/photo-1526628953301-3e589a6a8b74?auto=format&fit=crop&q=80&w=600',
+    images: ['https://images.unsplash.com/photo-1526628953301-3e589a6a8b74?auto=format&fit=crop&q=80&w=600'],
+    tags: ['官方', '公告', '社区'],
+    location: '广州',
+    created_at: new Date('2024-03-21T10:00:00Z').getTime()
   }
 ]
 

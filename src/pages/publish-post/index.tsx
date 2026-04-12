@@ -158,23 +158,8 @@ export default function PublishPost() {
           <Text className="page-publish-post__title">发布动态</Text>
           <Text className="page-publish-post__subtitle">发一条有氛围感的作品或日常，让你的状态被同频的人看到。</Text>
         </View>
-        <View className="page-publish-post__hero-badge">
+        <View className="page-publish-post__hero-badge" onClick={submit}>
           <Text className="page-publish-post__hero-badge-text">实时发布</Text>
-        </View>
-      </View>
-
-      <View className="page-publish-post__meta-strip">
-        <View className="page-publish-post__meta-item">
-          <Text className="page-publish-post__meta-label">图片上限</Text>
-          <Text className="page-publish-post__meta-value">{MAX_IMAGES} 张</Text>
-        </View>
-        <View className="page-publish-post__meta-item">
-          <Text className="page-publish-post__meta-label">上传成功</Text>
-          <Text className="page-publish-post__meta-value">{successCount} 张</Text>
-        </View>
-        <View className="page-publish-post__meta-item">
-          <Text className="page-publish-post__meta-label">已选标签</Text>
-          <Text className="page-publish-post__meta-value">{tags.length} 个</Text>
         </View>
       </View>
 

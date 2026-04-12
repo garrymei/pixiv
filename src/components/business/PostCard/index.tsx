@@ -47,7 +47,7 @@ export function PostCard({
           {tags.length > 0 && (
             <View className="business-post-card__tags">
               {tags.slice(0, 2).map((tag, idx) => (
-                <View key={idx} className="business-post-card__tag-item">{tag}</View>
+                <View key={idx} className="business-post-card__tag-item"><Text>{tag}</Text></View>
               ))}
             </View>
           )}

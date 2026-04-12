@@ -1,19 +1,24 @@
 .business-post-card {
-  background-color: var(--color-bg-card);
+  background-color: rgba(30, 20, 50, 0.4);
   border-radius: var(--radius-lg);
   overflow: hidden;
   box-shadow: var(--shadow-card);
   margin-bottom: var(--space-md);
   display: flex;
   flex-direction: column;
+  border: 1px solid rgba(124, 77, 255, 0.2);
+  transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+  backdrop-filter: blur(10px);
 
   &:active {
-    background-color: var(--color-bg-card-hover);
+    transform: scale(0.98);
+    box-shadow: 0 0 30rpx rgba(124, 77, 255, 0.4);
+    border-color: rgba(255, 64, 129, 0.5);
   }
 
   &--waterfall {
     break-inside: avoid;
-    margin-bottom: var(--space-sm);
+    margin-bottom: var(--space-md);
     
     .business-post-card__cover {
       width: 100%;
@@ -24,6 +29,15 @@
   &__cover-wrap {
     position: relative;
     width: 100%;
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 80rpx;
+      background: linear-gradient(to top, rgba(16, 11, 33, 0.9), transparent);
+    }
   }
 
   &__cover {
@@ -39,16 +53,18 @@
     left: var(--space-sm);
     display: flex;
     gap: var(--space-xs);
+    z-index: 1;
   }
 
   &__tag-item {
     font-size: 20rpx;
     padding: 4rpx 12rpx;
-    background-color: rgba(0,0,0,0.6);
-    color: var(--color-text-primary);
+    background-color: rgba(255, 64, 129, 0.2);
+    color: #fff;
     border-radius: var(--radius-round);
     backdrop-filter: blur(4px);
-    border: 1rpx solid rgba(255,255,255,0.2);
+    border: 1rpx solid rgba(255, 64, 129, 0.5);
+    text-shadow: 0 0 8rpx rgba(255, 64, 129, 0.8);
   }
 
   &__info {

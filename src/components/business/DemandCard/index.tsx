@@ -11,6 +11,7 @@ export interface DemandCardProps {
   budget?: string
   location?: string
   time?: string
+  createTime?: string
   authorName: string
   authorAvatar?: string
   status?: 'open' | 'closed'
@@ -25,6 +26,7 @@ export function DemandCard({
   budget,
   location,
   time,
+  createTime,
   authorName,
   authorAvatar,
   status = 'open',
@@ -44,7 +46,7 @@ export function DemandCard({
           <Avatar src={authorAvatar} size={40} className="business-demand-card__avatar" />
           <View className="business-demand-card__author-info">
             <Text className="business-demand-card__author-name">{authorName}</Text>
-            <Text className="business-demand-card__time-post">刚刚发布</Text>
+            <Text className="business-demand-card__time-post">{createTime || '刚刚发布'}</Text>
           </View>
         </View>
         <Tag type={isClosed ? 'default' : 'secondary'} outline={!isClosed}>
@@ -59,7 +61,7 @@ export function DemandCard({
           {time && (
             <View className="business-demand-card__meta-item">
               <View className="business-demand-card__icon-time" />
-              <Text>{time}</Text>
+              <Text>预约时间：{time}</Text>
             </View>
           )}
           {location && (
