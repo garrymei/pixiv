@@ -45,6 +45,14 @@ backend/build/
 *.sln
 *.sw?
 
+# Certificates / Keys
+pivix.top_nginx/
+*.key
+*.pem
+*.crt
+*.cer
+*.csr
+
 # Python (If any scripts are used)
 __pycache__/
 *.py[cod]
