@@ -11,6 +11,9 @@ import { EmptyState } from '../../components/base/EmptyState'
 
 import { listPosts } from '../../services/posts'
 import { listDemands } from '../../services/demands'
+import { getApiBaseUrl } from '../../services/request'
+import { mockPosts } from '../../mocks/posts'
+import { mockDemands } from '../../mocks/demands'
 
 import './index.scss'
 
@@ -31,32 +34,69 @@ const MARKET_SUB_FILTERS = {
 
 export default function Discover() {
   const [activeTab, setActiveTab] = useState('square')
+  const apiBaseUrl = getApiBaseUrl()
   
   // 广场状态
   const [search, setSearch] = useState('')
   const [posts, setPosts] = useState<any[]>([])
   const [activeTag, setActiveTag] = useState<string | null>(null)
+  const [isSquareMockFallback, setIsSquareMockFallback] = useState(false)
   
   // 市集状态
   const [demands, setDemands] = useState<any[]>([])
   const [activeMarketMain, setActiveMarketMain] = useState<'seek'|'offer'>('seek')
   const [activeMarketSub, setActiveMarketSub] = useState('全部')
+  const [isMarketMockFallback, setIsMarketMockFallback] = useState(false)
+
+  const mapMarketFilterToDemandType = (main: 'seek' | 'offer', sub: string) => {
+    if (sub === '全部') return undefined
+    const normalized = sub.replace(/^(找|本)/, '')
+    if (normalized === '摄影') return '摄影'
+    if (normalized === '妆娘' || normalized === '毛娘') return '妆娘'
+    if (normalized.toLowerCase() === 'coser') return 'Coser'
+    if (normalized === '后期') return '后期'
+    if (main === 'seek') return '其他'
+    if (main === 'offer') return '其他'
+    return undefined
+  }
 
   // 获取数据
   const loadData = async () => {
     try {
       if (activeTab === 'square') {
         const p = await listPosts()
-        setPosts(p)
+        if (Array.isArray(p) && p.length > 0) {
+          setPosts(p)
+          setIsSquareMockFallback(false)
+          return
+        }
+
+        setPosts(mockPosts)
+        setIsSquareMockFallback(true)
       } else {
-        // 在实际业务中，可以根据 activeMarketSub 传递筛选参数
-        const type = activeMarketSub === '全部' ? undefined : activeMarketSub
+        const type = mapMarketFilterToDemandType(activeMarketMain, activeMarketSub)
         const d = await listDemands(type)
-        setDemands(d)
+        if (Array.isArray(d) && d.length > 0) {
+          setDemands(d)
+          setIsMarketMockFallback(false)
+          return
+        }
+
+        const fallback = type ? mockDemands.filter((item) => item.type === type) : mockDemands
+        setDemands(fallback)
+        setIsMarketMockFallback(true)
       }
     } catch (err: any) {
       console.error('Discover loadData error:', err)
-      Taro.showToast({ title: err.message || '加载失败', icon: 'none' })
+      if (activeTab === 'square') {
+        setPosts(mockPosts)
+        setIsSquareMockFallback(true)
+      } else {
+        const type = mapMarketFilterToDemandType(activeMarketMain, activeMarketSub)
+        setDemands(type ? mockDemands.filter((item) => item.type === type) : mockDemands)
+        setIsMarketMockFallback(true)
+      }
+      Taro.showToast({ title: '接口异常，已切换示例数据', icon: 'none' })
     }
   }
 
@@ -128,6 +168,16 @@ export default function Discover() {
                 onInput={e => setSearch((e.detail as any).value)}
                 placeholder="搜索你感兴趣的动态内容"
               />
+            </View>
+            <View className="discover-source">
+              <Text className="discover-source__text">
+                读取地址：{apiBaseUrl}
+              </Text>
+              <Text className={classNames('discover-source__badge', {
+                'discover-source__badge--mock': isSquareMockFallback
+              })}>
+                {isSquareMockFallback ? '当前数据：Mock 示例' : '当前数据：域名接口'}
+              </Text>
             </View>
 
             {allTags.length > 0 && (
@@ -222,6 +272,16 @@ export default function Discover() {
             </View>
 
             <View className="discover-market__list">
+              <View className="discover-source discover-source--market">
+                <Text className="discover-source__text">
+                  读取地址：{apiBaseUrl}
+                </Text>
+                <Text className={classNames('discover-source__badge', {
+                  'discover-source__badge--mock': isMarketMockFallback
+                })}>
+                  {isMarketMockFallback ? '当前数据：Mock 示例' : '当前数据：域名接口'}
+                </Text>
+              </View>
               <View style={{ display: demands.length === 0 ? 'block' : 'none' }}>
                 <EmptyState title="市集暂无内容" />
               </View>
