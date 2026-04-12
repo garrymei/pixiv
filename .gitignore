@@ -46,12 +46,12 @@ backend/build/
 *.sw?
 
 # Certificates / Keys
-pivix.top_nginx/
 *.key
 *.pem
-*.crt
 *.cer
-*.csr
+pivix.top_nginx/*
+!pivix.top_nginx/*.crt
+!pivix.top_nginx/*.csr
 
 # Python (If any scripts are used)
 __pycache__/
