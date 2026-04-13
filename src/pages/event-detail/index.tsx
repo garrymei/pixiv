@@ -54,7 +54,7 @@ export default function EventDetail() {
       Taro.showToast({ title: '你已经报名过该活动了', icon: 'none' })
       return
     }
-    if (ev.eventType !== 'official') {
+    if (!ev.isRegisterable) {
       Taro.showToast({ title: '该活动为资讯内容，暂不支持报名', icon: 'none' })
       return
     }
@@ -85,7 +85,7 @@ export default function EventDetail() {
   const typeText = ev.eventType === 'official' ? '官方活动' : '活动资讯'
   const disabledReason = joined
     ? '你已报名该活动，可在“我的活动”中查看'
-    : ev.eventType !== 'official'
+      : !ev.isRegisterable
       ? '该内容为活动资讯，暂不支持报名'
       : ev.status === 'ended'
         ? '活动已结束'

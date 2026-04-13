@@ -13,9 +13,9 @@ export default function Events() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
-  const getActionText = (status: string) => {
+  const getActionText = (status: string, isRegisterable?: boolean) => {
     if (status === 'ended') return '已结束'
-    if (tab === 'info') return '查看详情'
+    if (!isRegisterable) return '查看详情'
     return '立即报名'
   }
 
@@ -71,7 +71,7 @@ export default function Events() {
               price={ev.price}
               capacity={ev.capacity ? `名额：${ev.capacity}` : '名额：未限制'}
               deadline={ev.registrationDeadlineText ? `截止：${ev.registrationDeadlineText}` : undefined}
-              actionText={getActionText(ev.status)}
+              actionText={getActionText(ev.status, ev.isRegisterable)}
               onClick={() => Taro.navigateTo({ url: `/pages/event-detail/index?id=${ev.id}` })}
               onActionClick={() => Taro.navigateTo({ url: `/pages/event-detail/index?id=${ev.id}` })}
             />

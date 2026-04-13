@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common'
+import { BadRequestException, NotFoundException } from '@nestjs/common'
 
 type EventItem = {
   id: number
@@ -12,8 +13,25 @@ type EventItem = {
   organizer?: string
   status: 'UPCOMING' | 'ONGOING' | 'ENDED'
   event_type: 'info' | 'official'
+  is_registerable: boolean
   capacity?: number
   registration_deadline?: number
+}
+
+type UpsertEventPayload = {
+  title: string
+  cover_image?: string
+  start_time?: number
+  end_time?: number
+  location?: string
+  description?: string
+  price?: number | null
+  organizer?: string
+  status?: 'UPCOMING' | 'ONGOING' | 'ENDED'
+  event_type?: 'info' | 'official'
+  is_registerable?: boolean
+  capacity?: number | null
+  registration_deadline?: number | null
 }
 
 type EventResponse = {
@@ -28,6 +46,7 @@ type EventResponse = {
   organizer: string
   status: 'UPCOMING' | 'ONGOING' | 'ENDED'
   event_type: 'info' | 'official'
+  is_registerable: boolean
   capacity: number | null
   registration_deadline: number | null
 }
@@ -45,7 +64,8 @@ const events: EventItem[] = [
     price: 68,
     organizer: 'YACA 组委会',
     status: 'UPCOMING',
-    event_type: 'info'
+    event_type: 'info',
+    is_registerable: false
   },
   {
     id: 2,
@@ -59,6 +79,7 @@ const events: EventItem[] = [
     organizer: '粤次元君_官方',
     status: 'UPCOMING',
     event_type: 'official',
+    is_registerable: true,
     capacity: 50,
     registration_deadline: new Date('2026-04-19T23:59:59+08:00').getTime()
   },
@@ -73,7 +94,8 @@ const events: EventItem[] = [
     price: 280,
     organizer: '某演出公司',
     status: 'ENDED',
-    event_type: 'info'
+    event_type: 'info',
+    is_registerable: false
   }
 ]
 
@@ -90,9 +112,28 @@ function toEventResponse(item: EventItem): EventResponse {
     organizer: item.organizer || '',
     status: item.status,
     event_type: item.event_type,
+    is_registerable: item.is_registerable,
     capacity: item.capacity ?? null,
     registration_deadline: item.registration_deadline ?? null
   }
+}
+
+function normalizeTimestamp(value?: number | null) {
+  if (value === null || value === undefined) return undefined
+  if (!Number.isFinite(value)) throw new BadRequestException('invalid timestamp')
+  return Math.trunc(value)
+}
+
+function normalizePrice(value?: number | null) {
+  if (value === null || value === undefined) return undefined
+  if (!Number.isFinite(value) || value < 0) throw new BadRequestException('invalid price')
+  return Math.trunc(value)
+}
+
+function normalizeCapacity(value?: number | null) {
+  if (value === null || value === undefined) return undefined
+  if (!Number.isFinite(value) || value < 0) throw new BadRequestException('invalid capacity')
+  return Math.trunc(value)
 }
 
 @Injectable()
@@ -108,5 +149,61 @@ export class EventsService {
   async getById(id: number) {
     const item = events.find(e => e.id === id)
     return item ? toEventResponse(item) : null
+  }
+
+  async create(payload: UpsertEventPayload) {
+    const title = String(payload.title || '').trim()
+    if (!title) throw new BadRequestException('title required')
+
+    const item: EventItem = {
+      id: ++seq,
+      title,
+      cover_image: String(payload.cover_image || '').trim() || undefined,
+      start_time: normalizeTimestamp(payload.start_time),
+      end_time: normalizeTimestamp(payload.end_time),
+      location: String(payload.location || '').trim() || undefined,
+      description: String(payload.description || '').trim() || undefined,
+      price: normalizePrice(payload.price),
+      organizer: String(payload.organizer || '').trim() || undefined,
+      status: payload.status || 'UPCOMING',
+      event_type: payload.event_type || 'official',
+      is_registerable: payload.is_registerable ?? (payload.event_type ? payload.event_type === 'official' : true),
+      capacity: normalizeCapacity(payload.capacity),
+      registration_deadline: normalizeTimestamp(payload.registration_deadline)
+    }
+    events.unshift(item)
+    return toEventResponse(item)
+  }
+
+  async update(id: number, payload: Partial<UpsertEventPayload>) {
+    const item = events.find(e => e.id === id)
+    if (!item) throw new NotFoundException('event not found')
+
+    if (payload.title !== undefined) {
+      const title = String(payload.title || '').trim()
+      if (!title) throw new BadRequestException('title required')
+      item.title = title
+    }
+    if (payload.cover_image !== undefined) item.cover_image = String(payload.cover_image || '').trim()
+    if (payload.start_time !== undefined) item.start_time = normalizeTimestamp(payload.start_time)
+    if (payload.end_time !== undefined) item.end_time = normalizeTimestamp(payload.end_time)
+    if (payload.location !== undefined) item.location = String(payload.location || '').trim()
+    if (payload.description !== undefined) item.description = String(payload.description || '').trim()
+    if (payload.price !== undefined) item.price = normalizePrice(payload.price)
+    if (payload.organizer !== undefined) item.organizer = String(payload.organizer || '').trim()
+    if (payload.status !== undefined) item.status = payload.status
+    if (payload.event_type !== undefined) item.event_type = payload.event_type
+    if (payload.is_registerable !== undefined) item.is_registerable = !!payload.is_registerable
+    if (payload.capacity !== undefined) item.capacity = normalizeCapacity(payload.capacity)
+    if (payload.registration_deadline !== undefined) item.registration_deadline = normalizeTimestamp(payload.registration_deadline)
+
+    return toEventResponse(item)
+  }
+
+  async remove(id: number) {
+    const index = events.findIndex(e => e.id === id)
+    if (index === -1) throw new NotFoundException('event not found')
+    const [removed] = events.splice(index, 1)
+    return toEventResponse(removed)
   }
 }

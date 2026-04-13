@@ -1,5 +1,6 @@
 import { Injectable, BadRequestException, ForbiddenException, Inject, NotFoundException, forwardRef } from '@nestjs/common'
 import { EventsService } from '../events/events.service'
+import { getStoredUserSummary } from '../users/users.service'
 
 type RegistrationItem = {
   event_id: number
@@ -19,7 +20,7 @@ export class EventRegistrationService {
   async register(eventId: number, userId: number) {
     const event = await this.eventsService.getById(eventId)
     if (!event) throw new NotFoundException('event not found')
-    if (event.event_type !== 'official') throw new ForbiddenException('not allow')
+    if (!event.is_registerable) throw new ForbiddenException('not allow')
     if (event.registration_deadline && Date.now() > event.registration_deadline)
       throw new BadRequestException('deadline passed')
     const existing = registrations.find(r => r.event_id === eventId && r.user_id === userId)
@@ -46,5 +47,27 @@ export class EventRegistrationService {
       })
     )
     return { list: detailed.filter(Boolean) }
+  }
+
+  async listByEvent(eventId: number) {
+    const event = await this.eventsService.getById(eventId)
+    if (!event) throw new NotFoundException('event not found')
+
+    const list = registrations
+      .filter(r => r.event_id === eventId)
+      .sort((a, b) => b.created_at - a.created_at)
+      .map((item) => {
+        const user = getStoredUserSummary(item.user_id)
+        return {
+          user_id: item.user_id,
+          nickname: user?.nickname || `用户${item.user_id}`,
+          avatar: user?.avatar || '',
+          city: user?.city || '',
+          role_type: user?.role_type || 'user',
+          registered_at: item.created_at
+        }
+      })
+
+    return { event_id: eventId, total: list.length, list }
   }
 }

@@ -17,4 +17,10 @@ export class EventRegistrationController {
   async status(@Req() req: any, @Param('id') id: string) {
     return this.registrationService.status(Number(id), req.user.id)
   }
+
+  @Get(':id/registrations')
+  @UseGuards(JwtAuthGuard)
+  async listByEvent(@Param('id') id: string) {
+    return this.registrationService.listByEvent(Number(id))
+  }
 }

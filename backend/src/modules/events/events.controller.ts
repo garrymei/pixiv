@@ -1,8 +1,9 @@
-import { Controller, Get, Param, Query, UseGuards, Req } from '@nestjs/common'
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, Req, UseGuards } from '@nestjs/common'
 import { EventsService } from './events.service'
 import { ListEventsDto } from './dto/list-events.dto'
 import { JwtAuthGuard } from '../auth/jwt-auth.guard'
 import { EventRegistrationService } from '../event-registration/event-registration.service'
+import { UpsertEventDto } from './dto/upsert-event.dto'
 
 @Controller('events')
 export class EventsController {
@@ -25,5 +26,23 @@ export class EventsController {
   @Get(':id')
   async getById(@Param('id') id: string) {
     return this.eventsService.getById(Number(id))
+  }
+
+  @Post()
+  @UseGuards(JwtAuthGuard)
+  async create(@Body() dto: UpsertEventDto) {
+    return this.eventsService.create(dto)
+  }
+
+  @Patch(':id')
+  @UseGuards(JwtAuthGuard)
+  async update(@Param('id') id: string, @Body() dto: Partial<UpsertEventDto>) {
+    return this.eventsService.update(Number(id), dto)
+  }
+
+  @Delete(':id')
+  @UseGuards(JwtAuthGuard)
+  async remove(@Param('id') id: string) {
+    return this.eventsService.remove(Number(id))
   }
 }

@@ -1,0 +1,413 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>活动管理后台</title>
+  <style>
+    :root { color-scheme: dark; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #0f1220;
+      color: #f5f7ff;
+    }
+    .container { max-width: 1100px; margin: 0 auto; padding: 20px; }
+    .card {
+      background: #1a1f34;
+      border: 1px solid #2b3252;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 14px;
+    }
+    h1, h2 { margin: 0 0 12px; }
+    .row { display: flex; gap: 10px; flex-wrap: wrap; }
+    .row > * { flex: 1 1 180px; }
+    label { display: block; font-size: 12px; color: #a8b0d3; margin-bottom: 6px; }
+    input, select, textarea, button {
+      width: 100%;
+      box-sizing: border-box;
+      border-radius: 8px;
+      border: 1px solid #3a4470;
+      background: #10162a;
+      color: #f5f7ff;
+      padding: 10px;
+      font-size: 14px;
+    }
+    textarea { min-height: 84px; resize: vertical; }
+    button { cursor: pointer; background: #6c7bff; border: none; font-weight: 600; }
+    button.secondary { background: #2f3556; }
+    button.danger { background: #c7416b; }
+    .toolbar { display: flex; gap: 8px; align-items: center; }
+    .status { font-size: 13px; color: #8de2aa; min-height: 18px; }
+    .error { color: #ff8ea7; }
+    table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+    th, td { border-bottom: 1px solid #2b3252; padding: 10px 8px; text-align: left; vertical-align: top; }
+    th { color: #9facde; font-size: 13px; }
+    td small { color: #8f97bb; }
+    .actions { display: flex; gap: 6px; }
+    .muted { color: #96a2cf; font-size: 12px; }
+    .inline { display: inline-flex; gap: 8px; align-items: center; }
+    .chip {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      border: 1px solid #3a4470;
+      color: #b9c4ef;
+    }
+    .chip.ok {
+      border-color: #46c187;
+      color: #89f5be;
+      background: rgba(70, 193, 135, 0.12);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="card">
+      <h1>活动管理后台</h1>
+      <div class="row">
+        <div>
+          <label>API 基址</label>
+          <input id="baseUrl" value="" placeholder="默认同域名" />
+        </div>
+        <div>
+          <label>Mock 登录账号</label>
+          <input id="mockId" value="dev" />
+        </div>
+        <div>
+          <label>昵称（可选）</label>
+          <input id="nickname" value="活动运营" />
+        </div>
+      </div>
+      <div class="toolbar" style="margin-top:10px;">
+        <button id="loginBtn" style="max-width:180px;">登录并获取 Token</button>
+        <button id="refreshBtn" class="secondary" style="max-width:120px;">刷新活动</button>
+        <span class="muted">当前 token 仅保存在浏览器本地</span>
+      </div>
+      <div id="status" class="status"></div>
+    </div>
+
+    <div class="card">
+      <h2 id="formTitle">新建活动</h2>
+      <div class="row">
+        <div style="flex:2 1 320px;">
+          <label>标题 *</label>
+          <input id="title" />
+        </div>
+        <div>
+          <label>类型</label>
+          <select id="event_type">
+            <option value="official">official</option>
+            <option value="info">info</option>
+          </select>
+        </div>
+        <div>
+          <label>状态</label>
+          <select id="statusField">
+            <option value="UPCOMING">UPCOMING</option>
+            <option value="ONGOING">ONGOING</option>
+            <option value="ENDED">ENDED</option>
+          </select>
+        </div>
+      </div>
+      <div class="row">
+        <div>
+          <label>开始时间</label>
+          <input id="start_time" type="datetime-local" />
+        </div>
+        <div>
+          <label>结束时间</label>
+          <input id="end_time" type="datetime-local" />
+        </div>
+        <div>
+          <label>报名截止</label>
+          <input id="registration_deadline" type="datetime-local" />
+        </div>
+      </div>
+      <div class="row">
+        <div>
+          <label>地点</label>
+          <input id="location" />
+        </div>
+        <div>
+          <label>主办方</label>
+          <input id="organizer" />
+        </div>
+        <div>
+          <label>价格（元）</label>
+          <input id="price" type="number" min="0" />
+        </div>
+        <div>
+          <label>人数上限</label>
+          <input id="capacity" type="number" min="0" />
+        </div>
+        <div>
+          <label>是否可报名</label>
+          <select id="is_registerable">
+            <option value="true">可报名</option>
+            <option value="false">仅资讯</option>
+          </select>
+        </div>
+      </div>
+      <div class="row">
+        <div style="flex:2 1 420px;">
+          <label>封面图 URL</label>
+          <input id="cover_image" />
+        </div>
+      </div>
+      <div>
+        <label>活动描述</label>
+        <textarea id="description"></textarea>
+      </div>
+      <div class="toolbar" style="margin-top:10px;">
+        <button id="saveBtn" style="max-width:140px;">保存</button>
+        <button id="cancelEditBtn" class="secondary" style="max-width:120px;">取消编辑</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>活动列表</h2>
+      <table id="eventTable">
+        <thead>
+          <tr>
+            <th style="width:70px;">ID</th>
+            <th>标题</th>
+            <th style="width:110px;">类型</th>
+            <th style="width:110px;">可报名</th>
+            <th style="width:120px;">状态</th>
+            <th style="width:220px;">时间</th>
+            <th style="width:240px;">操作</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <h2 id="regTitle">报名人员</h2>
+      <table id="registrationTable">
+        <thead>
+          <tr>
+            <th style="width:90px;">用户ID</th>
+            <th>昵称</th>
+            <th style="width:140px;">城市</th>
+            <th style="width:120px;">角色</th>
+            <th style="width:220px;">报名时间</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td colspan="5"><span class="muted">点击活动列表中的“报名名单”加载数据</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    const state = { token: localStorage.getItem('admin_token') || '', editingId: null, events: [] };
+    const $ = (id) => document.getElementById(id);
+    const statusEl = $('status');
+
+    function apiBase() {
+      return ($('baseUrl').value || `${location.protocol}//${location.host}`).replace(/\/$/, '');
+    }
+    function setStatus(msg, isError = false) {
+      statusEl.textContent = msg || '';
+      statusEl.className = isError ? 'status error' : 'status';
+    }
+    function toTs(value) {
+      if (!value) return undefined;
+      const ts = new Date(value).getTime();
+      return Number.isNaN(ts) ? undefined : ts;
+    }
+    function toDatetimeLocal(ts) {
+      if (!ts) return '';
+      const d = new Date(ts);
+      const p = (n) => String(n).padStart(2, '0');
+      return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
+    }
+    function unwrap(json) {
+      if (json && typeof json.code === 'number') {
+        if (json.code !== 0) throw new Error(json.message || '请求失败');
+        return json.data;
+      }
+      return json;
+    }
+    async function request(path, method = 'GET', body) {
+      const headers = { 'Content-Type': 'application/json' };
+      if (state.token) headers.Authorization = `Bearer ${state.token}`;
+      const res = await fetch(`${apiBase()}${path}`, { method, headers, body: body ? JSON.stringify(body) : undefined });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error((json && json.message) || `HTTP ${res.status}`);
+      return unwrap(json);
+    }
+
+    async function login() {
+      const data = await request('/auth/login', 'POST', { mockId: $('mockId').value || 'dev', nickname: $('nickname').value || undefined });
+      state.token = data.token || '';
+      localStorage.setItem('admin_token', state.token);
+      setStatus(`登录成功，token 长度：${state.token.length}`);
+    }
+
+    function fillForm(item) {
+      state.editingId = item ? item.id : null;
+      $('formTitle').textContent = item ? `编辑活动 #${item.id}` : '新建活动';
+      $('title').value = item?.title || '';
+      $('event_type').value = item?.event_type || 'official';
+      $('statusField').value = item?.status || 'UPCOMING';
+      $('start_time').value = toDatetimeLocal(item?.start_time);
+      $('end_time').value = toDatetimeLocal(item?.end_time);
+      $('registration_deadline').value = toDatetimeLocal(item?.registration_deadline);
+      $('location').value = item?.location || '';
+      $('organizer').value = item?.organizer || '';
+      $('price').value = item?.price ?? '';
+      $('capacity').value = item?.capacity ?? '';
+      $('is_registerable').value = String(item?.is_registerable ?? true);
+      $('cover_image').value = item?.cover_image || '';
+      $('description').value = item?.description || '';
+    }
+
+    function renderEvents() {
+      const tbody = document.querySelector('#eventTable tbody');
+      tbody.innerHTML = '';
+      state.events.forEach(item => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${item.id}</td>
+          <td><strong>${item.title || ''}</strong><br/><small>${item.location || ''}</small></td>
+          <td>${item.event_type || ''}</td>
+          <td>${item.is_registerable ? '<span class="chip ok">可报名</span>' : '<span class="chip">仅资讯</span>'}</td>
+          <td>${item.status || ''}</td>
+          <td><small>${item.start_time ? new Date(item.start_time).toLocaleString() : '待定'}</small></td>
+          <td>
+            <div class="actions">
+              <button class="secondary" data-reg="${item.id}">报名名单</button>
+              <button class="secondary" data-edit="${item.id}">编辑</button>
+              <button class="danger" data-del="${item.id}">删除</button>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      tbody.querySelectorAll('[data-edit]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const id = Number(btn.getAttribute('data-edit'));
+          fillForm(state.events.find(e => e.id === id) || null);
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+      });
+      tbody.querySelectorAll('[data-del]').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const id = Number(btn.getAttribute('data-del'));
+          if (!confirm(`确认删除活动 #${id}？`)) return;
+          try {
+            await request(`/events/${id}`, 'DELETE');
+            setStatus(`删除成功：#${id}`);
+            await loadEvents();
+          } catch (err) {
+            setStatus(err.message || '删除失败', true);
+          }
+        });
+      });
+      tbody.querySelectorAll('[data-reg]').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const id = Number(btn.getAttribute('data-reg'));
+          await loadRegistrations(id);
+        });
+      });
+    }
+
+    function renderRegistrations(eventId, list) {
+      $('regTitle').textContent = `报名人员（活动 #${eventId}，共 ${list.length} 人）`;
+      const tbody = document.querySelector('#registrationTable tbody');
+      if (!list.length) {
+        tbody.innerHTML = '<tr><td colspan="5"><span class="muted">暂无报名人员</span></td></tr>';
+        return;
+      }
+      tbody.innerHTML = list.map(item => `
+        <tr>
+          <td>${item.user_id}</td>
+          <td>${item.nickname || ''}</td>
+          <td>${item.city || ''}</td>
+          <td>${item.role_type || ''}</td>
+          <td>${item.registered_at ? new Date(item.registered_at).toLocaleString() : ''}</td>
+        </tr>
+      `).join('');
+    }
+
+    async function loadRegistrations(eventId) {
+      try {
+        if (!state.token) throw new Error('请先登录获取 token');
+        const data = await request(`/events/${eventId}/registrations`);
+        renderRegistrations(eventId, data.list || []);
+        setStatus(`已加载活动 #${eventId} 报名名单`);
+      } catch (err) {
+        setStatus(err.message || '加载报名名单失败', true);
+      }
+    }
+
+    async function loadEvents() {
+      try {
+        const data = await request('/events?page=1&pageSize=100');
+        state.events = data.list || [];
+        renderEvents();
+        setStatus(`已加载 ${state.events.length} 条活动`);
+      } catch (err) {
+        setStatus(err.message || '加载活动失败', true);
+      }
+    }
+
+    function collectFormPayload() {
+      const title = $('title').value.trim();
+      if (!title) throw new Error('标题必填');
+      const payload = {
+        title,
+        event_type: $('event_type').value,
+        status: $('statusField').value,
+        start_time: toTs($('start_time').value),
+        end_time: toTs($('end_time').value),
+        registration_deadline: toTs($('registration_deadline').value),
+        location: $('location').value.trim() || undefined,
+        organizer: $('organizer').value.trim() || undefined,
+        cover_image: $('cover_image').value.trim() || undefined,
+        description: $('description').value.trim() || undefined,
+        price: $('price').value === '' ? undefined : Number($('price').value),
+        capacity: $('capacity').value === '' ? undefined : Number($('capacity').value),
+        is_registerable: $('is_registerable').value === 'true'
+      };
+      return payload;
+    }
+
+    async function saveEvent() {
+      try {
+        if (!state.token) throw new Error('请先登录获取 token');
+        const payload = collectFormPayload();
+        if (state.editingId) {
+          await request(`/events/${state.editingId}`, 'PATCH', payload);
+          setStatus(`更新成功：#${state.editingId}`);
+        } else {
+          const data = await request('/events', 'POST', payload);
+          setStatus(`创建成功：#${data.id}`);
+        }
+        fillForm(null);
+        await loadEvents();
+      } catch (err) {
+        setStatus(err.message || '保存失败', true);
+      }
+    }
+
+    $('loginBtn').addEventListener('click', async () => {
+      try { await login(); } catch (err) { setStatus(err.message || '登录失败', true); }
+    });
+    $('refreshBtn').addEventListener('click', loadEvents);
+    $('saveBtn').addEventListener('click', saveEvent);
+    $('cancelEditBtn').addEventListener('click', () => fillForm(null));
+
+    $('baseUrl').value = `${location.protocol}//${location.host}`;
+    fillForm(null);
+    loadEvents();
+  </script>
+</body>
+</html>

@@ -17,6 +17,7 @@ type EventRecord = {
   organizer?: string | null
   status: 'UPCOMING' | 'ONGOING' | 'ENDED'
   event_type?: 'info' | 'official'
+  is_registerable?: boolean | null
   capacity?: number | null
   registration_deadline?: number | string | null
   registered_at?: number | string | null
@@ -33,6 +34,7 @@ export type ExtendedEvent = Event & {
   registrationDeadline?: number
   registrationDeadlineText?: string
   eventType?: string
+  isRegisterable?: boolean
   startTime?: number
   endTime?: number
   statusText?: string
@@ -81,6 +83,7 @@ function mapEvent(item: EventRecord): ExtendedEvent {
     capacity: item.capacity ?? undefined,
     registrationDeadline: typeof item.registration_deadline === 'number' ? item.registration_deadline : item.registration_deadline ? new Date(item.registration_deadline).getTime() : undefined,
     eventType: item.event_type,
+    isRegisterable: item.is_registerable ?? item.event_type === 'official',
     startTime: typeof item.start_time === 'number' ? item.start_time : item.start_time ? new Date(item.start_time).getTime() : undefined,
     endTime: typeof item.end_time === 'number' ? item.end_time : item.end_time ? new Date(item.end_time).getTime() : undefined,
     registrationDeadlineText: formatDateTime(item.registration_deadline),

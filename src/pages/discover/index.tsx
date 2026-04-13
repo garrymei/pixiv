@@ -48,6 +48,15 @@ export default function Discover() {
   const [activeMarketSub, setActiveMarketSub] = useState('全部')
   const [isMarketMockFallback, setIsMarketMockFallback] = useState(false)
 
+  // 根据主筛选，生成展示用的类型标签（如：找摄影 / 本摄影）
+  const formatDisplayType = (main: 'seek' | 'offer', rawType: string) => {
+    if (!rawType) return rawType
+    // 如果后端/Mock 已经带了前缀，则直接返回
+    if (/^(找|本)/.test(rawType)) return rawType
+    const prefix = main === 'seek' ? '找' : '本'
+    return `${prefix}${rawType}`
+  }
+
   const mapMarketFilterToDemandType = (main: 'seek' | 'offer', sub: string) => {
     if (sub === '全部') return undefined
     const normalized = sub.replace(/^(找|本)/, '')
@@ -290,7 +299,7 @@ export default function Discover() {
                 {demands.map(demand => (
                   <DemandCard
                     key={demand.id}
-                    type={demand.type}
+                    type={formatDisplayType(activeMarketMain, demand.type)}
                     title={demand.title}
                     budget={demand.budget}
                     location={demand.location}

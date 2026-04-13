@@ -22,6 +22,7 @@ import { DemandsModule } from './modules/demands/demands.module'
 import { DemandApplicationModule } from './modules/demand-application/demand-application.module'
 import { ProfileModule } from './modules/profile/profile.module'
 import { UploadsModule } from './modules/uploads/uploads.module'
+import { AdminModule } from './modules/admin/admin.module'
 
 const hasDb =
   !!process.env.DB_HOST &&
@@ -44,6 +45,7 @@ const hasDb =
     DemandApplicationModule,
     ProfileModule,
     UploadsModule,
+    AdminModule,
     ...(hasDb
       ? [
           TypeOrmModule.forRootAsync({
