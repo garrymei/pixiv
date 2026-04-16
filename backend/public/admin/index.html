@@ -3,51 +3,251 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>活动管理后台</title>
+  <title>粤次元平台后台</title>
   <style>
     :root { color-scheme: dark; }
+    * { box-sizing: border-box; }
     body {
       margin: 0;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: #0f1220;
-      color: #f5f7ff;
+      background: #0d1120;
+      color: #eef2ff;
     }
-    .container { max-width: 1100px; margin: 0 auto; padding: 20px; }
+    .app {
+      display: grid;
+      grid-template-columns: 250px 1fr;
+      min-height: 100vh;
+    }
+    .sidebar {
+      background: linear-gradient(180deg, #12182c 0%, #0d1324 100%);
+      border-right: 1px solid #232b45;
+      padding: 20px 16px;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+    }
+    .brand {
+      margin-bottom: 18px;
+      padding: 14px;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid #2b3452;
+    }
+    .brand h1 {
+      margin: 0 0 6px;
+      font-size: 20px;
+    }
+    .brand p {
+      margin: 0;
+      color: #95a0cb;
+      font-size: 12px;
+      line-height: 1.6;
+    }
+    .nav-group {
+      margin-top: 16px;
+    }
+    .nav-title {
+      margin: 0 0 8px;
+      padding: 0 8px;
+      color: #7f8ab8;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    .nav-btn {
+      display: block;
+      width: 100%;
+      text-align: left;
+      border: 1px solid transparent;
+      background: transparent;
+      color: #dce3ff;
+      padding: 11px 12px;
+      border-radius: 10px;
+      cursor: pointer;
+      margin-bottom: 6px;
+      font-size: 14px;
+    }
+    .nav-btn:hover,
+    .nav-btn.active {
+      background: rgba(108, 123, 255, 0.14);
+      border-color: rgba(108, 123, 255, 0.25);
+    }
+    .main {
+      padding: 22px;
+    }
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+    .topbar h2 {
+      margin: 0 0 6px;
+      font-size: 24px;
+    }
+    .subtitle {
+      margin: 0;
+      color: #9aa7d8;
+      font-size: 13px;
+    }
+    .status {
+      min-height: 18px;
+      color: #91ecb7;
+      font-size: 13px;
+    }
+    .status.error { color: #ff9db7; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+      gap: 14px;
+    }
     .card {
-      background: #1a1f34;
-      border: 1px solid #2b3252;
-      border-radius: 12px;
+      grid-column: span 12;
+      background: #161d34;
+      border: 1px solid #2c3657;
+      border-radius: 14px;
       padding: 16px;
-      margin-bottom: 14px;
     }
-    h1, h2 { margin: 0 0 12px; }
-    .row { display: flex; gap: 10px; flex-wrap: wrap; }
-    .row > * { flex: 1 1 180px; }
-    label { display: block; font-size: 12px; color: #a8b0d3; margin-bottom: 6px; }
+    .card h3, .card h4 {
+      margin: 0 0 12px;
+    }
+    .span-3 { grid-column: span 3; }
+    .span-4 { grid-column: span 4; }
+    .span-5 { grid-column: span 5; }
+    .span-6 { grid-column: span 6; }
+    .span-7 { grid-column: span 7; }
+    .span-8 { grid-column: span 8; }
+    .row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .row > * {
+      flex: 1 1 180px;
+      min-width: 0;
+    }
+    label {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 12px;
+      color: #97a4d4;
+    }
     input, select, textarea, button {
       width: 100%;
-      box-sizing: border-box;
-      border-radius: 8px;
-      border: 1px solid #3a4470;
-      background: #10162a;
-      color: #f5f7ff;
+      border-radius: 9px;
+      border: 1px solid #3a4570;
+      background: #0f1527;
+      color: #eef2ff;
       padding: 10px;
       font-size: 14px;
     }
-    textarea { min-height: 84px; resize: vertical; }
-    button { cursor: pointer; background: #6c7bff; border: none; font-weight: 600; }
-    button.secondary { background: #2f3556; }
-    button.danger { background: #c7416b; }
-    .toolbar { display: flex; gap: 8px; align-items: center; }
-    .status { font-size: 13px; color: #8de2aa; min-height: 18px; }
-    .error { color: #ff8ea7; }
-    table { width: 100%; border-collapse: collapse; margin-top: 8px; }
-    th, td { border-bottom: 1px solid #2b3252; padding: 10px 8px; text-align: left; vertical-align: top; }
-    th { color: #9facde; font-size: 13px; }
-    td small { color: #8f97bb; }
-    .actions { display: flex; gap: 6px; }
-    .muted { color: #96a2cf; font-size: 12px; }
-    .inline { display: inline-flex; gap: 8px; align-items: center; }
+    textarea {
+      min-height: 84px;
+      resize: vertical;
+    }
+    button {
+      cursor: pointer;
+      background: #6c7bff;
+      border: none;
+      font-weight: 600;
+    }
+    button.secondary { background: #2c3558; }
+    button.danger { background: #c94b72; }
+    .toolbar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+    .muted {
+      color: #95a0cb;
+      font-size: 12px;
+    }
+    .metric {
+      padding: 14px;
+      border-radius: 12px;
+      background: #10172a;
+      border: 1px solid #2e3759;
+    }
+    .metric-label {
+      display: block;
+      color: #92a0d1;
+      font-size: 12px;
+      margin-bottom: 8px;
+    }
+    .metric-value {
+      display: block;
+      font-size: 28px;
+      font-weight: 700;
+    }
+    .metric-help {
+      display: block;
+      margin-top: 8px;
+      color: #7d89b6;
+      font-size: 12px;
+    }
+    .module-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+    .module-card {
+      padding: 14px;
+      border-radius: 12px;
+      background: #10172a;
+      border: 1px solid #2e3759;
+    }
+    .module-card h4 {
+      margin-bottom: 8px;
+    }
+    .module-card p {
+      margin: 0 0 8px;
+      color: #97a4d4;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+    .module-meta {
+      display: inline-block;
+      margin-right: 8px;
+      margin-top: 4px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      border: 1px solid #38446d;
+      color: #c9d3ff;
+    }
+    .module-meta.ok {
+      color: #8af0ba;
+      border-color: rgba(70, 193, 135, 0.4);
+      background: rgba(70, 193, 135, 0.12);
+    }
+    .hidden { display: none; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 8px;
+    }
+    th, td {
+      border-bottom: 1px solid #2b3454;
+      padding: 10px 8px;
+      text-align: left;
+      vertical-align: top;
+    }
+    th {
+      color: #9eabd9;
+      font-size: 13px;
+    }
+    td small {
+      color: #8f98bf;
+    }
+    .actions {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
     .chip {
       display: inline-block;
       padding: 4px 10px;
@@ -61,223 +261,547 @@
       color: #89f5be;
       background: rgba(70, 193, 135, 0.12);
     }
+    .chip.warn {
+      border-color: #d0a047;
+      color: #ffd58c;
+      background: rgba(208, 160, 71, 0.12);
+    }
+    .section-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    .section-head p {
+      margin: 0;
+      color: #95a0cb;
+      font-size: 13px;
+    }
   </style>
 </head>
 <body>
-  <div class="container">
-    <div class="card">
-      <h1>活动管理后台</h1>
-      <div class="row">
-        <div>
-          <label>API 基址</label>
-          <input id="baseUrl" value="" placeholder="默认同域名" />
-        </div>
-        <div>
-          <label>Mock 登录账号</label>
-          <input id="mockId" value="dev" />
-        </div>
-        <div>
-          <label>昵称（可选）</label>
-          <input id="nickname" value="活动运营" />
-        </div>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <h1>粤次元平台后台</h1>
+        <p>从“小程序活动管理页”升级为“模块化运营与监控平台”。</p>
       </div>
-      <div class="toolbar" style="margin-top:10px;">
-        <button id="loginBtn" style="max-width:180px;">登录并获取 Token</button>
-        <button id="refreshBtn" class="secondary" style="max-width:120px;">刷新活动</button>
-        <span class="muted">当前 token 仅保存在浏览器本地</span>
-      </div>
-      <div id="status" class="status"></div>
-    </div>
 
-    <div class="card">
-      <h2 id="formTitle">新建活动</h2>
-      <div class="row">
-        <div style="flex:2 1 320px;">
-          <label>标题 *</label>
-          <input id="title" />
-        </div>
-        <div>
-          <label>类型</label>
-          <select id="event_type">
-            <option value="official">official</option>
-            <option value="info">info</option>
-          </select>
-        </div>
-        <div>
-          <label>状态</label>
-          <select id="statusField">
-            <option value="UPCOMING">UPCOMING</option>
-            <option value="ONGOING">ONGOING</option>
-            <option value="ENDED">ENDED</option>
-          </select>
-        </div>
+      <div class="nav-group">
+        <div class="nav-title">总览</div>
+        <button class="nav-btn active" data-view="dashboard">驾驶舱</button>
       </div>
-      <div class="row">
-        <div>
-          <label>开始时间</label>
-          <input id="start_time" type="datetime-local" />
-        </div>
-        <div>
-          <label>结束时间</label>
-          <input id="end_time" type="datetime-local" />
-        </div>
-        <div>
-          <label>报名截止</label>
-          <input id="registration_deadline" type="datetime-local" />
-        </div>
-      </div>
-      <div class="row">
-        <div>
-          <label>地点</label>
-          <input id="location" />
-        </div>
-        <div>
-          <label>主办方</label>
-          <input id="organizer" />
-        </div>
-        <div>
-          <label>价格（元）</label>
-          <input id="price" type="number" min="0" />
-        </div>
-        <div>
-          <label>人数上限</label>
-          <input id="capacity" type="number" min="0" />
-        </div>
-        <div>
-          <label>是否可报名</label>
-          <select id="is_registerable">
-            <option value="true">可报名</option>
-            <option value="false">仅资讯</option>
-          </select>
-        </div>
-      </div>
-      <div class="row">
-        <div style="flex:2 1 420px;">
-          <label>封面图 URL</label>
-          <input id="cover_image" />
-        </div>
-      </div>
-      <div>
-        <label>活动描述</label>
-        <textarea id="description"></textarea>
-      </div>
-      <div class="toolbar" style="margin-top:10px;">
-        <button id="saveBtn" style="max-width:140px;">保存</button>
-        <button id="cancelEditBtn" class="secondary" style="max-width:120px;">取消编辑</button>
-      </div>
-    </div>
 
-    <div class="card">
-      <h2>活动列表</h2>
-      <table id="eventTable">
-        <thead>
-          <tr>
-            <th style="width:70px;">ID</th>
-            <th>标题</th>
-            <th style="width:110px;">类型</th>
-            <th style="width:110px;">可报名</th>
-            <th style="width:120px;">状态</th>
-            <th style="width:220px;">时间</th>
-            <th style="width:240px;">操作</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-    </div>
+      <div class="nav-group">
+        <div class="nav-title">业务模块</div>
+        <button class="nav-btn" data-view="home">首页</button>
+        <button class="nav-btn" data-view="discover">发现</button>
+        <button class="nav-btn" data-view="publish">发布</button>
+        <button class="nav-btn" data-view="events">活动</button>
+        <button class="nav-btn" data-view="users">用户</button>
+        <button class="nav-btn" data-view="auth">登录会话</button>
+        <button class="nav-btn" data-view="uploads">上传资源</button>
+      </div>
 
-    <div class="card">
-      <h2 id="regTitle">报名人员</h2>
-      <table id="registrationTable">
-        <thead>
-          <tr>
-            <th style="width:90px;">用户ID</th>
-            <th>昵称</th>
-            <th style="width:140px;">城市</th>
-            <th style="width:120px;">角色</th>
-            <th style="width:220px;">报名时间</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr><td colspan="5"><span class="muted">点击活动列表中的“报名名单”加载数据</span></td></tr>
-        </tbody>
-      </table>
-    </div>
+      <div class="nav-group">
+        <div class="nav-title">平台能力</div>
+        <button class="nav-btn" data-view="system">系统监控</button>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="topbar">
+        <div>
+          <h2 id="pageTitle">驾驶舱</h2>
+          <p id="pageSubtitle" class="subtitle">统一查看各小程序模块的管理入口、数据状态和异常监控。</p>
+        </div>
+        <div id="status" class="status"></div>
+      </div>
+
+      <section class="admin-view" data-view="dashboard">
+        <div class="grid">
+          <div class="card span-8">
+            <div class="section-head">
+              <div>
+                <h3>平台接入状态</h3>
+                <p>后台平台已经从单页活动管理升级为模块化骨架，当前优先落地活动模块，其他模块先接入导航、职责和监控位。</p>
+              </div>
+            </div>
+            <div id="overviewMetrics" class="row"></div>
+          </div>
+          <div class="card span-4">
+            <h3>操作入口</h3>
+            <div class="row">
+              <div>
+                <label>API 基址</label>
+                <input id="baseUrl" value="" placeholder="默认同域名" />
+              </div>
+              <div>
+                <label>Mock 登录账号</label>
+                <input id="mockId" value="dev" />
+              </div>
+              <div>
+                <label>昵称（可选）</label>
+                <input id="nickname" value="平台运营" />
+              </div>
+            </div>
+            <div class="toolbar">
+              <button id="loginBtn" style="max-width:180px;">登录并获取 Token</button>
+              <button id="refreshBtn" class="secondary" style="max-width:140px;">刷新活动数据</button>
+            </div>
+            <p class="muted">当前 token 仅保存在浏览器本地。后续后台账号体系接入后将替换为正式权限登录。</p>
+          </div>
+          <div class="card span-12">
+            <h3>模块建设总览</h3>
+            <div id="moduleMatrix" class="module-grid"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="admin-view hidden" data-view="home">
+        <div class="grid">
+          <div class="card span-6">
+            <h3>首页模块管理范围</h3>
+            <p class="muted">将来用于管理 Banner、推荐位、首页排序规则、公告和活动入口。当前先保留模块骨架。</p>
+            <div class="module-card">
+              <span class="module-meta">管理区</span>
+              <span class="module-meta">监控区</span>
+              <p>目标能力：Banner 配置、推荐卡片管理、首页曝光位管理、公告发布。</p>
+            </div>
+          </div>
+          <div class="card span-6">
+            <h3>首页模块监控范围</h3>
+            <div class="module-card">
+              <span class="module-meta ok">规划中</span>
+              <p>目标指标：首屏接口成功率、首屏耗时、Banner 点击率、首页空数据告警。</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="admin-view hidden" data-view="discover">
+        <div class="grid">
+          <div class="card span-6">
+            <h3>发现模块管理范围</h3>
+            <p class="muted">覆盖动态广场、次元市集、标签筛选、搜索热词、推荐词和需求内容管理。</p>
+            <div class="module-card">
+              <span class="module-meta">管理区</span>
+              <p>目标能力：标签管理、热词配置、需求分类、推荐内容配置、内容审核入口。</p>
+            </div>
+          </div>
+          <div class="card span-6">
+            <h3>发现模块监控范围</h3>
+            <div class="module-card">
+              <span class="module-meta warn">部分已具备</span>
+              <p>目标指标：搜索成功率、空结果率、发现页请求成功率、列表空数据率、Mock 兜底触发次数。</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="admin-view hidden" data-view="publish">
+        <div class="grid">
+          <div class="card span-6">
+            <h3>发布模块管理范围</h3>
+            <p class="muted">覆盖帖子发布、需求发布、审核、敏感词、频控和失败日志。</p>
+            <div class="module-card">
+              <span class="module-meta">管理区</span>
+              <p>目标能力：帖子审核、需求审核、敏感词、上传失败重试、发布频率限制。</p>
+            </div>
+          </div>
+          <div class="card span-6">
+            <h3>发布模块监控范围</h3>
+            <div class="module-card">
+              <span class="module-meta">监控区</span>
+              <p>目标指标：发帖成功率、需求发布成功率、图片上传失败率、慢接口排行。</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="admin-view hidden" data-view="events">
+        <div class="grid">
+          <div class="card span-12">
+            <div class="section-head">
+              <div>
+                <h3>活动模块概览</h3>
+                <p>当前活动模块已经接入后台平台，支持活动 CRUD、是否可报名、报名名单联动查看。后续会补活动统计、核销、操作审计。</p>
+              </div>
+              <div>
+                <span class="chip ok">已接入管理</span>
+                <span class="chip ok">已接入报名名单</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="card span-12">
+            <h3 id="formTitle">新建活动</h3>
+            <div class="row">
+              <div style="flex:2 1 320px;">
+                <label>标题 *</label>
+                <input id="title" />
+              </div>
+              <div>
+                <label>类型</label>
+                <select id="event_type">
+                  <option value="official">official</option>
+                  <option value="info">info</option>
+                </select>
+              </div>
+              <div>
+                <label>状态</label>
+                <select id="statusField">
+                  <option value="UPCOMING">UPCOMING</option>
+                  <option value="ONGOING">ONGOING</option>
+                  <option value="ENDED">ENDED</option>
+                </select>
+              </div>
+            </div>
+            <div class="row">
+              <div>
+                <label>开始时间</label>
+                <input id="start_time" type="datetime-local" />
+              </div>
+              <div>
+                <label>结束时间</label>
+                <input id="end_time" type="datetime-local" />
+              </div>
+              <div>
+                <label>报名截止</label>
+                <input id="registration_deadline" type="datetime-local" />
+              </div>
+            </div>
+            <div class="row">
+              <div>
+                <label>地点</label>
+                <input id="location" />
+              </div>
+              <div>
+                <label>主办方</label>
+                <input id="organizer" />
+              </div>
+              <div>
+                <label>价格（元）</label>
+                <input id="price" type="number" min="0" />
+              </div>
+              <div>
+                <label>人数上限</label>
+                <input id="capacity" type="number" min="0" />
+              </div>
+              <div>
+                <label>是否可报名</label>
+                <select id="is_registerable">
+                  <option value="true">可报名</option>
+                  <option value="false">仅资讯</option>
+                </select>
+              </div>
+            </div>
+            <div class="row">
+              <div style="flex:2 1 420px;">
+                <label>封面图 URL</label>
+                <input id="cover_image" />
+              </div>
+            </div>
+            <div>
+              <label>活动描述</label>
+              <textarea id="description"></textarea>
+            </div>
+            <div class="toolbar">
+              <button id="saveBtn" style="max-width:140px;">保存</button>
+              <button id="cancelEditBtn" class="secondary" style="max-width:120px;">取消编辑</button>
+            </div>
+          </div>
+
+          <div class="card span-7">
+            <h3>活动列表</h3>
+            <table id="eventTable">
+              <thead>
+                <tr>
+                  <th style="width:70px;">ID</th>
+                  <th>标题</th>
+                  <th style="width:110px;">类型</th>
+                  <th style="width:110px;">可报名</th>
+                  <th style="width:120px;">状态</th>
+                  <th style="width:220px;">时间</th>
+                  <th style="width:240px;">操作</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+
+          <div class="card span-5">
+            <h3 id="regTitle">报名人员</h3>
+            <table id="registrationTable">
+              <thead>
+                <tr>
+                  <th style="width:90px;">用户ID</th>
+                  <th>昵称</th>
+                  <th style="width:120px;">城市</th>
+                  <th style="width:100px;">角色</th>
+                  <th style="width:180px;">报名时间</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td colspan="5"><span class="muted">点击活动列表中的“报名名单”加载数据</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section class="admin-view hidden" data-view="users">
+        <div class="grid">
+          <div class="card span-6">
+            <h3>用户模块管理范围</h3>
+            <div class="module-card">
+              <span class="module-meta">管理区</span>
+              <p>目标能力：用户资料、用户状态、违规记录、封禁、个人内容总览。</p>
+            </div>
+          </div>
+          <div class="card span-6">
+            <h3>用户模块监控范围</h3>
+            <div class="module-card">
+              <span class="module-meta">监控区</span>
+              <p>目标指标：资料更新成功率、异常账号识别、高频操作告警、用户留存趋势。</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="admin-view hidden" data-view="auth">
+        <div class="grid">
+          <div class="card span-6">
+            <h3>登录会话管理</h3>
+            <div class="module-card">
+              <span class="module-meta">管理区</span>
+              <p>目标能力：登录记录、会话配置、后台账号策略、Token 生命周期管理。</p>
+            </div>
+          </div>
+          <div class="card span-6">
+            <h3>登录会话监控</h3>
+            <div class="module-card">
+              <span class="module-meta">监控区</span>
+              <p>目标指标：登录成功率、401/403 统计、会话初始化失败率、账号异常告警。</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="admin-view hidden" data-view="uploads">
+        <div class="grid">
+          <div class="card span-6">
+            <h3>上传资源管理</h3>
+            <div class="module-card">
+              <span class="module-meta">管理区</span>
+              <p>目标能力：上传文件管理、失效资源清理、资源审核、云存储配置。</p>
+            </div>
+          </div>
+          <div class="card span-6">
+            <h3>上传资源监控</h3>
+            <div class="module-card">
+              <span class="module-meta">监控区</span>
+              <p>目标指标：上传成功率、资源 404 比例、上传耗时、非法资源告警。</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="admin-view hidden" data-view="system">
+        <div class="grid">
+          <div class="card span-4">
+            <h3>系统健康检查</h3>
+            <div id="systemHealthCard" class="module-card">
+              <span class="module-meta">待检测</span>
+              <p>将检查 `/health` 接口、API 基址和当前后台访问状态。</p>
+            </div>
+            <div class="toolbar">
+              <button id="checkSystemBtn" class="secondary" style="max-width:160px;">刷新系统状态</button>
+            </div>
+          </div>
+          <div class="card span-8">
+            <h3>系统监控规划</h3>
+            <div class="module-grid">
+              <div class="module-card">
+                <h4>服务可用性</h4>
+                <p>监控 `/health`、`nginx` 反代、`systemd` 服务状态、域名 HTTPS 有效性。</p>
+              </div>
+              <div class="module-card">
+                <h4>接口质量</h4>
+                <p>监控 4xx/5xx 趋势、慢请求、活动报名失败原因、上传失败率。</p>
+              </div>
+              <div class="module-card">
+                <h4>异常日志</h4>
+                <p>汇总服务错误、DNS 解析失败、数据库异常、第三方依赖错误。</p>
+              </div>
+              <div class="module-card">
+                <h4>告警通知</h4>
+                <p>后续接企业微信 / 飞书 / 邮件，支持 P1-P4 告警等级和最近告警记录。</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
   </div>
 
   <script>
-    const state = { token: localStorage.getItem('admin_token') || '', editingId: null, events: [] };
-    const $ = (id) => document.getElementById(id);
-    const statusEl = $('status');
+    const state = {
+      token: localStorage.getItem('admin_token') || '',
+      editingId: null,
+      events: [],
+      currentView: 'dashboard'
+    }
+
+    const MODULE_MATRIX = [
+      { id: 'home', title: '首页', desc: 'Banner、推荐位、排序规则、公告', status: '规划中', monitor: '首屏耗时 / 点击率 / 空数据告警' },
+      { id: 'discover', title: '发现', desc: '广场、市集、标签、推荐词、需求内容', status: '骨架已接入', monitor: '搜索成功率 / Mock 兜底 / 空结果率' },
+      { id: 'publish', title: '发布', desc: '帖子、需求、审核、敏感词、频控', status: '规划中', monitor: '发布成功率 / 上传失败率 / 慢请求' },
+      { id: 'events', title: '活动', desc: '活动 CRUD、可报名开关、报名名单', status: '已接入', monitor: '报名成功率 / 满额告警 / 截止告警' },
+      { id: 'users', title: '用户', desc: '资料、状态、违规、封禁、内容总览', status: '规划中', monitor: '资料更新成功率 / 异常账号识别' },
+      { id: 'auth', title: '登录会话', desc: '登录记录、Token、账号策略、会话状态', status: '规划中', monitor: '登录成功率 / 401 / 403 / 会话失败' },
+      { id: 'uploads', title: '上传资源', desc: '资源管理、失效清理、审核、存储配置', status: '规划中', monitor: '上传成功率 / 404 / 非法资源告警' },
+      { id: 'system', title: '系统监控', desc: '健康检查、反代、systemd、异常日志、告警', status: '已接入', monitor: '可用性 / 5xx / 守护状态 / HTTPS' }
+    ]
+
+    const PAGE_TITLES = {
+      dashboard: ['驾驶舱', '统一查看各小程序模块的管理入口、监控位与当前接入进度。'],
+      home: ['首页模块', '管理首页推荐位、Banner、排序规则与首页级监控指标。'],
+      discover: ['发现模块', '管理动态广场、次元市集与发现页监控指标。'],
+      publish: ['发布模块', '管理帖子、需求、审核、上传与发布链路指标。'],
+      events: ['活动模块', '管理活动数据、报名能力、报名名单与活动异常情况。'],
+      users: ['用户模块', '管理用户资料、状态、内容行为与账号风险。'],
+      auth: ['登录会话模块', '管理登录会话、Token 和鉴权异常。'],
+      uploads: ['上传资源模块', '管理资源文件、上传链路和资源异常。'],
+      system: ['系统监控模块', '查看服务健康、域名 HTTPS、后端守护与异常规划。']
+    }
+
+    const $ = (id) => document.getElementById(id)
+    const statusEl = $('status')
 
     function apiBase() {
-      return ($('baseUrl').value || `${location.protocol}//${location.host}`).replace(/\/$/, '');
+      return ($('baseUrl').value || `${location.protocol}//${location.host}`).replace(/\/$/, '')
     }
-    function setStatus(msg, isError = false) {
-      statusEl.textContent = msg || '';
-      statusEl.className = isError ? 'status error' : 'status';
+
+    function setStatus(message, isError = false) {
+      statusEl.textContent = message || ''
+      statusEl.className = isError ? 'status error' : 'status'
     }
-    function toTs(value) {
-      if (!value) return undefined;
-      const ts = new Date(value).getTime();
-      return Number.isNaN(ts) ? undefined : ts;
-    }
-    function toDatetimeLocal(ts) {
-      if (!ts) return '';
-      const d = new Date(ts);
-      const p = (n) => String(n).padStart(2, '0');
-      return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
-    }
+
     function unwrap(json) {
       if (json && typeof json.code === 'number') {
-        if (json.code !== 0) throw new Error(json.message || '请求失败');
-        return json.data;
+        if (json.code !== 0) throw new Error(json.message || '请求失败')
+        return json.data
       }
-      return json;
+      return json
     }
+
     async function request(path, method = 'GET', body) {
-      const headers = { 'Content-Type': 'application/json' };
-      if (state.token) headers.Authorization = `Bearer ${state.token}`;
-      const res = await fetch(`${apiBase()}${path}`, { method, headers, body: body ? JSON.stringify(body) : undefined });
-      const json = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error((json && json.message) || `HTTP ${res.status}`);
-      return unwrap(json);
+      const headers = { 'Content-Type': 'application/json' }
+      if (state.token) headers.Authorization = `Bearer ${state.token}`
+      const res = await fetch(`${apiBase()}${path}`, {
+        method,
+        headers,
+        body: body ? JSON.stringify(body) : undefined
+      })
+      const json = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error((json && json.message) || `HTTP ${res.status}`)
+      return unwrap(json)
+    }
+
+    function toTs(value) {
+      if (!value) return undefined
+      const ts = new Date(value).getTime()
+      return Number.isNaN(ts) ? undefined : ts
+    }
+
+    function toDatetimeLocal(ts) {
+      if (!ts) return ''
+      const d = new Date(ts)
+      const p = (n) => String(n).padStart(2, '0')
+      return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`
+    }
+
+    function switchView(next) {
+      state.currentView = next
+      document.querySelectorAll('.nav-btn').forEach((btn) => {
+        btn.classList.toggle('active', btn.getAttribute('data-view') === next)
+      })
+      document.querySelectorAll('.admin-view').forEach((view) => {
+        view.classList.toggle('hidden', view.getAttribute('data-view') !== next)
+      })
+      const [title, subtitle] = PAGE_TITLES[next] || PAGE_TITLES.dashboard
+      $('pageTitle').textContent = title
+      $('pageSubtitle').textContent = subtitle
     }
 
     async function login() {
-      const data = await request('/auth/login', 'POST', { mockId: $('mockId').value || 'dev', nickname: $('nickname').value || undefined });
-      state.token = data.token || '';
-      localStorage.setItem('admin_token', state.token);
-      setStatus(`登录成功，token 长度：${state.token.length}`);
+      const data = await request('/auth/login', 'POST', {
+        mockId: $('mockId').value || 'dev',
+        nickname: $('nickname').value || undefined
+      })
+      state.token = data.token || ''
+      localStorage.setItem('admin_token', state.token)
+      setStatus(`登录成功，token 长度：${state.token.length}`)
+    }
+
+    function renderOverviewMetrics() {
+      const container = $('overviewMetrics')
+      const metrics = [
+        { label: '当前活动数', value: state.events.length, help: '来自 /events 接口' },
+        { label: '可报名活动', value: state.events.filter((item) => item.is_registerable).length, help: '活动可报名开关' },
+        { label: '资讯活动', value: state.events.filter((item) => !item.is_registerable).length, help: '仅展示、不开放报名' },
+        { label: '后台模块数', value: MODULE_MATRIX.length, help: '按小程序模块映射的平台模块' }
+      ]
+      container.innerHTML = metrics.map((item) => `
+        <div class="metric" style="flex:1 1 180px;">
+          <span class="metric-label">${item.label}</span>
+          <span class="metric-value">${item.value}</span>
+          <span class="metric-help">${item.help}</span>
+        </div>
+      `).join('')
+    }
+
+    function renderModuleMatrix() {
+      $('moduleMatrix').innerHTML = MODULE_MATRIX.map((item) => `
+        <div class="module-card">
+          <h4>${item.title}</h4>
+          <p>${item.desc}</p>
+          <span class="module-meta ${item.status === '已接入' ? 'ok' : ''}">${item.status}</span>
+          <span class="module-meta">${item.monitor}</span>
+        </div>
+      `).join('')
     }
 
     function fillForm(item) {
-      state.editingId = item ? item.id : null;
-      $('formTitle').textContent = item ? `编辑活动 #${item.id}` : '新建活动';
-      $('title').value = item?.title || '';
-      $('event_type').value = item?.event_type || 'official';
-      $('statusField').value = item?.status || 'UPCOMING';
-      $('start_time').value = toDatetimeLocal(item?.start_time);
-      $('end_time').value = toDatetimeLocal(item?.end_time);
-      $('registration_deadline').value = toDatetimeLocal(item?.registration_deadline);
-      $('location').value = item?.location || '';
-      $('organizer').value = item?.organizer || '';
-      $('price').value = item?.price ?? '';
-      $('capacity').value = item?.capacity ?? '';
-      $('is_registerable').value = String(item?.is_registerable ?? true);
-      $('cover_image').value = item?.cover_image || '';
-      $('description').value = item?.description || '';
+      state.editingId = item ? item.id : null
+      $('formTitle').textContent = item ? `编辑活动 #${item.id}` : '新建活动'
+      $('title').value = item?.title || ''
+      $('event_type').value = item?.event_type || 'official'
+      $('statusField').value = item?.status || 'UPCOMING'
+      $('start_time').value = toDatetimeLocal(item?.start_time)
+      $('end_time').value = toDatetimeLocal(item?.end_time)
+      $('registration_deadline').value = toDatetimeLocal(item?.registration_deadline)
+      $('location').value = item?.location || ''
+      $('organizer').value = item?.organizer || ''
+      $('price').value = item?.price ?? ''
+      $('capacity').value = item?.capacity ?? ''
+      $('is_registerable').value = String(item?.is_registerable ?? true)
+      $('cover_image').value = item?.cover_image || ''
+      $('description').value = item?.description || ''
     }
 
     function renderEvents() {
-      const tbody = document.querySelector('#eventTable tbody');
-      tbody.innerHTML = '';
-      state.events.forEach(item => {
-        const tr = document.createElement('tr');
+      const tbody = document.querySelector('#eventTable tbody')
+      tbody.innerHTML = ''
+      state.events.forEach((item) => {
+        const tr = document.createElement('tr')
         tr.innerHTML = `
           <td>${item.id}</td>
           <td><strong>${item.title || ''}</strong><br/><small>${item.location || ''}</small></td>
           <td>${item.event_type || ''}</td>
-          <td>${item.is_registerable ? '<span class="chip ok">可报名</span>' : '<span class="chip">仅资讯</span>'}</td>
+          <td>${item.is_registerable ? '<span class="chip ok">可报名</span>' : '<span class="chip warn">仅资讯</span>'}</td>
           <td>${item.status || ''}</td>
           <td><small>${item.start_time ? new Date(item.start_time).toLocaleString() : '待定'}</small></td>
           <td>
@@ -287,46 +811,50 @@
               <button class="danger" data-del="${item.id}">删除</button>
             </div>
           </td>
-        `;
-        tbody.appendChild(tr);
-      });
+        `
+        tbody.appendChild(tr)
+      })
 
-      tbody.querySelectorAll('[data-edit]').forEach(btn => {
+      tbody.querySelectorAll('[data-edit]').forEach((btn) => {
         btn.addEventListener('click', () => {
-          const id = Number(btn.getAttribute('data-edit'));
-          fillForm(state.events.find(e => e.id === id) || null);
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-        });
-      });
-      tbody.querySelectorAll('[data-del]').forEach(btn => {
+          const id = Number(btn.getAttribute('data-edit'))
+          fillForm(state.events.find((e) => e.id === id) || null)
+          switchView('events')
+          window.scrollTo({ top: 0, behavior: 'smooth' })
+        })
+      })
+
+      tbody.querySelectorAll('[data-del]').forEach((btn) => {
         btn.addEventListener('click', async () => {
-          const id = Number(btn.getAttribute('data-del'));
-          if (!confirm(`确认删除活动 #${id}？`)) return;
+          const id = Number(btn.getAttribute('data-del'))
+          if (!confirm(`确认删除活动 #${id}？`)) return
           try {
-            await request(`/events/${id}`, 'DELETE');
-            setStatus(`删除成功：#${id}`);
-            await loadEvents();
+            await request(`/events/${id}`, 'DELETE')
+            setStatus(`删除成功：#${id}`)
+            await loadEvents()
           } catch (err) {
-            setStatus(err.message || '删除失败', true);
+            setStatus(err.message || '删除失败', true)
           }
-        });
-      });
-      tbody.querySelectorAll('[data-reg]').forEach(btn => {
+        })
+      })
+
+      tbody.querySelectorAll('[data-reg]').forEach((btn) => {
         btn.addEventListener('click', async () => {
-          const id = Number(btn.getAttribute('data-reg'));
-          await loadRegistrations(id);
-        });
-      });
+          const id = Number(btn.getAttribute('data-reg'))
+          switchView('events')
+          await loadRegistrations(id)
+        })
+      })
     }
 
     function renderRegistrations(eventId, list) {
-      $('regTitle').textContent = `报名人员（活动 #${eventId}，共 ${list.length} 人）`;
-      const tbody = document.querySelector('#registrationTable tbody');
+      $('regTitle').textContent = `报名人员（活动 #${eventId}，共 ${list.length} 人）`
+      const tbody = document.querySelector('#registrationTable tbody')
       if (!list.length) {
-        tbody.innerHTML = '<tr><td colspan="5"><span class="muted">暂无报名人员</span></td></tr>';
-        return;
+        tbody.innerHTML = '<tr><td colspan="5"><span class="muted">暂无报名人员</span></td></tr>'
+        return
       }
-      tbody.innerHTML = list.map(item => `
+      tbody.innerHTML = list.map((item) => `
         <tr>
           <td>${item.user_id}</td>
           <td>${item.nickname || ''}</td>
@@ -334,35 +862,37 @@
           <td>${item.role_type || ''}</td>
           <td>${item.registered_at ? new Date(item.registered_at).toLocaleString() : ''}</td>
         </tr>
-      `).join('');
+      `).join('')
     }
 
     async function loadRegistrations(eventId) {
       try {
-        if (!state.token) throw new Error('请先登录获取 token');
-        const data = await request(`/events/${eventId}/registrations`);
-        renderRegistrations(eventId, data.list || []);
-        setStatus(`已加载活动 #${eventId} 报名名单`);
+        if (!state.token) throw new Error('请先登录获取 token')
+        const data = await request(`/events/${eventId}/registrations`)
+        renderRegistrations(eventId, data.list || [])
+        setStatus(`已加载活动 #${eventId} 报名名单`)
       } catch (err) {
-        setStatus(err.message || '加载报名名单失败', true);
+        setStatus(err.message || '加载报名名单失败', true)
       }
     }
 
     async function loadEvents() {
       try {
-        const data = await request('/events?page=1&pageSize=100');
-        state.events = data.list || [];
-        renderEvents();
-        setStatus(`已加载 ${state.events.length} 条活动`);
+        const data = await request('/events?page=1&pageSize=100')
+        state.events = data.list || []
+        renderEvents()
+        renderOverviewMetrics()
+        renderModuleMatrix()
+        setStatus(`已加载 ${state.events.length} 条活动`)
       } catch (err) {
-        setStatus(err.message || '加载活动失败', true);
+        setStatus(err.message || '加载活动失败', true)
       }
     }
 
     function collectFormPayload() {
-      const title = $('title').value.trim();
-      if (!title) throw new Error('标题必填');
-      const payload = {
+      const title = $('title').value.trim()
+      if (!title) throw new Error('标题必填')
+      return {
         title,
         event_type: $('event_type').value,
         status: $('statusField').value,
@@ -376,38 +906,67 @@
         price: $('price').value === '' ? undefined : Number($('price').value),
         capacity: $('capacity').value === '' ? undefined : Number($('capacity').value),
         is_registerable: $('is_registerable').value === 'true'
-      };
-      return payload;
+      }
     }
 
     async function saveEvent() {
       try {
-        if (!state.token) throw new Error('请先登录获取 token');
-        const payload = collectFormPayload();
+        if (!state.token) throw new Error('请先登录获取 token')
+        const payload = collectFormPayload()
         if (state.editingId) {
-          await request(`/events/${state.editingId}`, 'PATCH', payload);
-          setStatus(`更新成功：#${state.editingId}`);
+          await request(`/events/${state.editingId}`, 'PATCH', payload)
+          setStatus(`更新成功：#${state.editingId}`)
         } else {
-          const data = await request('/events', 'POST', payload);
-          setStatus(`创建成功：#${data.id}`);
+          const data = await request('/events', 'POST', payload)
+          setStatus(`创建成功：#${data.id}`)
         }
-        fillForm(null);
-        await loadEvents();
+        fillForm(null)
+        await loadEvents()
+        switchView('events')
       } catch (err) {
-        setStatus(err.message || '保存失败', true);
+        setStatus(err.message || '保存失败', true)
       }
     }
 
-    $('loginBtn').addEventListener('click', async () => {
-      try { await login(); } catch (err) { setStatus(err.message || '登录失败', true); }
-    });
-    $('refreshBtn').addEventListener('click', loadEvents);
-    $('saveBtn').addEventListener('click', saveEvent);
-    $('cancelEditBtn').addEventListener('click', () => fillForm(null));
+    async function checkSystemHealth() {
+      const card = $('systemHealthCard')
+      card.innerHTML = '<span class="module-meta">检测中</span><p>正在检测当前 API 基址的健康状态...</p>'
+      try {
+        const res = await fetch(`${apiBase()}/health`)
+        if (!res.ok) throw new Error(`HTTP ${res.status}`)
+        const data = await res.json().catch(() => ({}))
+        card.innerHTML = `
+          <span class="module-meta ok">健康正常</span>
+          <p>当前 API 基址：${apiBase()}</p>
+          <p>健康检查返回：${JSON.stringify(data)}</p>
+        `
+      } catch (err) {
+        card.innerHTML = `
+          <span class="module-meta warn">检测失败</span>
+          <p>当前 API 基址：${apiBase()}</p>
+          <p>${err.message || '无法访问 /health'}</p>
+        `
+      }
+    }
 
-    $('baseUrl').value = `${location.protocol}//${location.host}`;
-    fillForm(null);
-    loadEvents();
+    document.querySelectorAll('.nav-btn').forEach((btn) => {
+      btn.addEventListener('click', () => switchView(btn.getAttribute('data-view')))
+    })
+    $('loginBtn').addEventListener('click', async () => {
+      try { await login() } catch (err) { setStatus(err.message || '登录失败', true) }
+    })
+    $('refreshBtn').addEventListener('click', loadEvents)
+    $('saveBtn').addEventListener('click', saveEvent)
+    $('cancelEditBtn').addEventListener('click', () => fillForm(null))
+    $('checkSystemBtn').addEventListener('click', checkSystemHealth)
+
+    $('baseUrl').value = `${location.protocol}//${location.host}`
+    renderModuleMatrix()
+    renderOverviewMetrics()
+    fillForm(null)
+    switchView('dashboard')
+    loadEvents()
+    checkSystemHealth()
   </script>
 </body>
 </html>

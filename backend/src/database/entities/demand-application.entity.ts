@@ -24,6 +24,9 @@ export class DemandApplication {
   @Column({ type: 'enum', enum: ApplicationStatus, default: ApplicationStatus.APPLIED })
   status!: ApplicationStatus
 
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  remark?: string
+
   @CreateDateColumn({ name: 'created_at' })
   createdAt!: Date
 }

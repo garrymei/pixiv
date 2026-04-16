@@ -11,6 +11,7 @@ import { Event } from './database/entities/event.entity'
 import { EventRegistration } from './database/entities/event-registration.entity'
 import { Demand } from './database/entities/demand.entity'
 import { DemandApplication } from './database/entities/demand-application.entity'
+import { Banner } from './database/entities/banner.entity'
 import { AuthModule } from './modules/auth/auth.module'
 import { UsersModule } from './modules/users/users.module'
 import { PostsModule } from './modules/posts/posts.module'
@@ -57,7 +58,7 @@ const hasDb =
               password: process.env.DB_PASSWORD,
               database: process.env.DB_NAME,
               synchronize: false,
-              entities: [User, Post, PostImage, Comment, Like, Event, EventRegistration, Demand, DemandApplication]
+              entities: [User, Post, PostImage, Comment, Like, Event, EventRegistration, Demand, DemandApplication, Banner]
             })
           })
         ]

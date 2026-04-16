@@ -20,6 +20,12 @@ export class EventRegistration {
   @ManyToOne(() => User, u => u.eventRegistrations)
   user!: User
 
+  @Column({ length: 32, default: 'registered' })
+  status!: string
+
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  remark?: string
+
   @CreateDateColumn({ name: 'created_at' })
   createdAt!: Date
 }

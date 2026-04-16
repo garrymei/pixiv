@@ -14,7 +14,7 @@ export class Demand {
   @ManyToOne(() => User, u => u.demands)
   author!: User
 
-  @Column({ type: 'enum', enum: DemandType })
+  @Column({ name: 'demand_type', type: 'enum', enum: DemandType })
   type!: DemandType
 
   @Column({ length: 255 })
@@ -23,20 +23,26 @@ export class Demand {
   @Column({ type: 'text', nullable: true })
   description?: string
 
-  @Column({ name: 'time', type: 'datetime', nullable: true })
-  time?: Date
+  @Column({ length: 128, nullable: true })
+  city?: string
 
   @Column({ length: 128, nullable: true })
   location?: string
 
+  @Column({ name: 'event_time', type: 'datetime', nullable: true })
+  eventTime?: Date
+
   @Column({ name: 'budget_type', length: 32, nullable: true })
   budgetType?: string
 
-  @Column({ name: 'budget_value', type: 'decimal', precision: 10, scale: 2, nullable: true })
+  @Column({ name: 'budget_amount', type: 'decimal', precision: 10, scale: 2, nullable: true })
   budgetValue?: number
 
-  @Column({ name: 'people_count', type: 'int', default: 1 })
+  @Column({ name: 'participant_limit', type: 'int', default: 1 })
   peopleCount!: number
+
+  @Column({ name: 'deadline', type: 'datetime', nullable: true })
+  deadline?: Date
 
   @Column({ type: 'enum', enum: DemandStatus, default: DemandStatus.OPEN })
   status!: DemandStatus

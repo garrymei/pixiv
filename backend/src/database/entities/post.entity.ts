@@ -21,6 +21,24 @@ export class Post {
   @Column({ type: 'text', nullable: true })
   content?: string
 
+  @Column({ name: 'cover_image', length: 255, nullable: true })
+  coverImage?: string
+
+  @Column({ type: 'simple-json', nullable: true })
+  tags?: string[]
+
+  @Column({ length: 128, nullable: true })
+  location?: string
+
+  @Column({ name: 'post_type', length: 32, default: 'daily' })
+  postType!: string
+
+  @Column({ name: 'like_count', type: 'int', default: 0 })
+  likeCount!: number
+
+  @Column({ name: 'comment_count', type: 'int', default: 0 })
+  commentCount!: number
+
   @CreateDateColumn({ name: 'created_at' })
   createdAt!: Date
 

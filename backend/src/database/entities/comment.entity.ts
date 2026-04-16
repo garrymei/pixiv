@@ -22,6 +22,18 @@ export class Comment {
   @Column({ type: 'text' })
   content!: string
 
+  @Column({ name: 'parent_id', type: 'int', nullable: true })
+  parentId?: number
+
+  @Column({ name: 'reply_user_id', type: 'int', nullable: true })
+  replyUserId?: number
+
+  @Column({ name: 'like_count', type: 'int', default: 0 })
+  likeCount!: number
+
+  @Column({ name: 'reply_count', type: 'int', default: 0 })
+  replyCount!: number
+
   @CreateDateColumn({ name: 'created_at' })
   createdAt!: Date
 }

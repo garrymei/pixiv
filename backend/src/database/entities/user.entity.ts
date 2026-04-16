@@ -17,11 +17,23 @@ export class User {
   @Column({ name: 'avatar_url', length: 255, nullable: true })
   avatarUrl?: string
 
+  @Column({ name: 'bg_url', length: 255, nullable: true })
+  bgUrl?: string
+
   @Column({ length: 255, nullable: true })
   bio?: string
 
   @Column({ length: 64, nullable: true })
   city?: string
+
+  @Column({ name: 'role_type', length: 32, default: 'user' })
+  roleType!: string
+
+  @Column({ name: 'followers_count', type: 'int', default: 0 })
+  followersCount!: number
+
+  @Column({ name: 'following_count', type: 'int', default: 0 })
+  followingCount!: number
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt!: Date
