@@ -1,7 +1,8 @@
 import { ConflictException, Injectable } from '@nestjs/common'
 import { CreateDemandDto } from './dto/create-demand.dto'
-import { DemandType, DemandStatus } from '../../types/enums'
+import { DemandType, DemandStatus, ModerationStatus } from '../../types/enums'
 import { getStoredUserSummary } from '../users/users.service'
+import { autoModerate } from '../../common/utils/moderation'
 
 type DemandItem = {
   id: number
@@ -17,6 +18,8 @@ type DemandItem = {
   participant_limit?: number
   deadline?: number
   status: DemandStatus
+  moderation_status: ModerationStatus
+  moderation_reason?: string
   created_at: number
 }
 
@@ -34,6 +37,8 @@ type DemandResponse = {
   participant_limit: number | null
   deadline: number | null
   status: DemandStatus
+  moderation_status: ModerationStatus
+  moderation_reason: string
   created_at: number
   user: {
     id: number
@@ -60,6 +65,7 @@ const demands: DemandItem[] = [
     participant_limit: 1,
     deadline: new Date('2026-04-18T23:59:59+08:00').getTime(),
     status: DemandStatus.OPEN,
+    moderation_status: ModerationStatus.APPROVED,
     created_at: new Date('2024-03-24T08:00:00Z').getTime()
   },
   {
@@ -75,6 +81,7 @@ const demands: DemandItem[] = [
     participant_limit: 1,
     deadline: new Date('2026-04-28T23:59:59+08:00').getTime(),
     status: DemandStatus.OPEN,
+    moderation_status: ModerationStatus.APPROVED,
     created_at: new Date('2024-03-23T14:20:00Z').getTime()
   },
   {
@@ -90,6 +97,7 @@ const demands: DemandItem[] = [
     participant_limit: 1,
     deadline: new Date('2026-05-10T23:59:59+08:00').getTime(),
     status: DemandStatus.CLOSED,
+    moderation_status: ModerationStatus.APPROVED,
     created_at: new Date('2024-03-20T10:00:00Z').getTime()
   },
   {
@@ -106,6 +114,7 @@ const demands: DemandItem[] = [
     participant_limit: 1,
     deadline: new Date('2026-04-18T23:59:59+08:00').getTime(),
     status: DemandStatus.OPEN,
+    moderation_status: ModerationStatus.APPROVED,
     created_at: new Date('2024-03-22T12:00:00Z').getTime()
   }
 ]
@@ -130,6 +139,8 @@ function toDemandResponse(item: DemandItem): DemandResponse {
     participant_limit: item.participant_limit ?? null,
     deadline: item.deadline ?? null,
     status: item.status,
+    moderation_status: item.moderation_status,
+    moderation_reason: item.moderation_reason || '',
     created_at: item.created_at,
     user: {
       id: user.id,
@@ -159,7 +170,8 @@ function buildDemandSubmissionKey(authorId: number, dto: CreateDemandDto) {
 export class DemandsService {
   async list(params: { demand_type?: DemandType; page?: number; pageSize?: number }) {
     const { demand_type, page = 1, pageSize = 10 } = params || {}
-    const filtered = demand_type ? demands.filter(d => d.demand_type === demand_type) : demands
+    const visible = demands.filter(d => d.moderation_status === ModerationStatus.APPROVED)
+    const filtered = demand_type ? visible.filter(d => d.demand_type === demand_type) : visible
     const start = (page - 1) * pageSize
     const data = filtered.slice(start, start + pageSize).map(toDemandResponse)
     return { list: data, total: filtered.length, page, pageSize }
@@ -167,7 +179,9 @@ export class DemandsService {
 
   async getById(id: number) {
     const item = demands.find(d => d.id === id)
-    return item ? toDemandResponse(item) : null
+    if (!item) return null
+    if (item.moderation_status !== ModerationStatus.APPROVED) return null
+    return toDemandResponse(item)
   }
 
   async create(authorId: number, dto: CreateDemandDto) {
@@ -177,6 +191,10 @@ export class DemandsService {
     if (recentSubmitAt && now - recentSubmitAt < DEMAND_SUBMISSION_TTL) {
       throw new ConflictException('duplicate submit')
     }
+    const review = autoModerate({
+      text: `${dto.title}\n${dto.description || ''}\n${dto.location || ''}\n${dto.city || ''}`,
+      images: []
+    })
     const item: DemandItem = {
       id: ++seq,
       authorId,
@@ -191,6 +209,8 @@ export class DemandsService {
       participant_limit: dto.participant_limit,
       deadline: dto.deadline,
       status: DemandStatus.OPEN,
+      moderation_status: review.status,
+      moderation_reason: review.reason,
       created_at: now
     }
     demands.unshift(item)
@@ -203,5 +223,13 @@ export class DemandsService {
     const start = (page - 1) * pageSize
     const data = mine.slice(start, start + pageSize).map(toDemandResponse)
     return { list: data, total: mine.length, page, pageSize }
+  }
+
+  async review(id: number, action: 'approve' | 'reject', reason?: string) {
+    const item = demands.find(d => d.id === id)
+    if (!item) return null
+    item.moderation_status = action === 'approve' ? ModerationStatus.APPROVED : ModerationStatus.REJECTED
+    item.moderation_reason = action === 'approve' ? '' : (reason || '内容审核未通过')
+    return toDemandResponse(item)
   }
 }

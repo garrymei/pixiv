@@ -22,3 +22,9 @@ export enum ApplicationStatus {
   APPROVED = 'APPROVED',
   REJECTED = 'REJECTED'
 }
+
+export enum ModerationStatus {
+  PENDING = 'PENDING',
+  APPROVED = 'APPROVED',
+  REJECTED = 'REJECTED'
+}

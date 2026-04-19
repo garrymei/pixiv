@@ -137,7 +137,7 @@ export default function PublishPost() {
         images: images.map((item) => item.remoteUrl).filter(Boolean)
       })
       markPostListShouldRefresh()
-      Taro.showToast({ title: '发布成功', icon: 'success' })
+      Taro.showToast({ title: '已提交，审核通过后展示', icon: 'none' })
       setTimeout(() => Taro.switchTab({ url: '/pages/home/index' }), 300)
     } catch (err: any) {
       Taro.showToast({ title: err?.message || '发布失败', icon: 'none' })

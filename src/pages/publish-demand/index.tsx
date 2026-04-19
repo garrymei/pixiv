@@ -1,4 +1,4 @@
-import { View, Text } from '@tarojs/components'
+import { View, Text, Picker } from '@tarojs/components'
 import Taro, { useLoad } from '@tarojs/taro'
 import { useState } from 'react'
 import { Input } from '../../components/base/Input'
@@ -23,8 +23,10 @@ export default function PublishDemand() {
     }
   })
   const [desc, setDesc] = useState('')
-  const [time, setTime] = useState('')
-  const [deadline, setDeadline] = useState('')
+  const [timeDate, setTimeDate] = useState('')
+  const [timeClock, setTimeClock] = useState('')
+  const [deadlineDate, setDeadlineDate] = useState('')
+  const [deadlineClock, setDeadlineClock] = useState('')
   const [location, setLocation] = useState('')
   const [budget, setBudget] = useState('')
   const [count, setCount] = useState('')
@@ -33,12 +35,14 @@ export default function PublishDemand() {
   const [submitting, setSubmitting] = useState(false)
 
   const submit = async () => {
+    const time = timeDate && timeClock ? `${timeDate}T${timeClock}:00` : ''
+    const deadline = deadlineDate && deadlineClock ? `${deadlineDate}T${deadlineClock}:00` : ''
     const e: Record<string, string> = {}
     if (!type) e.type = '请选择需求类型'
     if (!title.trim()) e.title = '请输入标题'
     if (!desc.trim()) e.desc = '请输入描述'
-    if (!time.trim()) e.time = '请输入时间'
-    if (!deadline.trim()) e.deadline = '请输入报名截止时间'
+    if (!time) e.time = '请选择预约时间'
+    if (!deadline) e.deadline = '请选择报名截止时间'
     if (!location.trim()) e.location = '请输入地点'
     if (!budget) e.budget = '请选择预算'
     if (!count) e.count = '请选择人数'
@@ -49,7 +53,7 @@ export default function PublishDemand() {
     setSubmitting(true)
     try {
       await createDemand({ type, title, desc: `${desc}\n联系方式：${contact}`, time, deadline, location, budget, count })
-      Taro.showToast({ title: '发布成功', icon: 'success' })
+      Taro.showToast({ title: '已提交，审核通过后展示', icon: 'none' })
       setTimeout(() => Taro.navigateTo({ url: '/pages/my-demands/index' }), 300)
     } catch (err: any) {
       Taro.showToast({ title: err?.message || '发布失败', icon: 'none' })
@@ -78,10 +82,26 @@ export default function PublishDemand() {
         <Textarea label="描述" value={desc} onInput={(e) => setDesc((e.detail as any).value)} error={errors.desc} maxlength={300} showCount placeholder="简单描述需求细节" />
       </View>
       <View className="form-section">
-        <Input label="时间" value={time} onInput={(e) => setTime((e.detail as any).value)} error={errors.time} placeholder="例如：2026-03-30 14:00" />
+        <Text>预约时间</Text>
+        <View className="datetime-row">
+          <Picker mode="date" value={timeDate} onChange={(e) => setTimeDate((e.detail as any).value)}>
+            <Input label="日期" value={timeDate} disabled placeholder="选择日期" error={errors.time} />
+          </Picker>
+          <Picker mode="time" value={timeClock} onChange={(e) => setTimeClock((e.detail as any).value)}>
+            <Input label="时间" value={timeClock} disabled placeholder="选择时间" />
+          </Picker>
+        </View>
       </View>
       <View className="form-section">
-        <Input label="截止时间" value={deadline} onInput={(e) => setDeadline((e.detail as any).value)} error={errors.deadline} placeholder="例如：2026-03-29 22:00" />
+        <Text>报名截止</Text>
+        <View className="datetime-row">
+          <Picker mode="date" value={deadlineDate} onChange={(e) => setDeadlineDate((e.detail as any).value)}>
+            <Input label="日期" value={deadlineDate} disabled placeholder="选择日期" error={errors.deadline} />
+          </Picker>
+          <Picker mode="time" value={deadlineClock} onChange={(e) => setDeadlineClock((e.detail as any).value)}>
+            <Input label="时间" value={deadlineClock} disabled placeholder="选择时间" />
+          </Picker>
+        </View>
       </View>
       <View className="form-section">
         <Input label="地点" value={location} onInput={(e) => setLocation((e.detail as any).value)} error={errors.location} placeholder="例如：广州海珠区" />

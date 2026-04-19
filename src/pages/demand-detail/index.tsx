@@ -25,6 +25,7 @@ function getApplyErrorMessage(error: any) {
 
 export default function DemandDetail() {
   const [id, setId] = useState('')
+  const [marketMain, setMarketMain] = useState<'seek' | 'offer' | ''>('')
   const [demand, setDemand] = useState<any>()
   const [applied, setApplied] = useState(false)
   const [loading, setLoading] = useState(true)
@@ -33,6 +34,8 @@ export default function DemandDetail() {
 
   useLoad((options) => {
     setId(String(options?.id || ''))
+    const nextMain = String((options as any)?.marketMain || '')
+    setMarketMain(nextMain === 'seek' || nextMain === 'offer' ? nextMain : '')
   })
 
   const loadData = useCallback(async () => {
@@ -88,6 +91,24 @@ export default function DemandDetail() {
   if (loading) return <LoadingState fullScreen text="需求加载中..." />
   if (error || !demand) return <EmptyState title="加载失败" description={error || '需求不存在'} actionText="重试" onAction={loadData} />
 
+  const normalizeMarketType = (rawType: string) => {
+    const normalized = String(rawType || '').replace(/^(找|本)/, '')
+    if (normalized === '摄影') return '摄影'
+    if (normalized === '妆娘') return '妆娘'
+    if (normalized === '毛娘') return '毛娘'
+    return '其他'
+  }
+
+  const formatDisplayType = (main: 'seek' | 'offer', rawType: string) => {
+    if (!rawType) return rawType
+    const normalized = normalizeMarketType(rawType)
+    if (normalized === '其他') return '其他'
+    const prefix = main === 'seek' ? '找' : '本'
+    return `${prefix}${normalized}`
+  }
+
+  const displayType = marketMain ? formatDisplayType(marketMain, demand.type) : demand.type
+
   return (
     <View className="page-container" style={{ paddingBottom: 'var(--safe-area-bottom)' }}>
       <View style={{ padding: 'var(--space-lg)' }}>
@@ -95,7 +116,7 @@ export default function DemandDetail() {
           {demand.title}
         </Text>
         <View style={{ display: 'flex', gap: '8rpx', marginTop: '12rpx' }}>
-          <Tag type="primary" size="small">{demand.type}</Tag>
+          <Tag type="primary" size="small">{displayType}</Tag>
           {demand.budget && <Tag type="secondary" size="small">{demand.budget}</Tag>}
         </View>
         <View style={{ marginTop: '12rpx', color: 'var(--color-text-secondary)' }}>

@@ -1,8 +1,13 @@
 import { Injectable } from '@nestjs/common'
+import { autoModerate } from '../../common/utils/moderation'
+import { ModerationStatus } from '../../types/enums'
 
 export type UserSummary = {
   id: number
   avatar?: string
+  avatar_pending?: string
+  avatar_review_status?: ModerationStatus
+  avatar_review_reason?: string
   nickname: string
   bio?: string
   city?: string
@@ -58,6 +63,9 @@ export function normalizeUserSummary(user: Partial<UserSummary> & { id: number }
     id: user.id,
     nickname: user.nickname || '未命名用户',
     avatar: user.avatar || '',
+    avatar_pending: user.avatar_pending || '',
+    avatar_review_status: user.avatar_review_status || ModerationStatus.APPROVED,
+    avatar_review_reason: user.avatar_review_reason || '',
     bio: user.bio || '',
     city: user.city || '',
     role_type: user.role_type || 'user'
@@ -77,12 +85,50 @@ export class UsersService {
 
   async updateCurrentUser(userId: number, dto: Partial<UserSummary>): Promise<UserSummary> {
     const prev = getStoredUserSummary(userId) || normalizeUserSummary({ id: userId, nickname: '未命名用户' })
-    const next = normalizeUserSummary({ ...prev, ...dto, id: userId })
+    const { avatar, ...rest } = dto
+    const next = normalizeUserSummary({ ...prev, ...rest, id: userId })
+
+    if (avatar !== undefined) {
+      const review = autoModerate({ images: [String(avatar || '')] })
+      if (review.status === ModerationStatus.APPROVED) {
+        next.avatar = String(avatar || '')
+        next.avatar_pending = ''
+        next.avatar_review_status = ModerationStatus.APPROVED
+        next.avatar_review_reason = ''
+      } else {
+        next.avatar_pending = String(avatar || '')
+        next.avatar_review_status = ModerationStatus.PENDING
+        next.avatar_review_reason = review.reason || '头像待人工审核'
+      }
+    }
+
     store.set(userId, next)
     return next
   }
 
   async getUserById(id: number): Promise<UserSummary | null> {
     return getStoredUserSummary(id)
+  }
+
+  async reviewAvatar(userId: number, action: 'approve' | 'reject', reason?: string): Promise<UserSummary | null> {
+    const current = getStoredUserSummary(userId)
+    if (!current) return null
+
+    const next = normalizeUserSummary(current)
+    if (action === 'approve') {
+      if (next.avatar_pending) {
+        next.avatar = next.avatar_pending
+      }
+      next.avatar_pending = ''
+      next.avatar_review_status = ModerationStatus.APPROVED
+      next.avatar_review_reason = ''
+    } else {
+      next.avatar_pending = ''
+      next.avatar_review_status = ModerationStatus.REJECTED
+      next.avatar_review_reason = reason || '头像审核未通过'
+    }
+
+    store.set(userId, next)
+    return next
   }
 }

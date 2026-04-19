@@ -48,25 +48,30 @@ export default function Discover() {
   const [activeMarketSub, setActiveMarketSub] = useState('全部')
   const [isMarketMockFallback, setIsMarketMockFallback] = useState(false)
 
-  // 根据主筛选，生成展示用的类型标签（如：找摄影 / 本摄影）
+  const normalizeMarketType = (rawType: string) => {
+    const normalized = String(rawType || '').replace(/^(找|本)/, '')
+    if (normalized === '摄影') return '摄影'
+    if (normalized === '妆娘') return '妆娘'
+    if (normalized === '毛娘') return '毛娘'
+    return '其他'
+  }
+
   const formatDisplayType = (main: 'seek' | 'offer', rawType: string) => {
     if (!rawType) return rawType
-    // 如果后端/Mock 已经带了前缀，则直接返回
-    if (/^(找|本)/.test(rawType)) return rawType
+    const normalized = normalizeMarketType(rawType)
+    if (normalized === '其他') return '其他'
     const prefix = main === 'seek' ? '找' : '本'
-    return `${prefix}${rawType}`
+    return `${prefix}${normalized}`
   }
 
   const mapMarketFilterToDemandType = (main: 'seek' | 'offer', sub: string) => {
     if (sub === '全部') return undefined
     const normalized = sub.replace(/^(找|本)/, '')
     if (normalized === '摄影') return '摄影'
-    if (normalized === '妆娘' || normalized === '毛娘') return '妆娘'
-    if (normalized.toLowerCase() === 'coser') return 'Coser'
-    if (normalized === '后期') return '后期'
-    if (main === 'seek') return '其他'
-    if (main === 'offer') return '其他'
-    return undefined
+    if (normalized === '妆娘') return '妆娘'
+    if (normalized === '毛娘') return '毛娘'
+    if (normalized === '其他') return '其他'
+    return main === 'seek' || main === 'offer' ? '其他' : undefined
   }
 
   // 获取数据
@@ -147,7 +152,7 @@ export default function Discover() {
   }, [activeTag, search, posts])
 
   const handlePostClick = (id: string) => Taro.navigateTo({ url: `/pages/post-detail/index?id=${id}` })
-  const handleDemandClick = (id: string) => Taro.navigateTo({ url: `/pages/demand-detail/index?id=${id}` })
+  const handleDemandClick = (id: string) => Taro.navigateTo({ url: `/pages/demand-detail/index?id=${id}&marketMain=${activeMarketMain}` })
 
   return (
     <View className="page-discover page-container-full">

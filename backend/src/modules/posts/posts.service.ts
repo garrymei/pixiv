@@ -3,6 +3,8 @@ import { CreatePostDto } from './dto/create-post.dto'
 import { getStoredUserSummary } from '../users/users.service'
 import { getCommentCountByPost } from '../comments/comments.service'
 import { getLikeCountByPost } from '../likes/likes.service'
+import { autoModerate } from '../../common/utils/moderation'
+import { ModerationStatus } from '../../types/enums'
 
 type PostItem = {
   id: number
@@ -14,6 +16,8 @@ type PostItem = {
   images?: string[]
   tags?: string[]
   location?: string
+  moderation_status: ModerationStatus
+  moderation_reason?: string
   created_at: number
 }
 
@@ -30,6 +34,8 @@ type PostResponse = {
   created_at: number
   like_count: number
   comment_count: number
+  moderation_status: ModerationStatus
+  moderation_reason: string
   user: {
     id: number
     nickname: string
@@ -51,6 +57,7 @@ const posts: PostItem[] = [
     images: ['https://images.unsplash.com/photo-1578632767115-351597cf2477?auto=format&fit=crop&q=80&w=600'],
     tags: ['Cosplay', '正片', '原神', '广州场照'],
     location: '广州',
+    moderation_status: ModerationStatus.APPROVED,
     created_at: new Date('2024-03-24T10:00:00Z').getTime()
   },
   {
@@ -63,6 +70,7 @@ const posts: PostItem[] = [
     images: ['https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&q=80&w=600'],
     tags: ['摄影接单', '场照', '后期', '日常'],
     location: '广州',
+    moderation_status: ModerationStatus.APPROVED,
     created_at: new Date('2024-03-23T15:30:00Z').getTime()
   },
   {
@@ -75,6 +83,7 @@ const posts: PostItem[] = [
     images: ['https://images.unsplash.com/photo-1608889175123-8ee362201f81?auto=format&fit=crop&q=80&w=600'],
     tags: ['组队', '刀剑神域', '求组队'],
     location: '广州',
+    moderation_status: ModerationStatus.APPROVED,
     created_at: new Date('2024-03-22T09:15:00Z').getTime()
   },
   {
@@ -87,6 +96,7 @@ const posts: PostItem[] = [
     images: ['https://images.unsplash.com/photo-1535378620166-273708d44e4c?auto=format&fit=crop&q=80&w=600'],
     tags: ['道具教程', '初音未来', '手作'],
     location: '深圳',
+    moderation_status: ModerationStatus.APPROVED,
     created_at: new Date('2024-03-21T18:20:00Z').getTime()
   },
   {
@@ -99,6 +109,7 @@ const posts: PostItem[] = [
     images: ['https://images.unsplash.com/photo-1526628953301-3e589a6a8b74?auto=format&fit=crop&q=80&w=600'],
     tags: ['官方', '公告', '社区'],
     location: '广州',
+    moderation_status: ModerationStatus.APPROVED,
     created_at: new Date('2024-03-21T10:00:00Z').getTime()
   }
 ]
@@ -123,6 +134,8 @@ function toPostResponse(item: PostItem): PostResponse {
     created_at: item.created_at,
     like_count: getLikeCountByPost(item.id),
     comment_count: getCommentCountByPost(item.id),
+    moderation_status: item.moderation_status,
+    moderation_reason: item.moderation_reason || '',
     user: {
       id: user.id,
       nickname: user.nickname,
@@ -148,7 +161,8 @@ function buildPostSubmissionKey(authorId: number, dto: CreatePostDto) {
 export class PostsService {
   async list(params: { type?: 'work' | 'daily'; page?: number; pageSize?: number }) {
     const { type, page = 1, pageSize = 10 } = params || {}
-    const filtered = type ? posts.filter(p => p.post_type === type) : posts
+    const visible = posts.filter(p => p.moderation_status === ModerationStatus.APPROVED)
+    const filtered = type ? visible.filter(p => p.post_type === type) : visible
     const start = (page - 1) * pageSize
     const data = filtered.slice(start, start + pageSize).map(toPostResponse)
     return { list: data, total: filtered.length, page, pageSize }
@@ -156,7 +170,9 @@ export class PostsService {
 
   async getById(id: number) {
     const item = posts.find(p => p.id === id)
-    return item ? toPostResponse(item) : null
+    if (!item) return null
+    if (item.moderation_status !== ModerationStatus.APPROVED) return null
+    return toPostResponse(item)
   }
 
   async create(authorId: number, dto: CreatePostDto) {
@@ -166,6 +182,10 @@ export class PostsService {
     if (recentSubmitAt && now - recentSubmitAt < POST_SUBMISSION_TTL) {
       throw new ConflictException('duplicate submit')
     }
+    const review = autoModerate({
+      text: `${dto.title}\n${dto.content || ''}\n${(dto.tags || []).join(' ')}\n${dto.location || ''}`,
+      images: dto.images || (dto.cover_image ? [dto.cover_image] : [])
+    })
     const item: PostItem = {
       id: ++seq,
       authorId,
@@ -176,6 +196,8 @@ export class PostsService {
       images: (dto.images || []).filter(Boolean),
       tags: (dto.tags || []).filter(Boolean),
       location: dto.location?.trim(),
+      moderation_status: review.status,
+      moderation_reason: review.reason,
       created_at: now
     }
     posts.unshift(item)
@@ -188,5 +210,13 @@ export class PostsService {
     const start = (page - 1) * pageSize
     const data = mine.slice(start, start + pageSize).map(toPostResponse)
     return { list: data, total: mine.length, page, pageSize }
+  }
+
+  async review(id: number, action: 'approve' | 'reject', reason?: string) {
+    const item = posts.find(p => p.id === id)
+    if (!item) return null
+    item.moderation_status = action === 'approve' ? ModerationStatus.APPROVED : ModerationStatus.REJECTED
+    item.moderation_reason = action === 'approve' ? '' : (reason || '内容审核未通过')
+    return toPostResponse(item)
   }
 }

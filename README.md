@@ -212,9 +212,45 @@ DB_PASSWORD=
 JWT_SECRET=
 UPLOAD_BASE_URL=
 API_BASE_URL=
+ADMIN_TOKEN=
+UPLOAD_MAX_BYTES=
+UPLOAD_RATE_LIMIT_MAX=
+UPLOAD_RATE_LIMIT_WINDOW_MS=
 ```
 
-## 十一、文档入口
+## 十一、内容安全与审核（新增）
+
+为避免违规内容直接出现在平台，项目对“用户上传头像、用户发布内容”引入了审核流与上传控制：
+
+### 1. 审核策略
+
+- 默认策略：发布/上传先走自动审核；自动判定可疑则进入待人工审核（`PENDING`），审核通过（`APPROVED`）后才会出现在公开列表中。
+- 动态/需求：公开列表仅返回 `APPROVED` 内容；未审核通过内容不可通过详情接口直接访问。
+- 头像：用户上传新头像后，若进入 `PENDING`，前台继续显示旧头像，新头像待审核通过后才生效。
+
+### 2. 上传控制（必须）
+
+上传接口 `/uploads/image` 已加入常规安全控制：
+
+- 文件类型限制：仅允许 `.png/.jpg/.jpeg/.gif/.webp`。
+- 文件大小限制：默认最大 5MB，可通过 `UPLOAD_MAX_BYTES` 配置（单位：字节）。
+- 文件签名校验：上传落盘后会校验图片 magic header，防止伪装格式绕过。
+- 简易频控：按用户维度限流，默认 `60s` 内最多 `20` 次上传，可通过 `UPLOAD_RATE_LIMIT_MAX` / `UPLOAD_RATE_LIMIT_WINDOW_MS` 调整。
+
+### 3. 人工审核接口（管理员）
+
+为避免审核接口暴露，人工审核接口需要管理员 Token：
+
+- 配置：设置 `ADMIN_TOKEN` 环境变量
+- 调用：在请求头中携带 `x-admin-token: <ADMIN_TOKEN>`
+
+接口示例：
+
+- `PATCH /admin/reviews/posts/:id` body：`{ "action": "approve" | "reject", "reason": "..." }`
+- `PATCH /admin/reviews/demands/:id` body：同上
+- `PATCH /admin/reviews/avatars/:userId` body：同上
+
+## 十二、文档入口
 
 | 类型 | 路径 |
 | --- | --- |
@@ -225,7 +261,7 @@ API_BASE_URL=
 | 发布准备 | `docs/release/` |
 | 冷启动方案 | `docs/launch/` |
 
-## 十二、后台平台需求（新增）
+## 十三、后台平台需求（新增）
 
 当前项目已不再满足“只有小程序前台”的阶段，后续需要建设一个与小程序模块逐一对应的后台管理与监控平台。
 

@@ -7,6 +7,9 @@ type UserRecord = {
   nickname: string
   avatar?: string
   avatarUrl?: string
+  avatar_pending?: string
+  avatar_review_status?: 'PENDING' | 'APPROVED' | 'REJECTED'
+  avatar_review_reason?: string
   bio?: string
   city?: string
   role_type?: string
@@ -22,6 +25,9 @@ export type CurrentUser = {
   followingCount: number
   city: string
   roleType: string
+  avatarReviewStatus?: 'PENDING' | 'APPROVED' | 'REJECTED'
+  avatarReviewReason?: string
+  avatarPendingUrl?: string
 }
 
 const CURRENT_USER_KEY = 'current_user_profile'
@@ -38,7 +44,10 @@ function mapUser(data: UserRecord | SessionUser | null): CurrentUser {
     followersCount: 0,
     followingCount: 0,
     city: data?.city || '',
-    roleType: data?.role_type || 'user'
+    roleType: data?.role_type || 'user',
+    avatarReviewStatus: (data as UserRecord | null)?.avatar_review_status,
+    avatarReviewReason: (data as UserRecord | null)?.avatar_review_reason || '',
+    avatarPendingUrl: (data as UserRecord | null)?.avatar_pending || ''
   }
 }
 
@@ -115,13 +124,14 @@ export async function getCurrentUser(forceRefresh = false): Promise<CurrentUser>
   })
 }
 
-export async function updateCurrentUser(payload: { nickname: string; bio?: string; city?: string; roleType?: string }) {
+export async function updateCurrentUser(payload: { nickname: string; bio?: string; city?: string; roleType?: string; avatar?: string }) {
   if (!isMockMode()) {
     const data = await patch<UserRecord>('/users/me', {
       nickname: payload.nickname,
       bio: payload.bio,
       city: payload.city,
-      role_type: payload.roleType
+      role_type: payload.roleType,
+      avatar: payload.avatar
     }, { requireAuth: true })
     const mapped = mapUser(data)
     writeCachedCurrentUser(mapped)
@@ -134,6 +144,9 @@ export async function updateCurrentUser(payload: { nickname: string; bio?: strin
     nickname: payload.nickname,
     bio: payload.bio || '',
     city: payload.city || '',
-    roleType: payload.roleType || 'user'
+    roleType: payload.roleType || 'user',
+    avatarReviewStatus: 'APPROVED',
+    avatarReviewReason: '',
+    avatarPendingUrl: ''
   })
 }
