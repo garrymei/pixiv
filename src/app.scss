@@ -4,9 +4,8 @@
 // 1. 页面级基础样式
 // ==========================================
 page {
-  background-color: var(--color-bg-page);
-  color: var(--color-text-primary);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  background-color: transparent;
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   font-size: var(--font-size-md);
   line-height: 1.5;
   box-sizing: border-box;
@@ -22,6 +21,8 @@ view, text, image, scroll-view {
 // 基础页面容器，带两侧安全间距
 .page-container {
   min-height: 100vh;
+  background-color: var(--color-bg-page);
+  color: var(--color-text-primary);
   padding: var(--space-md);
   padding-bottom: env(safe-area-inset-bottom); // 底部安全区适配
 }
@@ -29,6 +30,8 @@ view, text, image, scroll-view {
 // 无 padding 的全屏容器 (如首页需要轮播图顶边)
 .page-container-full {
   min-height: 100vh;
+  background-color: var(--color-bg-page);
+  color: var(--color-text-primary);
   padding-bottom: env(safe-area-inset-bottom);
 }
 

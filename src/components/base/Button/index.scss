@@ -114,3 +114,39 @@
 @keyframes button-spin {
   to { transform: rotate(360deg); }
 }
+
+.theme-light {
+  .base-button {
+    &--primary,
+    &--secondary {
+      border: 2rpx solid rgba(20, 16, 31, 0.08);
+    }
+
+    &--primary {
+      box-shadow: 0 0 18rpx rgba(106, 76, 255, 0.18);
+
+      &:active {
+        box-shadow: 0 0 26rpx rgba(106, 76, 255, 0.22);
+      }
+    }
+
+    &--secondary {
+      box-shadow: 0 0 18rpx rgba(255, 45, 122, 0.16);
+
+      &:active {
+        box-shadow: 0 0 26rpx rgba(255, 45, 122, 0.2);
+      }
+    }
+
+    &--outline {
+      &:active {
+        background-color: rgba(106, 76, 255, 0.08);
+      }
+    }
+
+    &__loading-icon {
+      border: 4rpx solid rgba(20, 16, 31, 0.18);
+      border-top-color: rgba(20, 16, 31, 0.8);
+    }
+  }
+}

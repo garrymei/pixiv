@@ -7,6 +7,7 @@ import { Tag } from '../../components/base/Tag'
 import { EmptyState } from '../../components/base/EmptyState'
 import { LoadingState } from '../../components/base/LoadingState'
 import { getProfileSummary } from '../../services/profile'
+import { useThemeMode } from '../../config/theme'
 import './index.scss'
 
 export default function Profile() {
@@ -14,6 +15,7 @@ export default function Profile() {
   const [stats, setStats] = useState<any>()
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const { theme, toggleTheme } = useThemeMode()
 
   const loadData = useCallback(async () => {
     setLoading(true)
@@ -39,7 +41,7 @@ export default function Profile() {
   if (error || !user) return <EmptyState title="加载失败" description={error || '用户不存在'} actionText="重试" onAction={loadData} />
 
   return (
-    <View className="page-profile page-container">
+    <View className={`page-profile page-container theme-${theme}`}>
       <ProfileHeader
         nickname={user.nickname}
         avatar={user.avatarUrl}
@@ -80,6 +82,7 @@ export default function Profile() {
         <View className="profile-menu__item" onClick={() => Taro.navigateTo({ url: '/pages/my-demands/index' })}><Text>我的需求</Text></View>
         <View className="profile-menu__item" onClick={() => Taro.navigateTo({ url: '/pages/my-applied-demands/index' })}><Text>我的参与</Text></View>
         <View className="profile-menu__item" onClick={() => Taro.navigateTo({ url: '/pages/edit-profile/index' })}><Text>编辑资料</Text></View>
+        <View className="profile-menu__item" onClick={toggleTheme}><Text>切换主题（当前：{theme === 'light' ? '浅色' : '深色'}）</Text></View>
       </View>
     </View>
   )

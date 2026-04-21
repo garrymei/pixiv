@@ -74,3 +74,26 @@
     margin-top: var(--space-xs);
   }
 }
+
+.theme-light {
+  .base-textarea {
+    &__label {
+      color: rgba(20, 16, 31, 0.72);
+    }
+
+    &__container {
+      border-color: rgba(20, 16, 31, 0.12);
+      background-color: rgba(255, 255, 255, 0.82);
+
+      &:focus-within {
+        border-color: rgba(0, 187, 214, 0.45);
+        box-shadow: 0 0 16rpx rgba(0, 187, 214, 0.14);
+      }
+    }
+
+    &__count {
+      background-color: rgba(255, 255, 255, 0.92);
+      color: rgba(20, 16, 31, 0.56);
+    }
+  }
+}

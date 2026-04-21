@@ -7,6 +7,7 @@ import { SectionHeader } from '../../components/base/SectionHeader'
 import { QuickEntryGrid } from '../../components/business/QuickEntryGrid'
 import { PostCard } from '../../components/business/PostCard'
 import { mockPosts } from '../../mocks/posts'
+import { useThemeMode } from '../../config/theme'
 
 import './index.scss'
 
@@ -35,6 +36,7 @@ const MUTUAL_HELP_ITEMS = {
 
 export default function Home() {
   const [mutualHelpTab, setMutualHelpTab] = useState<'seek'|'offer'>('seek')
+  const { theme } = useThemeMode()
 
   const handleEntryClick = (url?: string) => {
     if (url) Taro.navigateTo({ url })
@@ -54,7 +56,7 @@ export default function Home() {
   const rightCol = feedPosts.filter((_, i) => i % 2 === 1)
 
   return (
-    <View className="page-home">
+    <View className={classNames('page-home', `theme-${theme}`)}>
       <View className="page-home__hero-shell">
         <View className="page-home__hero-topbar">
           <View className="page-home__hero-copy">

@@ -11,6 +11,7 @@ import {
   markMyEventsShouldRefresh,
   registerEvent
 } from '../../services/events'
+import { useThemeMode } from '../../config/theme'
 import './index.scss'
 
 export default function EventDetail() {
@@ -20,6 +21,7 @@ export default function EventDetail() {
   const [ev, setEv] = useState<any>()
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const { theme } = useThemeMode()
 
   useLoad((options) => {
     setEventId(String(options?.id || ''))
@@ -95,7 +97,7 @@ export default function EventDetail() {
   const actionText = joined ? '已报名' : disabledReason ? '暂不可报名' : '立即报名'
 
   return (
-    <View className="page-event-detail page-container">
+    <View className={`page-event-detail page-container theme-${theme}`}>
       <View className="event-cover">
         <Image src={ev.coverUrl} mode="aspectFill" style={{ width: '100%', height: '100%' }} />
       </View>

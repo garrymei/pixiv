@@ -5,6 +5,7 @@ import { EventCard } from '../../components/business/EventCard'
 import { EmptyState } from '../../components/base/EmptyState'
 import { LoadingState } from '../../components/base/LoadingState'
 import { listEvents } from '../../services/events'
+import { useThemeMode } from '../../config/theme'
 import './index.scss'
 
 export default function Events() {
@@ -12,6 +13,7 @@ export default function Events() {
   const [events, setEvents] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const { theme } = useThemeMode()
 
   const getActionText = (status: string, isRegisterable?: boolean) => {
     if (status === 'ended') return '已结束'
@@ -42,7 +44,7 @@ export default function Events() {
   })
 
   return (
-    <View className="page-events page-container">
+    <View className={`page-events page-container theme-${theme}`}>
       <View className="events-tabs">
         <Text className={tab === 'info' ? 'events-tab events-tab--active' : 'events-tab'} onClick={() => setTab('info')}>
           活动资讯

@@ -17,3 +17,13 @@
     line-height: 1;
   }
 }
+
+.theme-light {
+  .base-count-badge {
+    box-shadow: 0 0 18rpx rgba(255, 45, 122, 0.14);
+
+    &__text {
+      color: rgba(20, 16, 31, 0.86);
+    }
+  }
+}

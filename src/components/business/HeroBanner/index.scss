@@ -69,10 +69,36 @@
     align-self: flex-start;
     margin-top: auto;
     border-radius: 999rpx;
-    background: linear-gradient(135deg, #7C4DFF, #FF4081);
+    background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
     box-shadow: 0 0 20rpx rgba(255, 64, 129, 0.4);
     border: 2rpx solid rgba(255, 255, 255, 0.2);
     font-weight: bold;
     color: #fff;
+  }
+}
+
+.theme-light {
+  .business-hero-banner {
+    box-shadow: 0 26rpx 70rpx rgba(17, 10, 36, 0.12);
+    border: 2rpx solid rgba(20, 16, 31, 0.08);
+
+    &__overlay {
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.86) 0%, rgba(106, 76, 255, 0.16) 52%, rgba(255, 45, 122, 0.1) 100%);
+    }
+
+    &__title {
+      color: rgba(20, 16, 31, 0.9);
+      text-shadow: 0 0 16rpx rgba(106, 76, 255, 0.14);
+    }
+
+    &__subtitle {
+      color: rgba(20, 16, 31, 0.72);
+      text-shadow: none;
+    }
+
+    &__cta {
+      box-shadow: 0 0 18rpx rgba(106, 76, 255, 0.16);
+      border: 2rpx solid rgba(20, 16, 31, 0.08);
+    }
   }
 }

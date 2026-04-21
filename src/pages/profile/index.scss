@@ -19,8 +19,29 @@
 }
 
 .profile-menu__item {
-  background-color: var(--color-bg-card);
+  background: rgba(255, 255, 255, 0.05);
   border-radius: var(--radius-md);
   padding: var(--space-md);
   margin-bottom: var(--space-sm);
+  border: 1rpx solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(14px);
+
+  &:active {
+    transform: scale(0.99);
+    border-color: rgba(0, 229, 255, 0.18);
+    box-shadow: 0 0 26rpx rgba(0, 229, 255, 0.12);
+  }
+}
+
+.theme-light {
+  .profile-menu__item {
+    background: rgba(255, 255, 255, 0.78);
+    border: 1rpx solid rgba(20, 16, 31, 0.08);
+    box-shadow: 0 18rpx 54rpx rgba(17, 10, 36, 0.1);
+
+    &:active {
+      border-color: rgba(0, 187, 214, 0.18);
+      box-shadow: 0 0 24rpx rgba(0, 187, 214, 0.12);
+    }
+  }
 }

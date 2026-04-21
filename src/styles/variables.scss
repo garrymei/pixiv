@@ -43,6 +43,31 @@ $font-weight-bold: 600;
 $font-weight-regular: 400;
 
 // ==========================================
+// Light Theme Tokens (浅色主题)
+// ==========================================
+$color-primary-light: #6A4CFF;
+$color-secondary-light: #FF2D7A;
+$color-tertiary-light: #00BBD6;
+
+$color-bg-page-light: #F7F7FB;
+$color-bg-card-light: rgba(255, 255, 255, 0.82);
+$color-bg-card-hover-light: rgba(255, 255, 255, 0.94);
+$color-bg-overlay-light: rgba(9, 6, 18, 0.5);
+
+$color-text-primary-light: #14101f;
+$color-text-regular-light: rgba(20, 16, 31, 0.82);
+$color-text-secondary-light: rgba(20, 16, 31, 0.58);
+$color-text-placeholder-light: rgba(20, 16, 31, 0.38);
+
+$color-success-light: #00A855;
+$color-warning-light: #FFB300;
+$color-error-light: #D50000;
+
+$shadow-card-light: 0 18rpx 54rpx rgba(17, 10, 36, 0.12);
+$shadow-glow-primary-light: 0 0 18rpx rgba(106, 76, 255, 0.26);
+$shadow-glow-pink-light: 0 0 18rpx rgba(255, 45, 122, 0.22);
+
+// ==========================================
 // 3. 间距 Tokens (Spacing)
 // ==========================================
 $space-xs: 8rpx;   // 极小间距
@@ -106,6 +131,9 @@ $z-index-toast: 2000;
   --font-size-md: #{$font-size-md};
   --font-size-sm: #{$font-size-sm};
   --font-size-xs: #{$font-size-xs};
+
+  --font-weight-bold: #{$font-weight-bold};
+  --font-weight-regular: #{$font-weight-regular};
   
   --space-xs: #{$space-xs};
   --space-sm: #{$space-sm};
@@ -121,4 +149,54 @@ $z-index-toast: 2000;
   --shadow-card: #{$shadow-card};
   --shadow-glow-primary: #{$shadow-glow-primary};
   --shadow-glow-pink: #{$shadow-glow-pink};
+
+  --safe-area-bottom: env(safe-area-inset-bottom);
+}
+
+.theme-dark {
+  --color-primary: #{$color-primary};
+  --color-secondary: #{$color-secondary};
+  --color-tertiary: #{$color-tertiary};
+  
+  --color-bg-page: #{$color-bg-page};
+  --color-bg-card: #{$color-bg-card};
+  --color-bg-card-hover: #{$color-bg-card-hover};
+  --color-bg-overlay: #{$color-bg-overlay};
+  
+  --color-text-primary: #{$color-text-primary};
+  --color-text-regular: #{$color-text-regular};
+  --color-text-secondary: #{$color-text-secondary};
+  --color-text-placeholder: #{$color-text-placeholder};
+  
+  --color-success: #{$color-success};
+  --color-warning: #{$color-warning};
+  --color-error: #{$color-error};
+
+  --shadow-card: #{$shadow-card};
+  --shadow-glow-primary: #{$shadow-glow-primary};
+  --shadow-glow-pink: #{$shadow-glow-pink};
+}
+
+.theme-light {
+  --color-primary: #{$color-primary-light};
+  --color-secondary: #{$color-secondary-light};
+  --color-tertiary: #{$color-tertiary-light};
+  
+  --color-bg-page: #{$color-bg-page-light};
+  --color-bg-card: #{$color-bg-card-light};
+  --color-bg-card-hover: #{$color-bg-card-hover-light};
+  --color-bg-overlay: #{$color-bg-overlay-light};
+  
+  --color-text-primary: #{$color-text-primary-light};
+  --color-text-regular: #{$color-text-regular-light};
+  --color-text-secondary: #{$color-text-secondary-light};
+  --color-text-placeholder: #{$color-text-placeholder-light};
+  
+  --color-success: #{$color-success-light};
+  --color-warning: #{$color-warning-light};
+  --color-error: #{$color-error-light};
+
+  --shadow-card: #{$shadow-card-light};
+  --shadow-glow-primary: #{$shadow-glow-primary-light};
+  --shadow-glow-pink: #{$shadow-glow-pink-light};
 }

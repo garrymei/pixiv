@@ -6,6 +6,7 @@ import { Textarea } from '../../components/base/Textarea'
 import { Tag } from '../../components/base/Tag'
 import { PrimaryButton } from '../../components/base/Button'
 import { createDemand } from '../../services/demands'
+import { useThemeMode } from '../../config/theme'
 import './index.scss'
 
 const DEMAND_TYPES = ['摄影', '妆娘', 'Coser', '后期', '找毛娘', '找妆娘', '找摄影', '本毛娘', '本妆娘', '本摄影', '找CP']
@@ -15,6 +16,7 @@ const COUNTS = ['1人', '2-3人', '4-6人', '6人以上']
 export default function PublishDemand() {
   const [type, setType] = useState('')
   const [title, setTitle] = useState('')
+  const { theme } = useThemeMode()
   
   useLoad((options) => {
     if (options.type && DEMAND_TYPES.includes(options.type)) {
@@ -63,7 +65,7 @@ export default function PublishDemand() {
   }
 
   return (
-    <View className="page-publish-demand page-container">
+    <View className={`page-publish-demand page-container theme-${theme}`}>
       <View className="form-section">
         <Text>需求类型</Text>
         <View className="type-row">

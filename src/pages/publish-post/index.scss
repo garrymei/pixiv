@@ -319,6 +319,100 @@
     color: var(--color-text-primary);
   }
 
+
+.page-publish-post.theme-light {
+  background:
+    radial-gradient(circle at top left, rgba(255, 45, 122, 0.12), transparent 34%),
+    radial-gradient(circle at top right, rgba(106, 76, 255, 0.16), transparent 36%),
+    linear-gradient(180deg, #ffffff 0%, rgba(247, 247, 251, 0.96) 42%, var(--color-bg-page) 100%);
+
+  .page-publish-post__subtitle {
+    color: rgba(20, 16, 31, 0.68);
+  }
+
+  .page-publish-post__hero-badge {
+    border: 1rpx solid rgba(20, 16, 31, 0.12);
+    background: rgba(255, 255, 255, 0.72);
+  }
+
+  .page-publish-post__hero-badge-text {
+    color: rgba(20, 16, 31, 0.72);
+  }
+
+  .page-publish-post__card {
+    background: rgba(255, 255, 255, 0.86);
+    border: 1rpx solid rgba(20, 16, 31, 0.08);
+    box-shadow: 0 18rpx 54rpx rgba(17, 10, 36, 0.12);
+  }
+
+  .page-publish-post__section-desc,
+  .page-publish-post__section-extra,
+  .page-publish-post__upload-summary {
+    color: rgba(20, 16, 31, 0.56);
+  }
+
+  .page-publish-post__upload-tile {
+    background: linear-gradient(135deg, rgba(255, 45, 122, 0.08), rgba(106, 76, 255, 0.08));
+    border: 2rpx dashed rgba(106, 76, 255, 0.26);
+  }
+
+  .page-publish-post__upload-icon {
+    background: rgba(20, 16, 31, 0.04);
+    color: rgba(20, 16, 31, 0.72);
+  }
+
+  .page-publish-post__upload-hint {
+    color: rgba(20, 16, 31, 0.52);
+  }
+
+  .page-publish-post__media-frame {
+    background: rgba(255, 255, 255, 0.82);
+  }
+
+  .page-publish-post__media-desc--uploading {
+    color: rgba(20, 16, 31, 0.56);
+  }
+
+  .page-publish-post__media-action {
+    color: rgba(20, 16, 31, 0.62);
+
+    &--primary {
+      color: rgba(20, 16, 31, 0.82);
+    }
+  }
+
+  .page-publish-post__bottom-bar {
+    background: rgba(255, 255, 255, 0.86);
+    border: 1rpx solid rgba(20, 16, 31, 0.08);
+    box-shadow: 0 26rpx 70rpx rgba(17, 10, 36, 0.12);
+  }
+
+  .page-publish-post__bottom-desc {
+    color: rgba(20, 16, 31, 0.56);
+  }
+
+  .page-publish-post__submit {
+    .base-button {
+      background: linear-gradient(135deg, rgba(255, 45, 122, 0.92) 0%, rgba(106, 76, 255, 0.92) 100%);
+      box-shadow:
+        0 16rpx 32rpx rgba(255, 45, 122, 0.16),
+        0 0 24rpx rgba(106, 76, 255, 0.16);
+    }
+  }
+
+  .base-input__container,
+  .base-textarea__container {
+    border: 2rpx solid rgba(20, 16, 31, 0.08);
+    background: rgba(255, 255, 255, 0.82);
+    box-shadow: inset 0 1rpx 0 rgba(255, 255, 255, 0.5);
+  }
+
+  .base-input__label,
+  .base-textarea__label {
+    color: rgba(20, 16, 31, 0.72);
+  }
+}
+
   .base-textarea__control {
     min-height: 220rpx;
   }

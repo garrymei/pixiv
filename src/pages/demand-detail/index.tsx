@@ -11,6 +11,7 @@ import {
   getDemandById,
   markMyAppliedDemandsShouldRefresh
 } from '../../services/demands'
+import { useThemeMode } from '../../config/theme'
 import './index.scss'
 
 function getApplyErrorMessage(error: any) {
@@ -31,6 +32,7 @@ export default function DemandDetail() {
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
+  const { theme } = useThemeMode()
 
   useLoad((options) => {
     setId(String(options?.id || ''))
@@ -110,7 +112,7 @@ export default function DemandDetail() {
   const displayType = marketMain ? formatDisplayType(marketMain, demand.type) : demand.type
 
   return (
-    <View className="page-container" style={{ paddingBottom: 'var(--safe-area-bottom)' }}>
+    <View className={`page-demand-detail page-container theme-${theme}`} style={{ paddingBottom: 'var(--safe-area-bottom)' }}>
       <View style={{ padding: 'var(--space-lg)' }}>
         <Text style={{ fontSize: 'var(--font-size-xl)', fontWeight: 'var(--font-weight-bold)', color: 'var(--color-text-primary)' }}>
           {demand.title}

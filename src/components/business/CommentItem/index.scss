@@ -86,3 +86,41 @@
     }
   }
 }
+
+.theme-light {
+  .business-comment-item {
+    border-bottom: 1rpx solid rgba(20, 16, 31, 0.08);
+
+    &__author {
+      color: rgba(20, 16, 31, 0.62);
+    }
+
+    &__like-count {
+      color: rgba(20, 16, 31, 0.52);
+
+      &--active {
+        color: var(--color-secondary);
+      }
+    }
+
+    &__content {
+      color: rgba(20, 16, 31, 0.86);
+    }
+
+    &__time {
+      color: rgba(20, 16, 31, 0.5);
+    }
+
+    &__reply-btn {
+      color: rgba(20, 16, 31, 0.62);
+    }
+
+    &__icon-like {
+      background-color: rgba(20, 16, 31, 0.42);
+
+      &--active {
+        background-color: var(--color-secondary);
+      }
+    }
+  }
+}

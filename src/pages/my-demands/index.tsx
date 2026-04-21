@@ -5,11 +5,13 @@ import { DemandCard } from '../../components/business/DemandCard'
 import { EmptyState } from '../../components/base/EmptyState'
 import { LoadingState } from '../../components/base/LoadingState'
 import { consumeDemandListShouldRefresh, listMyDemands } from '../../services/demands'
+import { useThemeMode } from '../../config/theme'
 
 export default function MyDemands() {
   const [list, setList] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const { theme } = useThemeMode()
 
   const loadData = useCallback(async () => {
     setLoading(true)
@@ -37,7 +39,7 @@ export default function MyDemands() {
   if (loading) return <LoadingState fullScreen text="我的需求加载中..." />
 
   return (
-    <View className="page-container" style={{ padding: 'var(--space-md)' }}>
+    <View className={`page-container theme-${theme}`} style={{ padding: 'var(--space-md)' }}>
       {error ? (
         <EmptyState title="加载失败" description={error} actionText="重试" onAction={loadData} />
       ) : list.length === 0 ? (

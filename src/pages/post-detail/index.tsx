@@ -9,6 +9,7 @@ import { LoadingState } from '../../components/base/LoadingState'
 import { getPostById, markPostListShouldRefresh, updatePostEngagement } from '../../services/posts'
 import { createComment, listCommentsByPost } from '../../services/comments'
 import { getPostLikeStatus, likePost, unlikePost } from '../../services/likes'
+import { useThemeMode } from '../../config/theme'
 import './index.scss'
 
 export default function PostDetail() {
@@ -22,6 +23,7 @@ export default function PostDetail() {
   const [commentText, setCommentText] = useState('')
   const [submittingComment, setSubmittingComment] = useState(false)
   const [togglingLike, setTogglingLike] = useState(false)
+  const { theme } = useThemeMode()
 
   useLoad((options) => {
     setPostId(String(options?.id || ''))
@@ -116,7 +118,7 @@ export default function PostDetail() {
   const detailImages = galleryImages.length > 1 ? galleryImages.slice(1) : []
 
   return (
-    <View className="page-container" style={{ paddingBottom: 'var(--safe-area-bottom)' }}>
+    <View className={`page-post-detail page-container theme-${theme}`} style={{ paddingBottom: 'var(--safe-area-bottom)' }}>
       {heroImage ? (
         <View style={{ width: '100%', backgroundColor: 'var(--color-bg-card)' }}>
           <Image src={heroImage} mode="widthFix" style={{ width: '100%' }} />
@@ -169,7 +171,13 @@ export default function PostDetail() {
             value={commentText}
             onInput={(e) => setCommentText((e.detail as any).value)}
             placeholder="说点什么..."
-            style={{ flex: 1, background: '#1e1e1e', color: '#fff', borderRadius: '12rpx', padding: '16rpx 20rpx' }}
+            style={{
+              flex: 1,
+              background: 'var(--color-bg-card)',
+              color: 'var(--color-text-primary)',
+              borderRadius: '12rpx',
+              padding: '16rpx 20rpx'
+            }}
           />
           <PrimaryButton loading={submittingComment} onClick={handleSubmitComment}>发送</PrimaryButton>
         </View>

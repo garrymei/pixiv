@@ -73,3 +73,26 @@
     &.base-tag--success { border: 2rpx solid var(--color-success); }
   }
 }
+
+.theme-light {
+  .base-tag {
+    backdrop-filter: blur(10px);
+
+    &--default {
+      background-color: rgba(20, 16, 31, 0.06);
+      color: rgba(20, 16, 31, 0.72);
+      border: 1rpx solid rgba(20, 16, 31, 0.08);
+    }
+
+    &--primary { background-color: rgba(106, 76, 255, 0.12); color: var(--color-primary); }
+    &--secondary { background-color: rgba(255, 45, 122, 0.1); color: var(--color-secondary); }
+    &--tertiary { background-color: rgba(0, 187, 214, 0.12); color: var(--color-tertiary); }
+    &--warning { background-color: rgba(255, 179, 0, 0.14); color: var(--color-warning); }
+    &--error { background-color: rgba(213, 0, 0, 0.1); color: var(--color-error); }
+    &--success { background-color: rgba(0, 168, 85, 0.12); color: var(--color-success); }
+
+    &--outline {
+      &.base-tag--default { border: 2rpx solid rgba(20, 16, 31, 0.22); color: rgba(20, 16, 31, 0.7); }
+    }
+  }
+}

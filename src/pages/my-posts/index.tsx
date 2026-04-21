@@ -5,11 +5,13 @@ import { PostCard } from '../../components/business/PostCard'
 import { EmptyState } from '../../components/base/EmptyState'
 import { LoadingState } from '../../components/base/LoadingState'
 import { listMyPosts } from '../../services/posts'
+import { useThemeMode } from '../../config/theme'
 
 export default function MyPosts() {
   const [posts, setPosts] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const { theme } = useThemeMode()
 
   const loadData = useCallback(async () => {
     setLoading(true)
@@ -32,7 +34,7 @@ export default function MyPosts() {
   if (error) return <EmptyState title="加载失败" description={error} actionText="重试" onAction={loadData} />
 
   return (
-    <View className="page-container" style={{ padding: 'var(--space-md)' }}>
+    <View className={`page-container theme-${theme}`} style={{ padding: 'var(--space-md)' }}>
       {posts.length === 0 ? (
         <EmptyState title="暂无发布" />
       ) : (

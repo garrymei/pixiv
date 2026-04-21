@@ -16,6 +16,9 @@ yarn.lock
 logs
 *.log
 
+# Taro cache
+.taro4.0/
+
 # OS generated files
 .DS_Store
 .DS_Store?

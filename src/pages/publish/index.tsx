@@ -1,10 +1,12 @@
 import { View, Text } from '@tarojs/components'
 import Taro from '@tarojs/taro'
+import { useThemeMode } from '../../config/theme'
 import './index.scss'
 
 export default function Publish() {
+  const { theme } = useThemeMode()
   return (
-    <View className="page-publish page-container">
+    <View className={`page-publish page-container theme-${theme}`}>
       <View className="publish-grid">
         <View className="publish-card" onClick={() => Taro.navigateTo({ url: '/pages/publish-post/index' })}>
           <Text className="publish-card__title">发布作品 / 日常</Text>

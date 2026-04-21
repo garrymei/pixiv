@@ -74,3 +74,28 @@
     margin-top: var(--space-xs);
   }
 }
+
+.theme-light {
+  .base-input__label {
+    color: rgba(20, 16, 31, 0.72);
+  }
+
+  .base-input__container {
+    background-color: rgba(20, 16, 31, 0.04);
+    border-color: rgba(20, 16, 31, 0.14);
+
+    &:focus-within {
+      border-color: rgba(0, 187, 214, 0.45);
+      background-color: rgba(0, 187, 214, 0.06);
+      box-shadow: 0 0 16rpx rgba(0, 187, 214, 0.14);
+
+      &::before {
+        background: rgba(0, 187, 214, 0.9);
+      }
+    }
+
+    &--disabled {
+      background-color: rgba(20, 16, 31, 0.03);
+    }
+  }
+}

@@ -14,6 +14,7 @@ import { listDemands } from '../../services/demands'
 import { getApiBaseUrl } from '../../services/request'
 import { mockPosts } from '../../mocks/posts'
 import { mockDemands } from '../../mocks/demands'
+import { useThemeMode } from '../../config/theme'
 
 import './index.scss'
 
@@ -35,6 +36,7 @@ const MARKET_SUB_FILTERS = {
 export default function Discover() {
   const [activeTab, setActiveTab] = useState('square')
   const apiBaseUrl = getApiBaseUrl()
+  const { theme, toggleTheme } = useThemeMode()
   
   // 广场状态
   const [search, setSearch] = useState('')
@@ -155,21 +157,26 @@ export default function Discover() {
   const handleDemandClick = (id: string) => Taro.navigateTo({ url: `/pages/demand-detail/index?id=${id}&marketMain=${activeMarketMain}` })
 
   return (
-    <View className="page-discover page-container-full">
+    <View className={classNames('page-discover', 'page-container-full', `theme-${theme}`)}>
       {/* 顶部 Tab 切换 */}
       <View className="discover-header">
-        <View className="discover-tabs">
-          {TABS.map(tab => (
-            <View
-              key={tab.id}
-              className={classNames('discover-tab', {
-                'discover-tab--active': activeTab === tab.id
-              })}
-              onClick={() => setActiveTab(tab.id)}
-            >
-              <Text className="discover-tab__text">{tab.label}</Text>
-            </View>
-          ))}
+        <View className="discover-header__inner">
+          <View className="discover-tabs">
+            {TABS.map(tab => (
+              <View
+                key={tab.id}
+                className={classNames('discover-tab', {
+                  'discover-tab--active': activeTab === tab.id
+                })}
+                onClick={() => setActiveTab(tab.id)}
+              >
+                <Text className="discover-tab__text">{tab.label}</Text>
+              </View>
+            ))}
+          </View>
+          <View className="discover-theme" onClick={toggleTheme}>
+            <Text className="discover-theme__text">{theme === 'light' ? '浅色' : '深色'}</Text>
+          </View>
         </View>
       </View>
 

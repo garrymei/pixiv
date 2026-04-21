@@ -7,6 +7,7 @@ import { Tag } from '../../components/base/Tag'
 import { PrimaryButton } from '../../components/base/Button'
 import { createPost, markPostListShouldRefresh } from '../../services/posts'
 import { uploadImage } from '../../services/uploads'
+import { useThemeMode } from '../../config/theme'
 import './index.scss'
 
 const ALL_TAGS = ['Cosplay', '正片', '日常', '摄影', '妆娘', '后期']
@@ -29,6 +30,7 @@ export default function PublishPost() {
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [submitting, setSubmitting] = useState(false)
   const uploading = images.some((item) => item.status === 'uploading')
+  const { theme } = useThemeMode()
 
   const uploadImages = async (items: UploadItem[]) => {
     let success = 0
@@ -151,7 +153,7 @@ export default function PublishPost() {
   const canSubmit = Boolean(title.trim() && content.trim() && tags.length > 0 && !uploading && !submitting)
 
   return (
-    <View className="page-publish-post page-container-full">
+    <View className={`page-publish-post page-container-full theme-${theme}`}>
       <View className="page-publish-post__hero">
         <View className="page-publish-post__hero-copy">
           <Text className="page-publish-post__eyebrow">POSTS</Text>

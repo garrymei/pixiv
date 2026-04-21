@@ -1,0 +1,339 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Discover Dark Preview</title>
+    <style>
+      :root {
+        --bg: #0d0a15;
+        --text: rgba(255, 255, 255, 0.92);
+        --muted: rgba(255, 255, 255, 0.62);
+        --p: #7C4DFF;
+        --s: #FF4081;
+        --t: #00E5FF;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        background: #0b0812;
+        font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Segoe UI", Roboto, Arial, sans-serif;
+        display: grid;
+        place-items: center;
+        min-height: 100vh;
+      }
+      .frame {
+        width: 420px;
+        height: 880px;
+        border-radius: 38px;
+        background:
+          radial-gradient(circle at 10% 0%, rgba(124, 77, 255, 0.32), transparent 54%),
+          radial-gradient(circle at 92% 12%, rgba(255, 64, 129, 0.26), transparent 52%),
+          linear-gradient(180deg, #0f0b1f 0%, var(--bg) 44%, var(--bg) 100%);
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 40px 120px rgba(0, 0, 0, 0.5);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+      }
+      header {
+        position: sticky;
+        top: 0;
+        z-index: 2;
+        padding: 16px 18px 12px;
+        background: rgba(13, 10, 21, 0.78);
+        backdrop-filter: blur(18px);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+      .tabs {
+        display: flex;
+        gap: 18px;
+        padding: 6px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+      }
+      .tab {
+        padding: 10px 14px;
+        border-radius: 999px;
+        font-weight: 840;
+        font-size: 12px;
+        letter-spacing: 0.08em;
+        color: rgba(255, 255, 255, 0.6);
+      }
+      .tab.active {
+        color: rgba(255, 255, 255, 0.92);
+        background: linear-gradient(135deg, rgba(124, 77, 255, 0.22), rgba(255, 64, 129, 0.16));
+        box-shadow: 0 0 18px rgba(255, 64, 129, 0.14);
+      }
+      .mode {
+        padding: 10px 12px;
+        border-radius: 999px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        background: rgba(255, 255, 255, 0.06);
+        color: rgba(255, 255, 255, 0.82);
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: 0.12em;
+        white-space: nowrap;
+      }
+      main { padding: 16px 18px 22px; }
+      .search {
+        border-radius: 999px;
+        padding: 14px 16px;
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        color: rgba(255, 255, 255, 0.62);
+        font-size: 13px;
+      }
+      .source {
+        margin-top: 12px;
+        padding: 12px 14px;
+        border-radius: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(255, 255, 255, 0.03);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+      .source .url {
+        color: rgba(255, 255, 255, 0.62);
+        font-size: 11px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .badge {
+        padding: 6px 10px;
+        border-radius: 999px;
+        font-size: 11px;
+        color: rgba(0, 229, 255, 0.9);
+        background: rgba(0, 229, 255, 0.1);
+        border: 1px solid rgba(0, 229, 255, 0.22);
+        white-space: nowrap;
+      }
+      .tags {
+        margin-top: 14px;
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+      .pill {
+        padding: 10px 12px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 760;
+        letter-spacing: 0.06em;
+        color: rgba(255, 255, 255, 0.68);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: rgba(255, 255, 255, 0.05);
+      }
+      .pill.active {
+        color: rgba(255, 255, 255, 0.9);
+        border-color: rgba(124, 77, 255, 0.22);
+        background: rgba(124, 77, 255, 0.14);
+        box-shadow: 0 0 20px rgba(124, 77, 255, 0.14);
+      }
+      .grid {
+        margin-top: 16px;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+      }
+      .card {
+        border-radius: 24px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        overflow: hidden;
+        box-shadow: 0 20px 54px rgba(0, 0, 0, 0.18);
+      }
+      .cover {
+        height: 142px;
+        background:
+          radial-gradient(circle at 25% 15%, rgba(255, 255, 255, 0.24), transparent 46%),
+          linear-gradient(135deg, rgba(124, 77, 255, 0.42), rgba(255, 64, 129, 0.3));
+        position: relative;
+      }
+      .tags2 {
+        position: absolute;
+        left: 10px;
+        bottom: 10px;
+        display: flex;
+        gap: 8px;
+      }
+      .tag2 {
+        font-size: 11px;
+        padding: 5px 9px;
+        border-radius: 999px;
+        color: rgba(255, 255, 255, 0.9);
+        border: 1px solid rgba(255, 64, 129, 0.42);
+        background: rgba(255, 64, 129, 0.14);
+        backdrop-filter: blur(10px);
+      }
+      .meta { padding: 12px 12px 14px; }
+      .title {
+        margin: 0;
+        font-size: 13px;
+        line-height: 1.45;
+        color: rgba(255, 255, 255, 0.86);
+        font-weight: 780;
+        min-height: 38px;
+      }
+      .row {
+        margin-top: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+      }
+      .user {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        min-width: 0;
+      }
+      .avatar {
+        width: 26px;
+        height: 26px;
+        border-radius: 999px;
+        background: linear-gradient(135deg, rgba(0, 229, 255, 0.32), rgba(124, 77, 255, 0.26));
+        border: 1px solid rgba(255, 255, 255, 0.16);
+      }
+      .name {
+        font-size: 12px;
+        color: rgba(255, 255, 255, 0.62);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 120px;
+      }
+      .stats { display: flex; align-items: center; gap: 10px; color: rgba(255, 255, 255, 0.54); font-size: 12px; }
+      .heart {
+        width: 10px;
+        height: 10px;
+        display: inline-block;
+        transform: rotate(45deg);
+        background: rgba(255, 255, 255, 0.46);
+        border-radius: 2px;
+        position: relative;
+        top: 1px;
+      }
+      .heart::before,
+      .heart::after {
+        content: "";
+        position: absolute;
+        width: 10px;
+        height: 10px;
+        background: rgba(255, 255, 255, 0.46);
+        border-radius: 50%;
+      }
+      .heart::before { left: -5px; top: 0; }
+      .heart::after { left: 0; top: -5px; }
+    </style>
+  </head>
+  <body>
+    <div class="frame">
+      <header>
+        <div class="tabs">
+          <div class="tab active">动态广场</div>
+          <div class="tab">次元市集</div>
+        </div>
+        <div class="mode">深色</div>
+      </header>
+      <main>
+        <div class="search">搜索你感兴趣的动态内容</div>
+        <div class="source">
+          <div class="url">读取地址：https://www.pivix.top</div>
+          <div class="badge">当前数据：Mock 示例</div>
+        </div>
+        <div class="tags">
+          <div class="pill active">Cosplay</div>
+          <div class="pill">摄影</div>
+          <div class="pill">妆娘</div>
+          <div class="pill">日常</div>
+          <div class="pill">外拍</div>
+        </div>
+
+        <div class="grid">
+          <div class="card">
+            <div class="cover">
+              <div class="tags2">
+                <span class="tag2">Cosplay</span>
+                <span class="tag2">正片</span>
+              </div>
+            </div>
+            <div class="meta">
+              <p class="title">周末外拍返图，今天状态超好，求摄影师互勉！</p>
+              <div class="row">
+                <div class="user">
+                  <span class="avatar"></span>
+                  <span class="name">Coser_小樱</span>
+                </div>
+                <div class="stats"><span class="heart"></span> 128</div>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="cover" style="background: radial-gradient(circle at 30% 18%, rgba(255,255,255,0.2), transparent 50%), linear-gradient(135deg, rgba(0, 229, 255, 0.28), rgba(124, 77, 255, 0.38));">
+              <div class="tags2">
+                <span class="tag2">摄影</span>
+                <span class="tag2">接单</span>
+              </div>
+            </div>
+            <div class="meta">
+              <p class="title">接寄拍/场照/正片，设备A7M4，出片快，风格可私聊。</p>
+              <div class="row">
+                <div class="user">
+                  <span class="avatar" style="background: linear-gradient(135deg, rgba(255, 64, 129, 0.32), rgba(0, 229, 255, 0.2));"></span>
+                  <span class="name">摄影老法师</span>
+                </div>
+                <div class="stats"><span class="heart"></span> 96</div>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="cover" style="height: 160px; background: radial-gradient(circle at 22% 18%, rgba(255,255,255,0.18), transparent 52%), linear-gradient(135deg, rgba(255, 64, 129, 0.28), rgba(124, 77, 255, 0.44));">
+              <div class="tags2">
+                <span class="tag2">日常</span>
+                <span class="tag2">组队</span>
+              </div>
+            </div>
+            <div class="meta">
+              <p class="title">缺个亚丝娜！有没有姐妹一起出刀剑神域，广州约拍！</p>
+              <div class="row">
+                <div class="user">
+                  <span class="avatar"></span>
+                  <span class="name">同城出片团</span>
+                </div>
+                <div class="stats"><span class="heart"></span> 73</div>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="cover" style="height: 160px; background: radial-gradient(circle at 20% 16%, rgba(255,255,255,0.18), transparent 52%), linear-gradient(135deg, rgba(0, 229, 255, 0.22), rgba(255, 64, 129, 0.28));">
+              <div class="tags2">
+                <span class="tag2">妆娘</span>
+                <span class="tag2">互勉</span>
+              </div>
+            </div>
+            <div class="meta">
+              <p class="title">找妆娘互勉：本周末有空档，擅长舞台妆和精修。</p>
+              <div class="row">
+                <div class="user">
+                  <span class="avatar"></span>
+                  <span class="name">妆造小狐狸</span>
+                </div>
+                <div class="stats"><span class="heart"></span> 58</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </body>
+</html>
+

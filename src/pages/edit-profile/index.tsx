@@ -10,6 +10,7 @@ import { EmptyState } from '../../components/base/EmptyState'
 import { LoadingState } from '../../components/base/LoadingState'
 import { getCurrentUser, updateCurrentUser } from '../../services/user'
 import { uploadImage } from '../../services/uploads'
+import { useThemeMode } from '../../config/theme'
 
 export default function EditProfile() {
   const [nickname, setNickname] = useState('')
@@ -24,6 +25,7 @@ export default function EditProfile() {
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
+  const { theme } = useThemeMode()
 
   const loadData = useCallback(async () => {
     setLoading(true)
@@ -114,7 +116,7 @@ export default function EditProfile() {
   if (error) return <EmptyState title="加载失败" description={error} actionText="重试" onAction={loadData} />
 
   return (
-    <View className="page-container" style={{ padding: 'var(--space-lg)' }}>
+    <View className={`page-container theme-${theme}`} style={{ padding: 'var(--space-lg)' }}>
       <View style={{ display: 'flex', alignItems: 'center', gap: '24rpx', marginBottom: '24rpx' }}>
         <View onClick={chooseAvatar}>
           <Avatar src={avatarUrl} size={120} />

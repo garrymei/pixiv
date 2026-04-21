@@ -5,6 +5,7 @@ import classNames from 'classnames'
 
 import { Input } from '../../components/base/Input'
 import { loginByMockId, isMockMode, setSessionUser } from '../../services/request'
+import { useThemeMode } from '../../config/theme'
 
 import './index.scss'
 
@@ -19,6 +20,7 @@ export default function Login() {
   const [nickname, setNickname] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const { theme } = useThemeMode()
 
   const mockMode = useMemo(() => isMockMode(), [])
 
@@ -53,7 +55,7 @@ export default function Login() {
   }
 
   return (
-    <View className="page-login">
+    <View className={classNames('page-login', `theme-${theme}`)}>
       <View className="page-login__hero">
         <View className="page-login__status">
           <View className="page-login__status-dot anim-pulse-secondary" />

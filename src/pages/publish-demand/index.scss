@@ -6,6 +6,12 @@
 
 .form-section {
   margin-bottom: var(--space-lg);
+  padding: var(--space-md);
+  border-radius: 28rpx;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1rpx solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(14px);
+  box-shadow: 0 18rpx 54rpx rgba(0, 0, 0, 0.18);
 }
 
 .type-row, .budget-row, .count-row {
@@ -19,4 +25,12 @@
   display: flex;
   gap: var(--space-sm);
   margin-top: var(--space-sm);
+}
+
+.theme-light {
+  .form-section {
+    background: rgba(255, 255, 255, 0.82);
+    border: 1rpx solid rgba(20, 16, 31, 0.08);
+    box-shadow: 0 18rpx 54rpx rgba(17, 10, 36, 0.1);
+  }
 }

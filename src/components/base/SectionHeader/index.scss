@@ -49,3 +49,20 @@
     margin-left: 4rpx;
   }
 }
+
+.theme-light {
+  .base-section-header {
+    &__title::before {
+      box-shadow: 0 0 10rpx rgba(0, 187, 214, 0.18);
+    }
+
+    &__action {
+      color: rgba(20, 16, 31, 0.52);
+    }
+
+    &__icon {
+      border-top: 2rpx solid rgba(20, 16, 31, 0.38);
+      border-right: 2rpx solid rgba(20, 16, 31, 0.38);
+    }
+  }
+}
