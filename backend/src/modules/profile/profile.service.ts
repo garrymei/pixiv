@@ -21,12 +21,16 @@ export class ProfileService {
     const eventsRes = await this.registrations.listByUser(userId)
     const demandsRes = await this.demands.listMine(userId, 1, 1)
     const demandAppsRes = await this.demandApps.listByUser(userId)
+    const scheduledDemandsCount = await this.demands.countMineWithApplications(userId)
+    const eventsCount = (eventsRes.list || []).length
+    const demandApplicationsCount = (demandAppsRes.list || []).length
     return {
       user,
       postsCount: postsRes.total,
-      eventsCount: (eventsRes.list || []).length,
+      eventsCount,
       demandsCount: demandsRes.total,
-      demandApplicationsCount: (demandAppsRes.list || []).length
+      demandApplicationsCount,
+      participationCount: eventsCount + demandApplicationsCount + scheduledDemandsCount
     }
   }
 }

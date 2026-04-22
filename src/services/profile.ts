@@ -16,6 +16,7 @@ type ProfileSummaryResponse = {
   demandsCount: number
   eventsCount: number
   demandApplicationsCount?: number
+  participationCount?: number
 }
 
 export async function getProfileSummary() {
@@ -40,7 +41,8 @@ export async function getProfileSummary() {
         favoritesCount: 0,
         likesReceived: 0,
         visitors: 0,
-        demandApplicationsCount: data.demandApplicationsCount || 0
+        demandApplicationsCount: data.demandApplicationsCount || 0,
+        participationCount: data.participationCount || 0
       }
     }
   }

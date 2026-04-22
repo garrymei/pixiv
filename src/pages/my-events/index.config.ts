@@ -1,4 +1,4 @@
 export default {
-  navigationBarTitleText: '我的活动',
+  navigationBarTitleText: '参与',
   enablePullDownRefresh: false
 }

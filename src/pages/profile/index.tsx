@@ -36,6 +36,8 @@ export default function Profile() {
   })
 
   const roleLabel = user?.roleType === 'user' ? '普通用户' : (user?.roleType || '普通用户')
+  const participationCount =
+    stats?.participationCount ?? ((stats?.eventsCount ?? 0) + (stats?.demandApplicationsCount ?? 0))
 
   if (loading) return <LoadingState fullScreen text="个人中心加载中..." />
   if (error || !user) return <EmptyState title="加载失败" description={error || '用户不存在'} actionText="重试" onAction={loadData} />
@@ -68,8 +70,7 @@ export default function Profile() {
         items={[
           { id: 's1', label: '发布', value: stats?.postsCount ?? 0, onClick: () => Taro.navigateTo({ url: '/pages/my-posts/index' }) },
           { id: 's2', label: '需求', value: stats?.demandsCount ?? 0, onClick: () => Taro.navigateTo({ url: '/pages/my-demands/index' }) },
-          { id: 's3', label: '活动', value: stats?.eventsCount ?? 0, onClick: () => Taro.navigateTo({ url: '/pages/my-events/index' }) },
-          { id: 's4', label: '参与', value: stats?.demandApplicationsCount ?? 0, onClick: () => Taro.navigateTo({ url: '/pages/my-applied-demands/index' }) }
+          { id: 's3', label: '参与', value: participationCount, onClick: () => Taro.navigateTo({ url: '/pages/my-events/index' }) }
         ]}
       />
 
@@ -78,9 +79,8 @@ export default function Profile() {
       </View>
       <View className="profile-menu">
         <View className="profile-menu__item" onClick={() => Taro.navigateTo({ url: '/pages/my-posts/index' })}><Text>我的发布</Text></View>
-        <View className="profile-menu__item" onClick={() => Taro.navigateTo({ url: '/pages/my-events/index' })}><Text>我的活动</Text></View>
         <View className="profile-menu__item" onClick={() => Taro.navigateTo({ url: '/pages/my-demands/index' })}><Text>我的需求</Text></View>
-        <View className="profile-menu__item" onClick={() => Taro.navigateTo({ url: '/pages/my-applied-demands/index' })}><Text>我的参与</Text></View>
+        <View className="profile-menu__item" onClick={() => Taro.navigateTo({ url: '/pages/my-events/index' })}><Text>参与</Text></View>
         <View className="profile-menu__item" onClick={() => Taro.navigateTo({ url: '/pages/edit-profile/index' })}><Text>编辑资料</Text></View>
         <View className="profile-menu__item" onClick={toggleTheme}><Text>切换主题（当前：{theme === 'light' ? '浅色' : '深色'}）</Text></View>
       </View>

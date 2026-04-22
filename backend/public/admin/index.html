@@ -417,6 +417,39 @@
               <p>目标指标：发帖成功率、需求发布成功率、图片上传失败率、慢接口排行。</p>
             </div>
           </div>
+          <div class="card span-12">
+            <div class="section-head">
+              <div>
+                <h3>需求申请确认看板</h3>
+                <p>用于验证“申请 -> 双方确认 -> 日程状态流转”的完整链路。当前按发布者视角，可选择我发起的需求并确认指定申请。</p>
+              </div>
+              <div>
+                <span class="chip ok">已接入申请状态</span>
+              </div>
+            </div>
+            <div class="toolbar">
+              <select id="publishDemandSelect" style="max-width:320px;"></select>
+              <button id="refreshPublishDemandsBtn" class="secondary" style="max-width:180px;">刷新我的需求</button>
+              <button id="loadDemandAppsBtn" class="secondary" style="max-width:180px;">加载该需求申请</button>
+            </div>
+            <table id="demandAppTable">
+              <thead>
+                <tr>
+                  <th style="width:90px;">申请ID</th>
+                  <th style="width:80px;">需求ID</th>
+                  <th>申请人</th>
+                  <th style="width:110px;">报名方确认</th>
+                  <th style="width:110px;">发布方确认</th>
+                  <th style="width:120px;">日程状态</th>
+                  <th style="width:220px;">申请时间</th>
+                  <th style="width:160px;">操作</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td colspan="8"><span class="muted">请先登录并加载我发布的需求</span></td></tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       </section>
 
@@ -651,6 +684,8 @@
       token: localStorage.getItem('admin_token') || '',
       editingId: null,
       events: [],
+      publishDemands: [],
+      demandApplications: [],
       currentView: 'dashboard'
     }
 
@@ -774,6 +809,59 @@
       `).join('')
     }
 
+    function renderPublishDemandOptions() {
+      const select = $('publishDemandSelect')
+      const list = state.publishDemands || []
+      if (!list.length) {
+        select.innerHTML = '<option value="">暂无我发布的需求</option>'
+        return
+      }
+      select.innerHTML = list.map((item) => `
+        <option value="${item.id}">#${item.id} ${item.title || '未命名需求'}</option>
+      `).join('')
+    }
+
+    function renderDemandApplications() {
+      const tbody = document.querySelector('#demandAppTable tbody')
+      const list = state.demandApplications || []
+      if (!list.length) {
+        tbody.innerHTML = '<tr><td colspan="8"><span class="muted">暂无申请数据</span></td></tr>'
+        return
+      }
+      tbody.innerHTML = list.map((item) => `
+        <tr>
+          <td>${item.application_id ?? ''}</td>
+          <td>${item.demand_id ?? ''}</td>
+          <td>${item.user_id ?? ''}</td>
+          <td>${item.applicant_confirmed ? '<span class="chip ok">已确认</span>' : '<span class="chip warn">待确认</span>'}</td>
+          <td>${item.publisher_confirmed ? '<span class="chip ok">已确认</span>' : '<span class="chip warn">待确认</span>'}</td>
+          <td>${item.schedule_status_text || ''}</td>
+          <td>${item.applied_at ? new Date(item.applied_at).toLocaleString() : ''}</td>
+          <td>
+            <div class="actions">
+              <button class="secondary" data-publish-confirm="${item.application_id}">发布方确认</button>
+            </div>
+          </td>
+        </tr>
+      `).join('')
+
+      tbody.querySelectorAll('[data-publish-confirm]').forEach((btn) => {
+        btn.addEventListener('click', async () => {
+          const applicationId = Number(btn.getAttribute('data-publish-confirm'))
+          const demandId = Number($('publishDemandSelect').value || 0)
+          if (!demandId || !applicationId) return
+          try {
+            if (!state.token) throw new Error('请先登录获取 token')
+            await request(`/demands/${demandId}/apply/confirm`, 'POST', { application_id: applicationId })
+            setStatus(`发布方确认成功：需求 #${demandId} / 申请 #${applicationId}`)
+            await loadDemandApplicationsForSelected()
+          } catch (err) {
+            setStatus(err.message || '发布方确认失败', true)
+          }
+        })
+      })
+    }
+
     function fillForm(item) {
       state.editingId = item ? item.id : null
       $('formTitle').textContent = item ? `编辑活动 #${item.id}` : '新建活动'
@@ -889,6 +977,40 @@
       }
     }
 
+    async function loadPublishDemands() {
+      try {
+        if (!state.token) throw new Error('请先登录获取 token')
+        const data = await request('/demands/me?page=1&pageSize=100')
+        state.publishDemands = data.list || []
+        renderPublishDemandOptions()
+        setStatus(`已加载 ${state.publishDemands.length} 条我发布的需求`)
+      } catch (err) {
+        state.publishDemands = []
+        renderPublishDemandOptions()
+        setStatus(err.message || '加载我的需求失败', true)
+      }
+    }
+
+    async function loadDemandApplicationsForSelected() {
+      const demandId = Number($('publishDemandSelect').value || 0)
+      if (!demandId) {
+        state.demandApplications = []
+        renderDemandApplications()
+        return
+      }
+      try {
+        if (!state.token) throw new Error('请先登录获取 token')
+        const data = await request(`/demands/${demandId}/applications`)
+        state.demandApplications = data.list || []
+        renderDemandApplications()
+        setStatus(`已加载需求 #${demandId} 的申请数据，共 ${state.demandApplications.length} 条`)
+      } catch (err) {
+        state.demandApplications = []
+        renderDemandApplications()
+        setStatus(err.message || '加载申请数据失败', true)
+      }
+    }
+
     function collectFormPayload() {
       const title = $('title').value.trim()
       if (!title) throw new Error('标题必填')
@@ -959,13 +1081,19 @@
     $('saveBtn').addEventListener('click', saveEvent)
     $('cancelEditBtn').addEventListener('click', () => fillForm(null))
     $('checkSystemBtn').addEventListener('click', checkSystemHealth)
+    $('refreshPublishDemandsBtn').addEventListener('click', loadPublishDemands)
+    $('loadDemandAppsBtn').addEventListener('click', loadDemandApplicationsForSelected)
+    $('publishDemandSelect').addEventListener('change', loadDemandApplicationsForSelected)
 
     $('baseUrl').value = `${location.protocol}//${location.host}`
     renderModuleMatrix()
     renderOverviewMetrics()
+    renderPublishDemandOptions()
+    renderDemandApplications()
     fillForm(null)
     switchView('dashboard')
     loadEvents()
+    loadPublishDemands()
     checkSystemHealth()
   </script>
 </body>

@@ -1,7 +1,8 @@
-import { Body, Controller, Get, Param, Post, Query, UseGuards, Req } from '@nestjs/common'
+import { Body, Controller, Get, NotFoundException, Param, Patch, Post, Query, UseGuards, Req } from '@nestjs/common'
 import { DemandsService } from './demands.service'
 import { ListDemandsDto } from './dto/list-demands.dto'
 import { CreateDemandDto } from './dto/create-demand.dto'
+import { UpdateDemandDto } from './dto/update-demand.dto'
 import { JwtAuthGuard } from '../auth/jwt-auth.guard'
 
 @Controller('demands')
@@ -28,5 +29,13 @@ export class DemandsController {
   @UseGuards(JwtAuthGuard)
   async create(@Req() req: any, @Body() dto: CreateDemandDto) {
     return this.demandsService.create(req.user.id, dto)
+  }
+
+  @Patch(':id')
+  @UseGuards(JwtAuthGuard)
+  async updateMine(@Req() req: any, @Param('id') id: string, @Body() dto: UpdateDemandDto) {
+    const data = await this.demandsService.updateMine(req.user.id, Number(id), dto)
+    if (!data) throw new NotFoundException('demand not found')
+    return data
   }
 }

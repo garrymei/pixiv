@@ -6,7 +6,9 @@ import { mockEvents } from './events'
 export const mockProfileStats = {
   postsCount: 15,
   demandsCount: 3,
-  eventsCount: 5,
+  eventsCount: 1,
+  demandApplicationsCount: 1,
+  participationCount: 2,
   favoritesCount: 128,
   likesReceived: 4560,
   visitors: 342
