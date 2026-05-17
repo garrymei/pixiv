@@ -1,12 +1,14 @@
 import { View, Text } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import classNames from 'classnames'
-import { useState, useMemo } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 
 import { SectionHeader } from '../../components/base/SectionHeader'
 import { QuickEntryGrid } from '../../components/business/QuickEntryGrid'
 import { PostCard } from '../../components/business/PostCard'
-import { mockPosts } from '../../mocks/posts'
+import { HeroBanner } from '../../components/business/HeroBanner'
+import { listBanners } from '../../services/banners'
+import { listPosts } from '../../services/posts'
 import { useThemeMode } from '../../config/theme'
 
 import './index.scss'
@@ -16,6 +18,16 @@ const QUICK_ENTRIES = [
   { id: 'q_2', title: '找CP/扩列', icon: '🤝', url: '/pages/discover/index' }
 ]
 
+const TAB_BAR_PAGES = new Set([
+  '/pages/home/index',
+  '/pages/discover/index',
+  '/pages/publish-hub/index',
+  '/pages/events/index',
+  '/pages/profile/index'
+])
+
+const DISCOVER_NAVIGATION_INTENT_KEY = 'discover_navigation_intent'
+
 const MUTUAL_HELP_TABS = [
   { id: 'seek', label: '我来找你' },
   { id: 'offer', label: '我行我上' }
@@ -23,34 +35,80 @@ const MUTUAL_HELP_TABS = [
 
 const MUTUAL_HELP_ITEMS = {
   seek: [
-    { id: 'seek_1', title: '找毛娘', icon: '✂️', url: '/pages/publish-demand/index?type=找毛娘' },
-    { id: 'seek_2', title: '找妆娘', icon: '💄', url: '/pages/publish-demand/index?type=找妆娘' },
-    { id: 'seek_3', title: '找摄影', icon: '📷', url: '/pages/publish-demand/index?type=找摄影' }
+    { id: 'seek_1', title: '找毛娘', icon: '✂️', marketMain: 'seek', marketSub: '找毛娘' },
+    { id: 'seek_2', title: '找妆娘', icon: '💄', marketMain: 'seek', marketSub: '找妆娘' },
+    { id: 'seek_3', title: '找摄影', icon: '📷', marketMain: 'seek', marketSub: '找摄影' }
   ],
   offer: [
-    { id: 'offer_1', title: '本毛娘', icon: '✨', url: '/pages/publish-demand/index?type=本毛娘' },
-    { id: 'offer_2', title: '本妆娘', icon: '💅', url: '/pages/publish-demand/index?type=本妆娘' },
-    { id: 'offer_3', title: '本摄影', icon: '📸', url: '/pages/publish-demand/index?type=本摄影' }
+    { id: 'offer_1', title: '本毛娘', icon: '✨', marketMain: 'offer', marketSub: '本毛娘' },
+    { id: 'offer_2', title: '本妆娘', icon: '💅', marketMain: 'offer', marketSub: '本妆娘' },
+    { id: 'offer_3', title: '本摄影', icon: '📸', marketMain: 'offer', marketSub: '本摄影' }
   ]
 }
 
 export default function Home() {
   const [mutualHelpTab, setMutualHelpTab] = useState<'seek'|'offer'>('seek')
+  const [feedPosts, setFeedPosts] = useState<any[]>([])
+  const [banners, setBanners] = useState<any[]>([])
   const { theme } = useThemeMode()
 
+  const openPage = useCallback((url?: string) => {
+    if (!url) return
+    if (TAB_BAR_PAGES.has(url)) {
+      Taro.switchTab({ url })
+      return
+    }
+    Taro.navigateTo({ url })
+  }, [])
+
   const handleEntryClick = (url?: string) => {
-    if (url) Taro.navigateTo({ url })
+    openPage(url)
+  }
+
+  const handleMutualHelpClick = (marketMain: 'seek' | 'offer', marketSub: string) => {
+    Taro.setStorageSync(DISCOVER_NAVIGATION_INTENT_KEY, {
+      activeTab: 'market',
+      marketMain,
+      marketSub
+    })
+    Taro.switchTab({ url: '/pages/discover/index' })
   }
 
   const handlePostClick = (id: string) => {
     Taro.navigateTo({ url: `/pages/post-detail/index?id=${id}` })
   }
 
-  // Simulate "Most liked posts from the past week (sorted by latest)"
-  const feedPosts = useMemo(() => {
-    // In a real app, this would be an API call fetching past week's top liked posts sorted by latest.
-    return [...mockPosts].sort((a, b) => new Date(b.createTime).getTime() - new Date(a.createTime).getTime())
+  const handleBannerClick = useCallback((linkUrl?: string) => {
+    if (!linkUrl) return
+    if (linkUrl.startsWith('/pages/')) {
+      openPage(linkUrl)
+      return
+    }
+  }, [openPage])
+
+  const loadData = useCallback(async () => {
+    try {
+      const [postsRes, bannersRes] = await Promise.all([
+        listPosts(),
+        listBanners().catch(() => [])
+      ])
+      const sortedPosts = [...postsRes]
+        .sort((a, b) => {
+          const scoreDiff = (b.hotScore || 0) - (a.hotScore || 0)
+          if (scoreDiff !== 0) return scoreDiff
+          return (b.createdAt || 0) - (a.createdAt || 0)
+        })
+        .slice(0, 8)
+      setFeedPosts(sortedPosts)
+      setBanners(bannersRes || [])
+    } catch (error: any) {
+      Taro.showToast({ title: error?.message || '首页加载失败', icon: 'none' })
+    }
   }, [])
+
+  useEffect(() => {
+    loadData()
+  }, [loadData])
 
   const leftCol = feedPosts.filter((_, i) => i % 2 === 0)
   const rightCol = feedPosts.filter((_, i) => i % 2 === 1)
@@ -68,6 +126,18 @@ export default function Home() {
       </View>
 
       <View className="page-home__content">
+        {banners[0] ? (
+          <HeroBanner
+            className="page-home__banner"
+            title={banners[0].title}
+            subtitle={banners[0].subtitle}
+            backgroundImage={banners[0].imageUrl}
+            ctaText={banners[0].linkUrl ? '查看详情' : undefined}
+            onCtaClick={banners[0].linkUrl ? () => handleBannerClick(banners[0].linkUrl) : undefined}
+            onClick={() => handleBannerClick(banners[0].linkUrl)}
+          />
+        ) : null}
+
         <SectionHeader
           title="次元快捷入口"
           actionText="查看全部"
@@ -101,7 +171,7 @@ export default function Home() {
               <View 
                 key={item.id} 
                 className="page-home__mutual-item"
-                onClick={() => handleEntryClick(item.url)}
+                onClick={() => handleMutualHelpClick(item.marketMain, item.marketSub)}
               >
                 <View className="page-home__mutual-icon">{item.icon}</View>
                 <Text className="page-home__mutual-text">{item.title}</Text>

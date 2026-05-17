@@ -5,6 +5,7 @@ import { Like } from './like.entity'
 import { EventRegistration } from './event-registration.entity'
 import { Demand } from './demand.entity'
 import { DemandApplication } from './demand-application.entity'
+import { ModerationStatus } from '../../types/enums'
 
 @Entity('users')
 export class User {
@@ -19,6 +20,15 @@ export class User {
 
   @Column({ name: 'bg_url', length: 255, nullable: true })
   bgUrl?: string
+
+  @Column({ name: 'avatar_pending', length: 255, nullable: true })
+  avatarPending?: string
+
+  @Column({ name: 'avatar_review_status', type: 'enum', enum: ModerationStatus, default: ModerationStatus.APPROVED })
+  avatarReviewStatus!: ModerationStatus
+
+  @Column({ name: 'avatar_review_reason', length: 255, nullable: true })
+  avatarReviewReason?: string
 
   @Column({ length: 255, nullable: true })
   bio?: string

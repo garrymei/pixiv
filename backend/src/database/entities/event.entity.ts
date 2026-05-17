@@ -10,8 +10,11 @@ export class Event {
   @Column({ length: 255 })
   title!: string
 
-  @Column({ name: 'cover_image', length: 255, nullable: true })
+  @Column({ name: 'cover_image', length: 512, nullable: true })
   coverImage?: string
+
+  @Column({ name: 'cover_url', length: 512, nullable: true })
+  coverUrl?: string
 
   @Column({ name: 'start_time', type: 'datetime', nullable: true })
   startTime?: Date
@@ -19,7 +22,7 @@ export class Event {
   @Column({ name: 'end_time', type: 'datetime', nullable: true })
   endTime?: Date
 
-  @Column({ length: 128, nullable: true })
+  @Column({ length: 255, nullable: true })
   location?: string
 
   @Column({ type: 'text', nullable: true })
@@ -34,11 +37,8 @@ export class Event {
   @Column({ type: 'enum', enum: EventStatus, default: EventStatus.UPCOMING })
   status!: EventStatus
 
-  @Column({ name: 'event_type', length: 32, default: 'official' })
+  @Column({ name: 'event_type', length: 16, default: 'info' })
   eventType!: string
-
-  @Column({ name: 'is_registerable', type: 'tinyint', width: 1, default: () => '1' })
-  isRegisterable!: boolean
 
   @Column({ type: 'int', nullable: true })
   capacity?: number

@@ -11,6 +11,7 @@ import {
   markMyEventsShouldRefresh,
   registerEvent
 } from '../../services/events'
+import { isGuestMode, promptLogin } from '../../services/request'
 import { useThemeMode } from '../../config/theme'
 import './index.scss'
 
@@ -52,6 +53,10 @@ export default function EventDetail() {
 
   const handleJoin = async () => {
     if (!ev) return
+    if (isGuestMode()) {
+      promptLogin('登录后才能报名活动')
+      return
+    }
     if (joined) {
       Taro.showToast({ title: '你已经报名过该活动了', icon: 'none' })
       return

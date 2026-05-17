@@ -1,21 +1,19 @@
 import { Injectable, BadRequestException, ForbiddenException, Inject, NotFoundException, forwardRef } from '@nestjs/common'
+import { InjectRepository } from '@nestjs/typeorm'
+import { In, Repository } from 'typeorm'
 import { EventsService } from '../events/events.service'
-import { getStoredUserSummary } from '../users/users.service'
-
-type RegistrationItem = {
-  event_id: number
-  user_id: number
-  created_at: number
-}
-
-const registrations: RegistrationItem[] = [
-  { event_id: 2, user_id: 1, created_at: new Date('2024-03-21T10:00:00Z').getTime() },
-  { event_id: 2, user_id: 1002, created_at: new Date('2024-03-21T10:05:00Z').getTime() }
-]
+import { EventRegistration } from '../../database/entities/event-registration.entity'
+import { User } from '../../database/entities/user.entity'
 
 @Injectable()
 export class EventRegistrationService {
-  constructor(@Inject(forwardRef(() => EventsService)) private readonly eventsService: EventsService) {}
+  constructor(
+    @Inject(forwardRef(() => EventsService)) private readonly eventsService: EventsService,
+    @InjectRepository(EventRegistration)
+    private readonly registrationsRepo: Repository<EventRegistration>,
+    @InjectRepository(User)
+    private readonly usersRepo: Repository<User>
+  ) {}
 
   async register(eventId: number, userId: number) {
     const event = await this.eventsService.getById(eventId)
@@ -23,27 +21,26 @@ export class EventRegistrationService {
     if (!event.is_registerable) throw new ForbiddenException('not allow')
     if (event.registration_deadline && Date.now() > event.registration_deadline)
       throw new BadRequestException('deadline passed')
-    const existing = registrations.find(r => r.event_id === eventId && r.user_id === userId)
+    const existing = await this.registrationsRepo.findOne({ where: { eventId, userId } })
     if (existing) throw new BadRequestException('already registered')
-    const current = registrations.filter(r => r.event_id === eventId).length
+    const current = await this.registrationsRepo.count({ where: { eventId, registrationStatus: 1 } })
     if (event.capacity && current >= event.capacity) throw new BadRequestException('full')
-    const item = { event_id: eventId, user_id: userId, created_at: Date.now() }
-    registrations.push(item)
+    await this.registrationsRepo.save(this.registrationsRepo.create({ eventId, userId, registrationStatus: 1 }))
     return { registered: true }
   }
 
   async status(eventId: number, userId: number) {
-    const existing = registrations.find(r => r.event_id === eventId && r.user_id === userId)
+    const existing = await this.registrationsRepo.findOne({ where: { eventId, userId, registrationStatus: 1 } })
     return { registered: !!existing }
   }
 
   async listByUser(userId: number) {
-    const my = registrations.filter(r => r.user_id === userId)
+    const my = await this.registrationsRepo.find({ where: { userId, registrationStatus: 1 }, order: { createdAt: 'DESC', id: 'DESC' } })
     const detailed = await Promise.all(
       my.map(async (r) => {
-        const ev = await this.eventsService.getById(r.event_id)
+        const ev = await this.eventsService.getById(r.eventId)
         if (!ev) return null
-        return { ...ev, registered_at: r.created_at }
+        return { ...ev, registered_at: r.createdAt?.getTime?.() || Date.now() }
       })
     )
     return { list: detailed.filter(Boolean) }
@@ -53,20 +50,24 @@ export class EventRegistrationService {
     const event = await this.eventsService.getById(eventId)
     if (!event) throw new NotFoundException('event not found')
 
-    const list = registrations
-      .filter(r => r.event_id === eventId)
-      .sort((a, b) => b.created_at - a.created_at)
-      .map((item) => {
-        const user = getStoredUserSummary(item.user_id)
-        return {
-          user_id: item.user_id,
-          nickname: user?.nickname || `用户${item.user_id}`,
-          avatar: user?.avatar || '',
-          city: user?.city || '',
-          role_type: user?.role_type || 'user',
-          registered_at: item.created_at
-        }
-      })
+    const registrations = await this.registrationsRepo.find({
+      where: { eventId, registrationStatus: 1 },
+      order: { createdAt: 'DESC', id: 'DESC' }
+    })
+    const userIds = registrations.map((item) => item.userId)
+    const users = userIds.length > 0 ? await this.usersRepo.find({ where: { id: In(userIds) } }) : []
+    const userMap = new Map(users.map((user) => [user.id, user]))
+    const list = registrations.map((item) => {
+      const user = userMap.get(item.userId)
+      return {
+        user_id: item.userId,
+        nickname: user?.nickname || `用户${item.userId}`,
+        avatar: user?.avatarUrl || '',
+        city: user?.city || '',
+        role_type: user?.roleType || 'user',
+        registered_at: item.createdAt?.getTime?.() || Date.now()
+      }
+    })
 
     return { event_id: eventId, total: list.length, list }
   }

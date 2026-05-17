@@ -22,7 +22,9 @@
 
     .page-home__headline {
       text-shadow: none;
-      background: linear-gradient(135deg, rgba(20, 16, 31, 0.92) 0%, rgba(106, 76, 255, 0.92) 42%, rgba(255, 45, 122, 0.92) 100%);
+      background: none;
+      color: rgba(20, 16, 31, 0.92);
+      -webkit-text-fill-color: rgba(20, 16, 31, 0.92);
     }
 
     .page-home__subheadline {

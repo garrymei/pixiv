@@ -6,6 +6,7 @@ import { Textarea } from '../../components/base/Textarea'
 import { Tag } from '../../components/base/Tag'
 import { PrimaryButton } from '../../components/base/Button'
 import { createPost, markPostListShouldRefresh } from '../../services/posts'
+import { isGuestMode, promptLogin } from '../../services/request'
 import { uploadImage } from '../../services/uploads'
 import { useThemeMode } from '../../config/theme'
 import './index.scss'
@@ -58,6 +59,10 @@ export default function PublishPost() {
   }
 
   const chooseImage = async () => {
+    if (isGuestMode()) {
+      promptLogin('登录后才能上传图片和发布动态')
+      return
+    }
     if (uploading) {
       Taro.showToast({ title: '图片上传中，请稍后再试', icon: 'none' })
       return
@@ -114,6 +119,10 @@ export default function PublishPost() {
   }
 
   const submit = async () => {
+    if (isGuestMode()) {
+      promptLogin('登录后才能发布动态')
+      return
+    }
     const e: Record<string, string> = {}
     if (!title.trim()) e.title = '请输入标题'
     if (!content.trim()) e.content = '请输入内容'

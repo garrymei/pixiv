@@ -1,6 +1,5 @@
 import Taro from '@tarojs/taro'
 import { get, isMockMode, mockResponse, post, resolveAssetUrl } from './request'
-import { getCachedCurrentUser } from './user'
 import { mockDemands, type Demand } from '../mocks/demands'
 import { currentUser } from '../mocks/user'
 
@@ -161,15 +160,6 @@ function parseParticipantLimit(value?: string) {
 
 function resolveAuthor(item: DemandRecord) {
   const authorId = String(item.user?.id || item.authorId || item.author_id || 0)
-  const cachedUser = getCachedCurrentUser()
-  if (cachedUser && cachedUser.id === authorId) {
-    return {
-      authorId,
-      authorName: cachedUser.nickname,
-      authorAvatar: cachedUser.avatarUrl
-    }
-  }
-
   return {
     authorId,
     authorName: item.user?.nickname || (Number(authorId) === 1 ? '粤次元君' : `用户${authorId || ''}`),

@@ -4,6 +4,7 @@ import Taro, { useDidShow } from '@tarojs/taro'
 import { EventCard } from '../../components/business/EventCard'
 import { EmptyState } from '../../components/base/EmptyState'
 import { LoadingState } from '../../components/base/LoadingState'
+import { isGuestMode, promptLogin } from '../../services/request'
 import { consumeMyEventsShouldRefresh, listMyEvents } from '../../services/events'
 import {
   consumeDemandListShouldRefresh,
@@ -38,6 +39,14 @@ export default function MyEvents() {
   const { theme } = useThemeMode()
 
   const loadData = useCallback(async () => {
+    if (isGuestMode()) {
+      setOfficialList([])
+      setCreatedSchedules([])
+      setJoinedSchedules([])
+      setError('')
+      setLoading(false)
+      return
+    }
     setLoading(true)
     setError('')
     try {
@@ -199,6 +208,8 @@ export default function MyEvents() {
 
       {error ? (
         <EmptyState title="加载失败" description={error} actionText="重试" onAction={loadData} />
+      ) : isGuestMode() ? (
+        <EmptyState title="游客暂无参与记录" description="登录后可查看报名活动和个人日程。" actionText="去登录" onAction={() => promptLogin('请先登录')} />
       ) : tab === 'official' ? (
         officialList.length === 0 ? (
           <EmptyState title="暂无参与活动" description="你报名的官方活动会统一展示在这里。" />

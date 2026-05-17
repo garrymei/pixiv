@@ -1,6 +1,5 @@
 import Taro from '@tarojs/taro'
 import { get, isMockMode, mockResponse, post, resolveAssetUrl } from './request'
-import { getCachedCurrentUser } from './user'
 import { mockPosts, type Post } from '../mocks/posts'
 
 const POST_LIST_REFRESH_KEY = 'post_list_should_refresh'
@@ -54,14 +53,6 @@ function formatDateTime(value?: number | string | null) {
 
 function resolveAuthor(item: PostRecord) {
   const authorId = item.user?.id || item.authorId || item.author_id || 0
-  const cachedUser = getCachedCurrentUser()
-  if (cachedUser && String(authorId) === cachedUser.id) {
-    return {
-      authorId: cachedUser.id,
-      authorName: cachedUser.nickname,
-      authorAvatar: cachedUser.avatarUrl
-    }
-  }
 
   return {
     authorId: String(authorId),
@@ -76,6 +67,13 @@ function mapPost(item: PostRecord): Post {
   const cover = resolveAssetUrl(item.cover_image) || images[0] || 'https://images.unsplash.com/photo-1578632767115-351597cf2477?auto=format&fit=crop&q=80&w=600'
   const author = resolveAuthor(item)
   const overrides = postEngagementOverrides.get(String(item.id))
+  const createdAt = item.created_at === null || item.created_at === undefined || item.created_at === ''
+    ? undefined
+    : typeof item.created_at === 'number'
+      ? item.created_at
+      : new Date(item.created_at).getTime()
+  const likeCount = overrides?.likeCount ?? item.like_count ?? 0
+  const commentCount = overrides?.commentCount ?? item.comment_count ?? 0
   return {
     id: String(item.id),
     title: item.title,
@@ -85,11 +83,13 @@ function mapPost(item: PostRecord): Post {
     authorId: author.authorId,
     authorName: author.authorName,
     authorAvatar: author.authorAvatar,
-    likeCount: overrides?.likeCount ?? item.like_count ?? 0,
-    commentCount: overrides?.commentCount ?? item.comment_count ?? 0,
+    likeCount,
+    commentCount,
     isLiked: overrides?.liked ?? item.is_liked ?? false,
     tags,
-    createTime: formatDateTime(item.created_at) || '刚刚'
+    createTime: formatDateTime(item.created_at) || '刚刚',
+    createdAt: createdAt && !Number.isNaN(createdAt) ? createdAt : undefined,
+    hotScore: likeCount * 2 + commentCount
   }
 }
 
@@ -110,13 +110,13 @@ export function updatePostEngagement(postId: string, patch: { likeCount?: number
 }
 
 export async function listPosts(type?: 'work' | 'daily'): Promise<Post[]> {
-  if (!isMockMode()) {
-    const suffix = type ? `?type=${type}` : ''
-    const data = await get<PostListResponse>(`/posts${suffix}`)
-    return (data.list || []).map(mapPost)
+  if (isMockMode()) {
+    const data = type ? mockPosts.filter((p) => (type === 'work' ? (p.tags || []).includes('正片') : (p.tags || []).includes('日常'))) : mockPosts
+    return mockResponse(data)
   }
-  const data = type ? mockPosts.filter((p) => (type === 'work' ? (p.tags || []).includes('正片') : (p.tags || []).includes('日常'))) : mockPosts
-  return mockResponse(data)
+  const suffix = type ? `?type=${type}` : ''
+  const data = await get<PostListResponse>(`/posts${suffix}`)
+  return (data.list || []).map(mapPost)
 }
 
 export async function listPostsByTag(tag: string): Promise<Post[]> {
@@ -125,19 +125,19 @@ export async function listPostsByTag(tag: string): Promise<Post[]> {
 }
 
 export async function listMyPosts(_userId?: string): Promise<Post[]> {
-  if (!isMockMode()) {
-    const data = await get<PostListResponse>('/posts/me', { requireAuth: true })
-    return (data.list || []).map(mapPost)
+  if (isMockMode()) {
+    return mockResponse(mockPosts.filter((p) => p.authorId === 'u_1001'))
   }
-  return mockResponse(mockPosts.filter((p) => p.authorId === 'u_1001'))
+  const data = await get<PostListResponse>('/posts/me', { requireAuth: true })
+  return (data.list || []).map(mapPost)
 }
 
 export async function getPostById(id: string): Promise<Post | undefined> {
-  if (!isMockMode()) {
-    const data = await get<PostRecord | null>(`/posts/${id}`)
-    return data ? mapPost(data) : undefined
+  if (isMockMode()) {
+    return mockResponse(mockPosts.find((p) => p.id === id))
   }
-  return mockResponse(mockPosts.find((p) => p.id === id))
+  const data = await get<PostRecord | null>(`/posts/${id}`)
+  return data ? mapPost(data) : undefined
 }
 
 export async function createPost(payload: {
@@ -150,37 +150,38 @@ export async function createPost(payload: {
   const postType: 'work' | 'daily' = payload.tags?.includes('日常') ? 'daily' : 'work'
   const cover_image = payload.images?.[0] || ''
 
-  if (!isMockMode()) {
-    const data = await post<PostRecord>(
-      '/posts',
-      {
-        title: payload.title,
-        content: payload.content,
-        tags: payload.tags || [],
-        location: payload.location,
-        images: payload.images || [],
-        cover_image,
-        post_type: postType
-      },
-      { requireAuth: true }
-    )
-    return mapPost(data)
+  if (isMockMode()) {
+    const item: Post = {
+      id: `p_${Date.now()}`,
+      title: payload.title,
+      content: payload.content,
+      coverUrl: cover_image,
+      images: payload.images || [],
+      authorId: 'u_1001',
+      authorName: '粤次元君_官方',
+      authorAvatar: '',
+      likeCount: 0,
+      commentCount: 0,
+      isLiked: false,
+      tags: payload.tags || [],
+      createTime: new Date().toISOString(),
+      createdAt: Date.now(),
+      hotScore: 0
+    }
+    return mockResponse(item)
   }
-
-  const item: Post = {
-    id: `p_${Date.now()}`,
-    title: payload.title,
-    content: payload.content,
-    coverUrl: cover_image,
-    images: payload.images || [],
-    authorId: 'u_1001',
-    authorName: '粤次元君_官方',
-    authorAvatar: '',
-    likeCount: 0,
-    commentCount: 0,
-    isLiked: false,
-    tags: payload.tags || [],
-    createTime: new Date().toISOString()
-  }
-  return mockResponse(item)
+  const data = await post<PostRecord>(
+    '/posts',
+    {
+      title: payload.title,
+      content: payload.content,
+      tags: payload.tags || [],
+      location: payload.location,
+      images: payload.images || [],
+      cover_image,
+      post_type: postType
+    },
+    { requireAuth: true }
+  )
+  return mapPost(data)
 }

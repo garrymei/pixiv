@@ -4,6 +4,7 @@ import Taro, { useDidShow } from '@tarojs/taro'
 import { PostCard } from '../../components/business/PostCard'
 import { EmptyState } from '../../components/base/EmptyState'
 import { LoadingState } from '../../components/base/LoadingState'
+import { isGuestMode, promptLogin } from '../../services/request'
 import { listMyPosts } from '../../services/posts'
 import { useThemeMode } from '../../config/theme'
 
@@ -14,6 +15,12 @@ export default function MyPosts() {
   const { theme } = useThemeMode()
 
   const loadData = useCallback(async () => {
+    if (isGuestMode()) {
+      setPosts([])
+      setError('')
+      setLoading(false)
+      return
+    }
     setLoading(true)
     setError('')
     try {
@@ -35,7 +42,9 @@ export default function MyPosts() {
 
   return (
     <View className={`page-container theme-${theme}`} style={{ padding: 'var(--space-md)' }}>
-      {posts.length === 0 ? (
+      {isGuestMode() ? (
+        <EmptyState title="游客暂无发布" description="登录后可查看你发布的内容。" actionText="去登录" onAction={() => promptLogin('请先登录')} />
+      ) : posts.length === 0 ? (
         <EmptyState title="暂无发布" />
       ) : (
         posts.map(post => (

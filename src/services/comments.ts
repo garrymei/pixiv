@@ -1,5 +1,4 @@
 import { get, isMockMode, mockResponse, post, resolveAssetUrl } from './request'
-import { getCachedCurrentUser } from './user'
 import { mockComments, type Comment } from '../mocks/comments'
 
 type RealComment = {
@@ -29,16 +28,14 @@ function formatDateTime(value: number | string) {
 }
 
 function mapComment(item: RealComment): Comment {
-  const cachedUser = getCachedCurrentUser()
   const authorId = String(item.user?.id || item.user_id)
-  const isCurrentUser = cachedUser && cachedUser.id === authorId
   return {
     id: String(item.id),
     postId: String(item.post_id),
     content: item.content,
     authorId,
-    authorName: isCurrentUser ? cachedUser.nickname : item.user?.nickname || (item.user_id === 1 ? '粤次元君' : `用户${item.user_id}`),
-    authorAvatar: isCurrentUser ? cachedUser.avatarUrl : resolveAssetUrl(item.user?.avatar),
+    authorName: item.user?.nickname || (item.user_id === 1 ? '粤次元君' : `用户${item.user_id}`),
+    authorAvatar: resolveAssetUrl(item.user?.avatar),
     likeCount: 0,
     isLiked: false,
     replyCount: 0,

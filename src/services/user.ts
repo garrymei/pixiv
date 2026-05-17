@@ -1,5 +1,5 @@
 import Taro from '@tarojs/taro'
-import { bootstrapSession, clearAuthState, ensureToken, get, getSessionUser, isMockMode, mockResponse, patch, setSessionUser, type SessionUser } from './request'
+import { clearAuthState, ensureToken, get, getSessionUser, hasAuthenticatedSession, isGuestSession, isMockMode, mockResponse, patch, setSessionUser, type SessionUser } from './request'
 import { currentUser } from '../mocks/user'
 
 type UserRecord = {
@@ -7,12 +7,15 @@ type UserRecord = {
   nickname: string
   avatar?: string
   avatarUrl?: string
+  bg_url?: string
   avatar_pending?: string
   avatar_review_status?: 'PENDING' | 'APPROVED' | 'REJECTED'
   avatar_review_reason?: string
   bio?: string
   city?: string
   role_type?: string
+  followers_count?: number
+  following_count?: number
 }
 
 export type CurrentUser = {
@@ -40,19 +43,15 @@ function mapUser(data: UserRecord | SessionUser | null): CurrentUser {
     nickname: data?.nickname || '未命名用户',
     avatarUrl: data?.avatar || data?.avatarUrl || '',
     bio: data?.bio || '',
-    bgUrl: '',
-    followersCount: 0,
-    followingCount: 0,
+    bgUrl: (data as UserRecord | null)?.bg_url || '',
+    followersCount: (data as UserRecord | null)?.followers_count || 0,
+    followingCount: (data as UserRecord | null)?.following_count || 0,
     city: data?.city || '',
     roleType: data?.role_type || 'user',
     avatarReviewStatus: (data as UserRecord | null)?.avatar_review_status,
     avatarReviewReason: (data as UserRecord | null)?.avatar_review_reason || '',
     avatarPendingUrl: (data as UserRecord | null)?.avatar_pending || ''
   }
-}
-
-function readCachedCurrentUser() {
-  return Taro.getStorageSync(CURRENT_USER_KEY) as CurrentUser | null
 }
 
 function writeCachedCurrentUser(user: CurrentUser | null) {
@@ -77,7 +76,9 @@ function syncSessionUser(user: CurrentUser) {
 
 export async function bootstrapCurrentUser() {
   if (isMockMode()) return mockResponse(currentUser as CurrentUser)
-  await bootstrapSession()
+  if (isGuestSession()) {
+    return mapUser(getSessionUser())
+  }
   return getCurrentUser(true)
 }
 
@@ -86,42 +87,43 @@ export function clearCurrentUser() {
   clearAuthState()
 }
 
-export function getCachedCurrentUser() {
-  if (isMockMode()) return currentUser as CurrentUser
-  return readCachedCurrentUser()
-}
-
 export async function getCurrentUser(forceRefresh = false): Promise<CurrentUser> {
-  if (!isMockMode()) {
-    const cached = !forceRefresh ? readCachedCurrentUser() : null
-    if (cached) return cached
-
-    if (!currentUserPromise || forceRefresh) {
-      currentUserPromise = (async () => {
-        await ensureToken()
-        const data = await get<UserRecord | null>('/users/me', { requireAuth: true })
-        const mapped = mapUser(data || getSessionUser())
-        writeCachedCurrentUser(mapped)
-        syncSessionUser(mapped)
-        return mapped
-      })().finally(() => {
-        currentUserPromise = null
-      })
-    }
-
-    return currentUserPromise
+  if (isMockMode()) {
+    return mockResponse({
+      id: currentUser.id,
+      nickname: currentUser.nickname,
+      avatarUrl: currentUser.avatarUrl || '',
+      bio: currentUser.bio || '',
+      bgUrl: currentUser.bgUrl || '',
+      followersCount: currentUser.followersCount,
+      followingCount: currentUser.followingCount,
+      city: '',
+      roleType: 'user'
+    })
   }
-  return mockResponse({
-    id: currentUser.id,
-    nickname: currentUser.nickname,
-    avatarUrl: currentUser.avatarUrl || '',
-    bio: currentUser.bio || '',
-    bgUrl: currentUser.bgUrl || '',
-    followersCount: currentUser.followersCount,
-    followingCount: currentUser.followingCount,
-    city: '',
-    roleType: 'user'
-  })
+
+  if (isGuestSession()) {
+    return mapUser(getSessionUser())
+  }
+
+  if (!hasAuthenticatedSession()) {
+    return mapUser(null)
+  }
+
+  if (!currentUserPromise || forceRefresh) {
+    currentUserPromise = (async () => {
+      await ensureToken()
+      const data = await get<UserRecord | null>('/users/me', { requireAuth: true })
+      const mapped = mapUser(data)
+      writeCachedCurrentUser(mapped)
+      syncSessionUser(mapped)
+      return mapped
+    })().finally(() => {
+      currentUserPromise = null
+    })
+  }
+
+  return currentUserPromise
 }
 
 export async function updateCurrentUser(payload: { nickname: string; bio?: string; city?: string; roleType?: string; avatar?: string }) {

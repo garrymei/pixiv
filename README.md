@@ -72,7 +72,7 @@
 
 #### 4. 用户模块
 
-- 登录（当前为 Mock）
+- 登录（当前默认走数据库用户，会用 `mockId` 做本地调试身份映射）
 - 个人资料
 - 我的发布 / 我的活动 / 我的需求
 
@@ -171,7 +171,7 @@ src/
   components/       # 通用组件（Card/Feed 等）
   services/         # API 封装
   styles/           # 设计 Token 与样式
-  mocks/            # Mock 数据
+  mocks/            # 仅保留本地开发兜底数据，不再作为线上主链路数据源
 
 config/             # Taro 环境配置（dev / prod / index）
 dist/               # 小程序构建产物
@@ -260,6 +260,10 @@ npm run start:dev
 ### 环境变量示例
 
 ```env
+API_MODE=real
+APP_ENV=local
+LOCAL_API_BASE_URL=https://www.pivix.top
+TEST_API_BASE_URL=https://www.pivix.top
 DB_HOST=
 DB_PORT=
 DB_NAME=
@@ -273,6 +277,12 @@ UPLOAD_MAX_BYTES=
 UPLOAD_RATE_LIMIT_MAX=
 UPLOAD_RATE_LIMIT_WINDOW_MS=
 ```
+
+说明：
+
+- 前端默认 `API_MODE=real`，会优先走真实接口与数据库。
+- `mock` 仅保留给本地开发兜底，不再作为线上/联调主链路。
+- 后端只要配置了 `DB_HOST/DB_PORT/DB_NAME/DB_USER/DB_PASSWORD`，就会启用 TypeORM 与真实 MySQL。
 
 ## 十一、内容安全与审核（新增）
 
@@ -306,7 +316,57 @@ UPLOAD_RATE_LIMIT_WINDOW_MS=
 - `PATCH /admin/reviews/demands/:id` body：同上
 - `PATCH /admin/reviews/avatars/:userId` body：同上
 
-## 十二、文档入口
+## 十二、真实数据库化改造（2026-04-22 更新）
+
+当前已开始执行“去 Mock / 全链路落库”改造，原则如下：
+
+- 以真实数据库表为准，统一实体、DTO、Service 字段映射。
+- 后端核心链路统一改为 Repository + MySQL 落库，不再依赖内存数组/Map。
+- 首页热帖与 Banner 改为走真实接口，不再直接 import 前端 mock 数据。
+- 登录仍保留 `mockId` 这种开发态入参，但签发的 Token 与 `/users/me` 已基于真实 `users` 表。
+- `mocks/` 目录仅用于本地兜底，不再作为默认运行数据源。
+- 当 `API_MODE=real` 时，页面加载失败只提示错误或展示空态，不再自动回退为 mock 示例数据，避免线上链路真假数据混用。
+
+当前已切换到真实 Repository 的核心模块：
+
+- `users`
+- `auth`
+- `posts`
+- `comments`
+- `likes`
+- `events`
+- `event_registrations`
+- `demands`
+- `demand_applications`
+- `banners`
+
+前端当前规则：
+
+- 首页 Banner 走 `GET /banners`
+- 登录页海报走 `GET /banners?position=login_poster`，可在后台配置登录海报图片，建议使用竖版动漫人物海报
+- 首页热帖走 `GET /posts`，前端按真实互动数据计算热度排序
+- 发现页广场/市集走真实接口，不再在真实环境里自动切回 `mockPosts/mockDemands`
+- 登录页已拆分为“游客浏览 / 正式登录”两条链路：游客仅浏览，不再自动生成 token
+- 真实环境下不再自动 `bootstrapSession()` 登录；点赞、评论、发布、报名、编辑资料等操作会统一要求先登录
+- 正式登录页改为点击“微信登录”后弹出授权小窗，通过微信常规接口获取头像和昵称，再配合 `wx.login` 登录；当前前端已按该流程收口，后端微信 `openid` 换取链路需结合真实 `WX_APP_ID/WX_APP_SECRET` 继续完成
+- 本地 `API_MODE=mock` 时仍保留最小身份兜底，仅用于开发联调
+
+数据库兼容性补充：
+
+- `demand_applications` 已补充约定确认/取消相关字段：
+  - `publisher_accepted_at`
+  - `applicant_confirmed_at`
+  - `cancel_requested_by`
+  - `cancel_requested_at`
+  - `publisher_cancel_confirmed_at`
+  - `applicant_cancel_confirmed_at`
+  - `cancelled_at`
+- `comments` 已补充：
+  - `like_count`
+  - `reply_count`
+- `events.cover_image` 会从历史 `cover_url` 自动补齐，避免旧数据无封面。
+
+## 十三、文档入口
 
 | 类型 | 路径 |
 | --- | --- |
@@ -317,7 +377,7 @@ UPLOAD_RATE_LIMIT_WINDOW_MS=
 | 发布准备 | `docs/release/` |
 | 冷启动方案 | `docs/launch/` |
 
-## 十三、后台平台需求（新增）
+## 十四、后台平台需求（新增）
 
 当前项目已不再满足“只有小程序前台”的阶段，后续需要建设一个与小程序模块逐一对应的后台管理与监控平台。
 
@@ -421,16 +481,16 @@ UPLOAD_RATE_LIMIT_WINDOW_MS=
   - 实际运行配置文件：`backend/.env`
   - 密码与敏感凭据不写入文档，统一从环境变量读取
 
-## 十三、已知问题 / 当前限制
+## 十五、已知问题 / 当前限制
 
-- 当前前台登录仍以 Mock 会话为主（默认 `mockId=dev`）
+- 当前登录仍保留 `mockId` 调试入口，但用户资料与会话身份已从真实 `users` 表读取
 - 上传能力为基础实现（后续可接云存储）
 - 无举报 / 收藏 / 关注能力
 - 管理后台已上线基础版本，但仍处于“平台骨架建设阶段”
 - 未做推荐排序（时间流）
 - 当前接口统一指向 `https://www.pivix.top`
 
-## 十四、当前优先级（非常关键）
+## 十六、当前优先级（非常关键）
 
 ❗如果你是开发者，请优先做这些，而不是加新功能：
 
@@ -440,7 +500,7 @@ UPLOAD_RATE_LIMIT_WINDOW_MS=
 - 首页内容丰富度提升
 - Bug 修复（优先 P0 / P1）
 
-## 十五、下一阶段方向（Roadmap）
+## 十七、下一阶段方向（Roadmap）
 
 ### V1.1
 
@@ -455,7 +515,7 @@ UPLOAD_RATE_LIMIT_WINDOW_MS=
 - 活动承接增强
 - 用户留存机制
 
-## 十六、开发规范
+## 十八、开发规范
 
 ### 分支
 
@@ -469,7 +529,7 @@ UPLOAD_RATE_LIMIT_WINDOW_MS=
 - `fix:` 修复问题
 - `docs:` 文档更新
 
-## 十七、项目原则（非常重要）
+## 十九、项目原则（非常重要）
 
 - 不做泛社交
 - 不做复杂系统

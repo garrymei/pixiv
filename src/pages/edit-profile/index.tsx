@@ -8,6 +8,7 @@ import { Tag } from '../../components/base/Tag'
 import { PrimaryButton } from '../../components/base/Button'
 import { EmptyState } from '../../components/base/EmptyState'
 import { LoadingState } from '../../components/base/LoadingState'
+import { isGuestMode, promptLogin } from '../../services/request'
 import { getCurrentUser, updateCurrentUser } from '../../services/user'
 import { uploadImage } from '../../services/uploads'
 import { useThemeMode } from '../../config/theme'
@@ -28,6 +29,11 @@ export default function EditProfile() {
   const { theme } = useThemeMode()
 
   const loadData = useCallback(async () => {
+    if (isGuestMode()) {
+      setError('请先登录后编辑资料')
+      setLoading(false)
+      return
+    }
     setLoading(true)
     setError('')
     try {
@@ -52,6 +58,10 @@ export default function EditProfile() {
   }, [loadData])
 
   const submit = async () => {
+    if (isGuestMode()) {
+      promptLogin('登录后才能编辑资料')
+      return
+    }
     if (!nickname.trim()) {
       Taro.showToast({ title: '请输入昵称', icon: 'none' })
       return
@@ -82,6 +92,10 @@ export default function EditProfile() {
   }
 
   const chooseAvatar = async () => {
+    if (isGuestMode()) {
+      promptLogin('登录后才能上传头像')
+      return
+    }
     if (uploadingAvatar || submitting) return
     try {
       const picked = await Taro.chooseImage({ count: 1 })
@@ -113,7 +127,7 @@ export default function EditProfile() {
   }
 
   if (loading) return <LoadingState fullScreen text="资料加载中..." />
-  if (error) return <EmptyState title="加载失败" description={error} actionText="重试" onAction={loadData} />
+  if (error) return <EmptyState title="加载失败" description={error} actionText={isGuestMode() ? '去登录' : '重试'} onAction={isGuestMode() ? () => promptLogin('请先登录') : loadData} />
 
   return (
     <View className={`page-container theme-${theme}`} style={{ padding: 'var(--space-lg)' }}>

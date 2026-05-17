@@ -69,6 +69,20 @@
     overflow: hidden;
   }
 
+  &__status-row {
+    margin-bottom: var(--space-sm);
+  }
+
+  &__status-text {
+    font-size: var(--font-size-sm);
+    color: var(--color-secondary);
+    font-weight: var(--font-weight-bold);
+  }
+
+  &__status-text--closed {
+    color: var(--color-text-secondary);
+  }
+
   &__meta-list {
     display: flex;
     flex-direction: column;
@@ -146,6 +160,14 @@
 
   .business-demand-card__meta-item {
     color: rgba(20, 16, 31, 0.72);
+  }
+
+  .business-demand-card__status-text {
+    color: var(--color-primary);
+  }
+
+  .business-demand-card__status-text--closed {
+    color: rgba(20, 16, 31, 0.56);
   }
 
   .business-demand-card__budget-label {

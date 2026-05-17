@@ -1,0 +1,108 @@
+.page-settings {
+  min-height: 100vh;
+  padding: var(--space-lg);
+  background: var(--color-bg-page);
+}
+
+.page-settings__section {
+  margin-bottom: var(--space-lg);
+}
+
+.page-settings__title {
+  display: block;
+  font-size: 40rpx;
+  line-height: 1.3;
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+}
+
+.page-settings__desc {
+  display: block;
+  margin-top: 12rpx;
+  font-size: 24rpx;
+  line-height: 1.6;
+  color: var(--color-text-secondary);
+}
+
+.page-settings__card {
+  padding: var(--space-md);
+  border-radius: 28rpx;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1rpx solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 18rpx 48rpx rgba(0, 0, 0, 0.16);
+}
+
+.page-settings__row-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+  margin-bottom: var(--space-md);
+}
+
+.page-settings__row-title {
+  font-size: 30rpx;
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+}
+
+.page-settings__options {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.page-settings__option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+  padding: var(--space-md);
+  border-radius: 22rpx;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1rpx solid rgba(255, 255, 255, 0.08);
+
+  &--active {
+    border-color: rgba(255, 64, 129, 0.3);
+    box-shadow: 0 0 20rpx rgba(255, 64, 129, 0.14);
+  }
+}
+
+.page-settings__option-main {
+  flex: 1;
+}
+
+.page-settings__option-title {
+  display: block;
+  font-size: 28rpx;
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+}
+
+.page-settings__option-desc {
+  display: block;
+  margin-top: 8rpx;
+  font-size: 24rpx;
+  line-height: 1.6;
+  color: var(--color-text-secondary);
+}
+
+.page-settings__option-check {
+  flex-shrink: 0;
+  font-size: 24rpx;
+  color: var(--color-secondary);
+  font-weight: var(--font-weight-bold);
+}
+
+.theme-light {
+  .page-settings__card {
+    background: rgba(255, 255, 255, 0.84);
+    border: 1rpx solid rgba(20, 16, 31, 0.08);
+    box-shadow: 0 18rpx 48rpx rgba(17, 10, 36, 0.1);
+  }
+
+  .page-settings__option {
+    background: rgba(20, 16, 31, 0.04);
+    border: 1rpx solid rgba(20, 16, 31, 0.08);
+  }
+}

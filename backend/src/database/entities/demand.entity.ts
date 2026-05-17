@@ -1,7 +1,7 @@
-import { Column, CreateDateColumn, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm'
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm'
 import { User } from './user.entity'
 import { DemandApplication } from './demand-application.entity'
-import { DemandStatus, DemandType } from '../../types/enums'
+import { DemandStatus, DemandType, ModerationStatus } from '../../types/enums'
 
 @Entity('demands')
 export class Demand {
@@ -12,10 +12,17 @@ export class Demand {
   authorId!: number
 
   @ManyToOne(() => User, u => u.demands)
+  @JoinColumn({ name: 'author_id' })
   author!: User
 
   @Column({ name: 'demand_type', type: 'enum', enum: DemandType })
-  type!: DemandType
+  demandType!: DemandType
+
+  @Column({ name: 'accepted_application_id', type: 'bigint', nullable: true })
+  acceptedApplicationId?: number | null
+
+  @Column({ name: 'accepted_user_id', type: 'bigint', nullable: true })
+  acceptedUserId?: number | null
 
   @Column({ length: 255 })
   title!: string
@@ -36,16 +43,22 @@ export class Demand {
   budgetType?: string
 
   @Column({ name: 'budget_amount', type: 'decimal', precision: 10, scale: 2, nullable: true })
-  budgetValue?: number
+  budgetAmount?: number
 
   @Column({ name: 'participant_limit', type: 'int', default: 1 })
-  peopleCount!: number
+  participantLimit!: number
 
   @Column({ name: 'deadline', type: 'datetime', nullable: true })
   deadline?: Date
 
   @Column({ type: 'enum', enum: DemandStatus, default: DemandStatus.OPEN })
   status!: DemandStatus
+
+  @Column({ name: 'moderation_status', type: 'enum', enum: ModerationStatus, default: ModerationStatus.APPROVED })
+  moderationStatus!: ModerationStatus
+
+  @Column({ name: 'moderation_reason', length: 255, nullable: true })
+  moderationReason?: string
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt!: Date

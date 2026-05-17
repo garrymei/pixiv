@@ -1,35 +1,13 @@
 import { ConflictException, Injectable } from '@nestjs/common'
+import { InjectRepository } from '@nestjs/typeorm'
+import { In, Repository } from 'typeorm'
 import { CreateDemandDto } from './dto/create-demand.dto'
 import { DemandType, DemandStatus, ModerationStatus } from '../../types/enums'
-import { getStoredUserSummary } from '../users/users.service'
 import { autoModerate } from '../../common/utils/moderation'
-import {
-  getDemandApplicationSnapshot,
-  hasBlockingConfirmedAgreement,
-  mapScheduleStatusText,
-  resolveScheduleStatusByHour
-} from '../demand-application/demand-application.service'
-
-type DemandItem = {
-  id: number
-  authorId: number
-  accepted_application_id?: number | null
-  accepted_user_id?: number | null
-  demand_type: DemandType
-  title: string
-  description?: string
-  city?: string
-  location?: string
-  event_time?: number
-  budget_type?: string
-  budget_amount?: number
-  participant_limit?: number
-  deadline?: number
-  status: DemandStatus
-  moderation_status: ModerationStatus
-  moderation_reason?: string
-  created_at: number
-}
+import { mapScheduleStatusText, resolveScheduleStatusByHour } from '../demand-application/demand-application.service'
+import { Demand } from '../../database/entities/demand.entity'
+import { DemandApplication } from '../../database/entities/demand-application.entity'
+import { User } from '../../database/entities/user.entity'
 
 type DemandResponse = {
   id: number
@@ -60,115 +38,8 @@ type DemandResponse = {
   }
 }
 
-let seq = 400
 const DEMAND_SUBMISSION_TTL = 5000
 const recentDemandSubmissions = new Map<string, number>()
-const demands: DemandItem[] = [
-  {
-    id: 1,
-    authorId: 1002,
-    demand_type: DemandType.PHOTOGRAPHY,
-    title: '求一个周末有空的摄影师，拍原神申鹤外景，包车马费和午餐',
-    description: '希望熟悉夜景和外景构图，广州可约。',
-    city: '广州市海珠区',
-    location: '广州市海珠区',
-    event_time: new Date('2026-04-19T14:00:00+08:00').getTime(),
-    budget_type: 'fixed',
-    budget_amount: 500,
-    participant_limit: 1,
-    deadline: new Date('2026-04-18T23:59:59+08:00').getTime(),
-    status: DemandStatus.OPEN,
-    moderation_status: ModerationStatus.APPROVED,
-    created_at: new Date('2024-03-24T08:00:00Z').getTime()
-  },
-  {
-    id: 2,
-    authorId: 1003,
-    demand_type: DemandType.MAKEUP,
-    title: '五一漫展急求妆娘！三个角色连妆，可接单的请私聊，带价来',
-    description: '需要妆容稳定、能早起到场。',
-    city: '广州',
-    location: '琶洲保利世贸',
-    event_time: new Date('2026-05-01T07:00:00+08:00').getTime(),
-    budget_type: 'negotiable',
-    participant_limit: 1,
-    deadline: new Date('2026-04-28T23:59:59+08:00').getTime(),
-    status: DemandStatus.OPEN,
-    moderation_status: ModerationStatus.APPROVED,
-    created_at: new Date('2024-03-23T14:20:00Z').getTime()
-  },
-  {
-    id: 3,
-    authorId: 1005,
-    demand_type: DemandType.COSER,
-    title: '寻找能出《葬送的芙莉莲》修塔尔克的男Coser，已有芙莉莲和菲伦',
-    description: '社团组队外拍，走互勉路线。',
-    city: '深圳',
-    location: '深圳市天河区',
-    event_time: new Date('2026-05-18T15:00:00+08:00').getTime(),
-    budget_type: 'free',
-    participant_limit: 1,
-    deadline: new Date('2026-05-10T23:59:59+08:00').getTime(),
-    status: DemandStatus.CLOSED,
-    moderation_status: ModerationStatus.APPROVED,
-    created_at: new Date('2024-03-20T10:00:00Z').getTime()
-  },
-  {
-    id: 4,
-    authorId: 1,
-    demand_type: DemandType.PHOTOGRAPHY,
-    title: '官方招募活动跟拍摄影，需会现场抓拍与简单修图',
-    description: '官方线下活动需要 1 位跟拍摄影师，活动结束后 24 小时内返图。',
-    city: '广州',
-    location: '动漫星城',
-    event_time: new Date('2026-04-20T13:00:00+08:00').getTime(),
-    budget_type: 'fixed',
-    budget_amount: 800,
-    participant_limit: 1,
-    deadline: new Date('2026-04-18T23:59:59+08:00').getTime(),
-    status: DemandStatus.OPEN,
-    moderation_status: ModerationStatus.APPROVED,
-    created_at: new Date('2024-03-22T12:00:00Z').getTime()
-  }
-]
-
-function toDemandResponse(item: DemandItem): DemandResponse {
-  const applicationSnapshot = getDemandApplicationSnapshot(item.id)
-  const scheduleStatus = resolveScheduleStatusByHour(item.event_time, applicationSnapshot.doubleConfirmedCount > 0)
-  const user = getStoredUserSummary(item.authorId) || {
-    id: item.authorId,
-    nickname: `用户${item.authorId}`,
-    avatar: ''
-  }
-  return {
-    id: item.id,
-    author_id: item.authorId,
-    accepted_application_id: item.accepted_application_id ?? null,
-    accepted_user_id: item.accepted_user_id ?? null,
-    demand_type: item.demand_type,
-    title: item.title || '',
-    description: item.description || '',
-    city: item.city || '',
-    location: item.location || '',
-    event_time: item.event_time ?? null,
-    budget_type: item.budget_type ?? null,
-    budget_amount: item.budget_amount ?? null,
-    participant_limit: item.participant_limit ?? null,
-    deadline: item.deadline ?? null,
-    status: item.status,
-    moderation_status: item.moderation_status,
-    moderation_reason: item.moderation_reason || '',
-    created_at: item.created_at,
-    application_count: applicationSnapshot.count,
-    schedule_status: scheduleStatus,
-    schedule_status_text: mapScheduleStatusText(scheduleStatus),
-    user: {
-      id: user.id,
-      nickname: user.nickname,
-      avatar: user.avatar || ''
-    }
-  }
-}
 
 function buildDemandSubmissionKey(authorId: number, dto: CreateDemandDto) {
   return JSON.stringify({
@@ -188,20 +59,103 @@ function buildDemandSubmissionKey(authorId: number, dto: CreateDemandDto) {
 
 @Injectable()
 export class DemandsService {
+  constructor(
+    @InjectRepository(Demand)
+    private readonly demandsRepo: Repository<Demand>,
+    @InjectRepository(DemandApplication)
+    private readonly applicationsRepo: Repository<DemandApplication>,
+    @InjectRepository(User)
+    private readonly usersRepo: Repository<User>
+  ) {}
+
+  private async buildResponses(items: Demand[]): Promise<DemandResponse[]> {
+    if (items.length === 0) return []
+    const demandIds = items.map((item) => item.id)
+    const authorIds = Array.from(new Set(items.map((item) => item.authorId)))
+    const [applications, users] = await Promise.all([
+      this.applicationsRepo.find({ where: { demandId: In(demandIds) } }),
+      this.usersRepo.find({ where: { id: In(authorIds) } })
+    ])
+
+    const appStats = new Map<number, { count: number; doubleConfirmedCount: number }>()
+    for (const app of applications) {
+      const prev = appStats.get(app.demandId) || { count: 0, doubleConfirmedCount: 0 }
+      prev.count += 1
+      if (app.publisherAcceptedAt && app.applicantConfirmedAt && !app.cancelledAt) {
+        prev.doubleConfirmedCount += 1
+      }
+      appStats.set(app.demandId, prev)
+    }
+    const userMap = new Map(users.map((user) => [user.id, user]))
+
+    return items.map((item) => {
+      const stats = appStats.get(item.id) || { count: 0, doubleConfirmedCount: 0 }
+      const scheduleStatus = resolveScheduleStatusByHour(
+        item.eventTime ? new Date(item.eventTime).getTime() : null,
+        stats.doubleConfirmedCount > 0
+      )
+      const user = userMap.get(item.authorId)
+      return {
+        id: item.id,
+        author_id: item.authorId,
+        accepted_application_id: item.acceptedApplicationId ?? null,
+        accepted_user_id: item.acceptedUserId ?? null,
+        demand_type: item.demandType,
+        title: item.title || '',
+        description: item.description || '',
+        city: item.city || '',
+        location: item.location || '',
+        event_time: item.eventTime ? new Date(item.eventTime).getTime() : null,
+        budget_type: item.budgetType ?? null,
+        budget_amount: item.budgetAmount !== undefined && item.budgetAmount !== null ? Number(item.budgetAmount) : null,
+        participant_limit: item.participantLimit ?? null,
+        deadline: item.deadline ? new Date(item.deadline).getTime() : null,
+        status: item.status,
+        moderation_status: item.moderationStatus,
+        moderation_reason: item.moderationReason || '',
+        created_at: item.createdAt?.getTime?.() || Date.now(),
+        application_count: stats.count,
+        schedule_status: scheduleStatus,
+        schedule_status_text: mapScheduleStatusText(scheduleStatus),
+        user: {
+          id: item.authorId,
+          nickname: user?.nickname || `用户${item.authorId}`,
+          avatar: user?.avatarUrl || ''
+        }
+      }
+    })
+  }
+
+  private async hasBlockingConfirmedAgreement(demandId: number, eventTime?: Date | null) {
+    const applications = await this.applicationsRepo.find({ where: { demandId } })
+    const accepted = applications.find((item) => !!item.publisherAcceptedAt && !!item.applicantConfirmedAt && !item.cancelledAt)
+    if (!accepted || !accepted.publisherAcceptedAt || !accepted.applicantConfirmedAt) return false
+    if (!eventTime) return true
+    const nowHour = Math.floor(Date.now() / 3600000)
+    const eventHour = Math.floor(new Date(eventTime).getTime() / 3600000)
+    return nowHour < eventHour
+  }
+
   async list(params: { demand_type?: DemandType; page?: number; pageSize?: number }) {
     const { demand_type, page = 1, pageSize = 10 } = params || {}
-    const visible = demands.filter(d => d.moderation_status === ModerationStatus.APPROVED)
-    const filtered = demand_type ? visible.filter(d => d.demand_type === demand_type) : visible
-    const start = (page - 1) * pageSize
-    const data = filtered.slice(start, start + pageSize).map(toDemandResponse)
-    return { list: data, total: filtered.length, page, pageSize }
+    const [items, total] = await this.demandsRepo.findAndCount({
+      where: {
+        moderationStatus: ModerationStatus.APPROVED,
+        ...(demand_type ? { demandType: demand_type } : {})
+      },
+      order: { createdAt: 'DESC', id: 'DESC' },
+      skip: (page - 1) * pageSize,
+      take: pageSize
+    })
+    const data = await this.buildResponses(items)
+    return { list: data, total, page, pageSize }
   }
 
   async getById(id: number) {
-    const item = demands.find(d => d.id === id)
-    if (!item) return null
-    if (item.moderation_status !== ModerationStatus.APPROVED) return null
-    return toDemandResponse(item)
+    const item = await this.demandsRepo.findOne({ where: { id } })
+    if (!item || item.moderationStatus !== ModerationStatus.APPROVED) return null
+    const [data] = await this.buildResponses([item])
+    return data || null
   }
 
   async create(authorId: number, dto: CreateDemandDto) {
@@ -215,82 +169,100 @@ export class DemandsService {
       text: `${dto.title}\n${dto.description || ''}\n${dto.location || ''}\n${dto.city || ''}`,
       images: []
     })
-    const item: DemandItem = {
-      id: ++seq,
+    const entity = await this.demandsRepo.save(this.demandsRepo.create({
       authorId,
-      accepted_application_id: null,
-      accepted_user_id: null,
-      demand_type: dto.demand_type,
+      acceptedApplicationId: null,
+      acceptedUserId: null,
+      demandType: dto.demand_type,
       title: dto.title.trim(),
-      description: dto.description?.trim(),
-      city: dto.city?.trim(),
+      description: dto.description?.trim() || '',
+      city: dto.city?.trim() || '',
       location: dto.location.trim(),
-      event_time: dto.event_time,
-      budget_type: dto.budget_type,
-      budget_amount: dto.budget_amount,
-      participant_limit: dto.participant_limit,
-      deadline: dto.deadline,
+      eventTime: new Date(dto.event_time),
+      budgetType: dto.budget_type,
+      budgetAmount: dto.budget_amount,
+      participantLimit: dto.participant_limit ?? 1,
+      deadline: dto.deadline ? new Date(dto.deadline) : undefined,
       status: DemandStatus.OPEN,
-      moderation_status: review.status,
-      moderation_reason: review.reason,
-      created_at: now
-    }
-    demands.unshift(item)
+      moderationStatus: review.status,
+      moderationReason: review.reason || ''
+    }))
     recentDemandSubmissions.set(submissionKey, now)
-    return toDemandResponse(item)
+    const [data] = await this.buildResponses([entity])
+    return data
   }
 
   async updateMine(authorId: number, id: number, dto: Partial<CreateDemandDto>) {
-    const item = demands.find((d) => d.id === id)
+    const item = await this.demandsRepo.findOne({ where: { id } })
     if (!item || item.authorId !== authorId) return null
-    if (hasBlockingConfirmedAgreement(item.id, item.event_time)) {
+    if (await this.hasBlockingConfirmedAgreement(item.id, item.eventTime)) {
       throw new ConflictException('agreement locked, cancel agreement first')
     }
-    if (dto.demand_type) item.demand_type = dto.demand_type
+    if (dto.demand_type) item.demandType = dto.demand_type
     if (typeof dto.title === 'string') item.title = dto.title.trim()
     if (typeof dto.description === 'string') item.description = dto.description.trim()
     if (typeof dto.city === 'string') item.city = dto.city.trim()
     if (typeof dto.location === 'string') item.location = dto.location.trim()
-    if (typeof dto.event_time === 'number') item.event_time = dto.event_time
-    if (typeof dto.budget_type === 'string') item.budget_type = dto.budget_type
-    if (typeof dto.budget_amount === 'number') item.budget_amount = dto.budget_amount
-    if (typeof dto.participant_limit === 'number') item.participant_limit = dto.participant_limit
-    if (typeof dto.deadline === 'number') item.deadline = dto.deadline
-    return toDemandResponse(item)
+    if (typeof dto.event_time === 'number') item.eventTime = new Date(dto.event_time)
+    if (typeof dto.budget_type === 'string') item.budgetType = dto.budget_type
+    if (typeof dto.budget_amount === 'number') item.budgetAmount = dto.budget_amount
+    if (typeof dto.participant_limit === 'number') item.participantLimit = dto.participant_limit
+    if (typeof dto.deadline === 'number') item.deadline = new Date(dto.deadline)
+    const saved = await this.demandsRepo.save(item)
+    const [data] = await this.buildResponses([saved])
+    return data || null
   }
 
   async bindAcceptedApplication(demandId: number, applicationId: number, applicantId: number) {
-    const item = demands.find((d) => d.id === demandId)
+    const item = await this.demandsRepo.findOne({ where: { id: demandId } })
     if (!item) return null
-    item.accepted_application_id = applicationId
-    item.accepted_user_id = applicantId
-    return toDemandResponse(item)
+    item.acceptedApplicationId = applicationId
+    item.acceptedUserId = applicantId
+    const saved = await this.demandsRepo.save(item)
+    const [data] = await this.buildResponses([saved])
+    return data || null
   }
 
   async clearAcceptedApplication(demandId: number) {
-    const item = demands.find((d) => d.id === demandId)
+    const item = await this.demandsRepo.findOne({ where: { id: demandId } })
     if (!item) return null
-    item.accepted_application_id = null
-    item.accepted_user_id = null
-    return toDemandResponse(item)
+    item.acceptedApplicationId = null
+    item.acceptedUserId = null
+    const saved = await this.demandsRepo.save(item)
+    const [data] = await this.buildResponses([saved])
+    return data || null
   }
 
   async listMine(authorId: number, page = 1, pageSize = 10) {
-    const mine = demands.filter(d => d.authorId === authorId)
-    const start = (page - 1) * pageSize
-    const data = mine.slice(start, start + pageSize).map(toDemandResponse)
-    return { list: data, total: mine.length, page, pageSize }
+    const [items, total] = await this.demandsRepo.findAndCount({
+      where: { authorId },
+      order: { createdAt: 'DESC', id: 'DESC' },
+      skip: (page - 1) * pageSize,
+      take: pageSize
+    })
+    const data = await this.buildResponses(items)
+    return { list: data, total, page, pageSize }
   }
 
   async countMineWithApplications(authorId: number) {
-    return demands.filter((d) => d.authorId === authorId && getDemandApplicationSnapshot(d.id).count > 0).length
+    const mine = await this.demandsRepo.find({ where: { authorId }, select: ['id'] })
+    const ids = mine.map((item) => item.id)
+    if (ids.length === 0) return 0
+    const rows = await this.applicationsRepo
+      .createQueryBuilder('app')
+      .select('COUNT(DISTINCT app.demand_id)', 'total')
+      .where('app.demand_id IN (:...ids)', { ids })
+      .getRawOne<{ total?: string }>()
+    return Number(rows?.total || 0)
   }
 
   async review(id: number, action: 'approve' | 'reject', reason?: string) {
-    const item = demands.find(d => d.id === id)
+    const item = await this.demandsRepo.findOne({ where: { id } })
     if (!item) return null
-    item.moderation_status = action === 'approve' ? ModerationStatus.APPROVED : ModerationStatus.REJECTED
-    item.moderation_reason = action === 'approve' ? '' : (reason || '内容审核未通过')
-    return toDemandResponse(item)
+    item.moderationStatus = action === 'approve' ? ModerationStatus.APPROVED : ModerationStatus.REJECTED
+    item.moderationReason = action === 'approve' ? '' : (reason || '内容审核未通过')
+    const saved = await this.demandsRepo.save(item)
+    const [data] = await this.buildResponses([saved])
+    return data || null
   }
 }

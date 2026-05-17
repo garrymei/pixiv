@@ -1,38 +1,49 @@
 import { Injectable } from '@nestjs/common'
-
-const likesStore = new Map<number, Set<number>>([
-  [1, new Set([1, 1003])],
-  [2, new Set([1002])],
-  [5, new Set([1002])]
-])
-
-export function getLikeCountByPost(postId: number) {
-  return (likesStore.get(postId) || new Set<number>()).size
-}
+import { InjectRepository } from '@nestjs/typeorm'
+import { Repository } from 'typeorm'
+import { Like } from '../../database/entities/like.entity'
+import { Post } from '../../database/entities/post.entity'
 
 @Injectable()
 export class LikesService {
+  constructor(
+    @InjectRepository(Like)
+    private readonly likesRepo: Repository<Like>,
+    @InjectRepository(Post)
+    private readonly postsRepo: Repository<Post>
+  ) {}
+
   async like(postId: number, userId: number) {
-    const set = likesStore.get(postId) || new Set<number>()
-    if (set.has(userId)) {
-      return { liked: true, like_count: set.size }
+    const existing = await this.likesRepo.findOne({ where: { postId, userId } })
+    if (existing) {
+      const likeCount = await this.likesRepo.count({ where: { postId } })
+      return { liked: true, like_count: likeCount }
     }
-    set.add(userId)
-    likesStore.set(postId, set)
-    return { liked: true, like_count: set.size }
+    await this.likesRepo.save(this.likesRepo.create({ postId, userId }))
+    await this.postsRepo.increment({ id: postId }, 'likeCount', 1)
+    const likeCount = await this.likesRepo.count({ where: { postId } })
+    return { liked: true, like_count: likeCount }
   }
 
   async unlike(postId: number, userId: number) {
-    const set = likesStore.get(postId) || new Set<number>()
-    if (set.has(userId)) {
-      set.delete(userId)
-      likesStore.set(postId, set)
+    const existing = await this.likesRepo.findOne({ where: { postId, userId } })
+    if (existing) {
+      await this.likesRepo.remove(existing)
+      const post = await this.postsRepo.findOne({ where: { id: postId } })
+      if (post && post.likeCount > 0) {
+        post.likeCount -= 1
+        await this.postsRepo.save(post)
+      }
     }
-    return { liked: false, like_count: set.size }
+    const likeCount = await this.likesRepo.count({ where: { postId } })
+    return { liked: false, like_count: likeCount }
   }
 
   async status(postId: number, userId: number) {
-    const set = likesStore.get(postId) || new Set<number>()
-    return { liked: set.has(userId), like_count: set.size }
+    const [existing, likeCount] = await Promise.all([
+      this.likesRepo.findOne({ where: { postId, userId } }),
+      this.likesRepo.count({ where: { postId } })
+    ])
+    return { liked: !!existing, like_count: likeCount }
   }
 }

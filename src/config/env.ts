@@ -21,7 +21,7 @@ const envMap: Record<RuntimeEnv, EnvConfig> = {
   }
 }
 
-export const defaultApiMode: ApiMode = (process.env.API_MODE as ApiMode) || 'mock'
+export const defaultApiMode: ApiMode = (process.env.API_MODE as ApiMode) || 'real'
 export const defaultRuntimeEnv: RuntimeEnv = (process.env.APP_ENV as RuntimeEnv) || 'local'
 
 export function getEnvConfig(env: RuntimeEnv) {

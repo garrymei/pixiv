@@ -15,6 +15,8 @@ export interface DemandCardProps {
   authorName: string
   authorAvatar?: string
   status?: 'open' | 'closed'
+  statusText?: string
+  actionText?: string
   onClick?: () => void
   onActionClick?: () => void
   className?: string
@@ -30,11 +32,15 @@ export function DemandCard({
   authorName,
   authorAvatar,
   status = 'open',
+  statusText,
+  actionText,
   onClick,
   onActionClick,
   className
 }: DemandCardProps) {
   const isClosed = status === 'closed'
+  const resolvedStatusText = statusText || (isClosed ? '已关闭' : '招募中')
+  const resolvedActionText = actionText || (isClosed ? '查看状态' : '查看详情')
 
   return (
     <View 
@@ -56,6 +62,14 @@ export function DemandCard({
 
       <View className="business-demand-card__body">
         <Text className="business-demand-card__title" numberOfLines={2}>{title}</Text>
+
+        <View className="business-demand-card__status-row">
+          <Text className={classNames('business-demand-card__status-text', {
+            'business-demand-card__status-text--closed': isClosed
+          })}>
+            状态：{resolvedStatusText}
+          </Text>
+        </View>
         
         <View className="business-demand-card__meta-list">
           {time && (
@@ -82,13 +96,12 @@ export function DemandCard({
         <Button 
           type={isClosed ? 'secondary' : 'primary'} 
           size="small"
-          disabled={isClosed}
           onClick={(e) => {
             e.stopPropagation()
             onActionClick?.()
           }}
         >
-          {isClosed ? '已结束' : '立即联系'}
+          {resolvedActionText}
         </Button>
       </View>
     </View>

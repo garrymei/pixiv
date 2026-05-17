@@ -6,6 +6,7 @@ import { Textarea } from '../../components/base/Textarea'
 import { Tag } from '../../components/base/Tag'
 import { PrimaryButton } from '../../components/base/Button'
 import { createDemand } from '../../services/demands'
+import { isGuestMode, promptLogin } from '../../services/request'
 import { useThemeMode } from '../../config/theme'
 import './index.scss'
 
@@ -37,6 +38,10 @@ export default function PublishDemand() {
   const [submitting, setSubmitting] = useState(false)
 
   const submit = async () => {
+    if (isGuestMode()) {
+      promptLogin('登录后才能发布需求')
+      return
+    }
     const time = timeDate && timeClock ? `${timeDate}T${timeClock}:00` : ''
     const deadline = deadlineDate && deadlineClock ? `${deadlineDate}T${deadlineClock}:00` : ''
     const e: Record<string, string> = {}

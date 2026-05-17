@@ -8,7 +8,7 @@ export class AuthController {
 
   @Post('login')
   async login(@Body() body: { mockId?: string; nickname?: string }) {
-    return this.authService.mockLogin(body || {})
+    return this.authService.login(body || {})
   }
 
   @Get('me')

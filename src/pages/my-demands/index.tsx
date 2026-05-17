@@ -4,6 +4,7 @@ import Taro, { useDidShow } from '@tarojs/taro'
 import { DemandCard } from '../../components/business/DemandCard'
 import { EmptyState } from '../../components/base/EmptyState'
 import { LoadingState } from '../../components/base/LoadingState'
+import { isGuestMode, promptLogin } from '../../services/request'
 import { consumeDemandListShouldRefresh, listMyDemands } from '../../services/demands'
 import { useThemeMode } from '../../config/theme'
 
@@ -14,6 +15,12 @@ export default function MyDemands() {
   const { theme } = useThemeMode()
 
   const loadData = useCallback(async () => {
+    if (isGuestMode()) {
+      setList([])
+      setError('')
+      setLoading(false)
+      return
+    }
     setLoading(true)
     setError('')
     try {
@@ -42,6 +49,8 @@ export default function MyDemands() {
     <View className={`page-container theme-${theme}`} style={{ padding: 'var(--space-md)' }}>
       {error ? (
         <EmptyState title="加载失败" description={error} actionText="重试" onAction={loadData} />
+      ) : isGuestMode() ? (
+        <EmptyState title="游客暂无需求" description="登录后可查看你发布的需求。" actionText="去登录" onAction={() => promptLogin('请先登录')} />
       ) : list.length === 0 ? (
         <EmptyState title="暂无需求" />
       ) : (

@@ -18,11 +18,36 @@ type RequestOptions = {
 type AuthLoginPayload = {
   mockId?: string
   nickname?: string
+  code?: string
+  login_type?: 'wechat' | 'preset'
 }
 
 type AuthLoginResponse = {
   token: string
   user?: SessionUser
+}
+
+const LOCAL_LOGIN_PRESETS: Record<string, SessionUser> = {
+  dev: {
+    id: 1,
+    nickname: '粤次元君_官方',
+    role_type: 'user'
+  },
+  u_1001: {
+    id: 1,
+    nickname: '粤次元君_官方',
+    role_type: 'user'
+  },
+  u_1002: {
+    id: 1002,
+    nickname: 'Coser_小樱',
+    role_type: 'user'
+  },
+  u_1003: {
+    id: 1003,
+    nickname: '摄影老法师',
+    role_type: 'user'
+  }
 }
 
 type RequestContext = {
@@ -54,6 +79,7 @@ export type SessionUser = {
   bio?: string
   city?: string
   role_type?: string
+  auth_mode?: 'guest' | 'user'
 }
 
 const MODE_KEY = 'api_mode'
@@ -153,6 +179,35 @@ export function setSessionUser(user: SessionUser | null) {
     return
   }
   Taro.setStorageSync(SESSION_USER_KEY, user)
+}
+
+export function isGuestSession() {
+  return getSessionUser()?.auth_mode === 'guest'
+}
+
+export function hasAuthenticatedSession() {
+  return !!getToken() && !isGuestSession()
+}
+
+export function enterGuestMode(nickname = '游客') {
+  clearToken()
+  setSessionUser({
+    id: 0,
+    nickname,
+    role_type: 'guest',
+    auth_mode: 'guest'
+  })
+}
+
+export function isGuestMode() {
+  return isGuestSession() || (!isMockMode() && !getToken())
+}
+
+export function promptLogin(message = '请先登录后再操作') {
+  Taro.showToast({ title: message, icon: 'none' })
+  setTimeout(() => {
+    Taro.navigateTo({ url: '/pages/login/index' })
+  }, 150)
 }
 
 export function clearAuthState() {
@@ -289,16 +344,55 @@ async function login(payload: AuthLoginPayload = { mockId: 'dev' }) {
     setToken(data.token)
   }
   if (data.user) {
-    setSessionUser(data.user)
+    setSessionUser({
+      ...data.user,
+      role_type: data.user.role_type || 'user',
+      auth_mode: 'user'
+    })
   }
   return data
 }
 
 export async function loginByMockId(mockId = 'dev', nickname?: string) {
   if (isMockMode()) {
-    return { token: '', user: getSessionUser() }
+    const preset = LOCAL_LOGIN_PRESETS[mockId] || LOCAL_LOGIN_PRESETS.dev
+    const user = {
+      ...preset,
+      nickname: nickname || preset.nickname,
+      auth_mode: 'user' as const
+    }
+    setSessionUser(user)
+    return { token: '', user }
   }
   return login({ mockId, nickname })
+}
+
+export async function loginWithWechatProfile(nickname: string) {
+  const trimmed = nickname.trim()
+  if (!trimmed) {
+    throw new RequestError('请先填写用户名')
+  }
+  if (isMockMode()) {
+    const user = {
+      id: 1,
+      nickname: trimmed,
+      role_type: 'user',
+      auth_mode: 'user' as const
+    }
+    setSessionUser(user)
+    return { token: '', user }
+  }
+
+  const auth = await Taro.login()
+  if (!auth.code) {
+    throw new RequestError('获取微信登录凭证失败，请稍后重试')
+  }
+
+  return login({
+    code: auth.code,
+    nickname: trimmed,
+    login_type: 'wechat'
+  })
 }
 
 async function validateToken(token: string) {
@@ -334,9 +428,7 @@ export async function bootstrapSession(forceRefresh = false) {
         clearAuthState()
       }
     }
-
-    const session = await login()
-    return session.token || ''
+    return ''
   })().finally(() => {
     bootstrapPromise = null
   })
@@ -348,7 +440,13 @@ export async function ensureToken(forceRefresh = false) {
   if (isMockMode()) return ''
   const existing = getToken()
   if (existing && !forceRefresh) return existing
-  return bootstrapSession(forceRefresh)
+  if (forceRefresh) {
+    clearAuthState()
+  }
+  throw createRequestError('请先登录后再操作', {
+    statusCode: 401,
+    code: UNAUTHORIZED_CODE
+  })
 }
 
 async function request<T>(method: HttpMethod, path: string, data?: any, options?: RequestOptions): Promise<T> {
@@ -372,8 +470,7 @@ async function request<T>(method: HttpMethod, path: string, data?: any, options?
     const normalized = normalizeError(error)
     if (options?.requireAuth && retryOnAuthFailure && isUnauthorizedError(normalized)) {
       clearAuthState()
-      await bootstrapSession(true)
-      return request<T>(method, path, data, { ...options, retryOnAuthFailure: false })
+      throw normalized
     }
     throw normalized
   }

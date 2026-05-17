@@ -1,4 +1,4 @@
-import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm'
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm'
 import { Post } from './post.entity'
 import { User } from './user.entity'
 
@@ -11,28 +11,24 @@ export class Comment {
   postId!: number
 
   @ManyToOne(() => Post, p => p.comments)
+  @JoinColumn({ name: 'post_id' })
   post!: Post
 
   @Column({ name: 'author_id' })
   authorId!: number
 
   @ManyToOne(() => User, u => u.comments)
+  @JoinColumn({ name: 'author_id' })
   author!: User
 
   @Column({ type: 'text' })
   content!: string
 
-  @Column({ name: 'parent_id', type: 'int', nullable: true })
+  @Column({ name: 'parent_id', type: 'bigint', nullable: true })
   parentId?: number
 
-  @Column({ name: 'reply_user_id', type: 'int', nullable: true })
+  @Column({ name: 'reply_user_id', type: 'bigint', nullable: true })
   replyUserId?: number
-
-  @Column({ name: 'like_count', type: 'int', default: 0 })
-  likeCount!: number
-
-  @Column({ name: 'reply_count', type: 'int', default: 0 })
-  replyCount!: number
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt!: Date

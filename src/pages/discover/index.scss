@@ -120,13 +120,23 @@
       }
     }
 
-    .discover-source {
+    .discover-square__tag-trigger {
+      background: rgba(20, 16, 31, 0.04);
       border: 1rpx solid rgba(20, 16, 31, 0.12);
-      background: rgba(255, 255, 255, 0.7);
+    }
 
-      &__text {
-        color: rgba(20, 16, 31, 0.68);
-      }
+    .discover-square__tag-panel {
+      background: rgba(255, 255, 255, 0.98);
+      border: 1rpx solid rgba(20, 16, 31, 0.08);
+      box-shadow: 0 10rpx 40rpx rgba(20, 16, 31, 0.08);
+    }
+
+    .discover-square__tag-trigger-text {
+      color: rgba(20, 16, 31, 0.86);
+    }
+
+    .discover-square__tag-trigger-arrow {
+      color: rgba(20, 16, 31, 0.56);
     }
   }
 
@@ -144,51 +154,69 @@
     }
   }
 
-  .discover-source {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--space-sm);
-    padding: 14rpx 18rpx;
-    margin-bottom: var(--space-md);
-    border-radius: 16rpx;
-    border: 1rpx solid rgba(255, 255, 255, 0.08);
-    background: rgba(255, 255, 255, 0.03);
-
-    &--market {
-      margin-bottom: var(--space-sm);
+  .discover-square {
+    &__filters {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-sm);
+      margin-bottom: var(--space-lg);
     }
 
-    &__text {
-      flex: 1;
-      min-width: 0;
-      font-size: 22rpx;
-      color: rgba(255, 255, 255, 0.68);
-      word-break: break-all;
+    &__sorts {
+      display: flex;
+      gap: var(--space-sm);
     }
 
-    &__badge {
-      flex-shrink: 0;
-      font-size: 20rpx;
-      color: #3be3ff;
-      padding: 6rpx 14rpx;
-      border-radius: 999rpx;
-      background: rgba(59, 227, 255, 0.12);
-      border: 1rpx solid rgba(59, 227, 255, 0.28);
+    &__tag-dropdown {
+      position: relative;
+    }
 
-      &--mock {
-        color: #ffcc66;
-        background: rgba(255, 204, 102, 0.12);
-        border-color: rgba(255, 204, 102, 0.32);
+    &__tag-trigger {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-sm);
+      padding: 20rpx 24rpx;
+      border-radius: 20rpx;
+      border: 1rpx solid rgba(255, 255, 255, 0.12);
+      background: rgba(255, 255, 255, 0.04);
+
+      &--active {
+        border-color: rgba(255, 64, 129, 0.35);
+        box-shadow: 0 0 20rpx rgba(255, 64, 129, 0.12);
       }
     }
-  }
 
-  .discover-tags {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-sm);
-    margin-bottom: var(--space-lg);
+    &__tag-trigger-text {
+      font-size: 24rpx;
+      color: var(--color-text-primary);
+      font-weight: var(--font-weight-bold);
+    }
+
+    &__tag-trigger-arrow {
+      font-size: 20rpx;
+      color: var(--color-text-secondary);
+    }
+
+    &__tag-panel {
+      margin-top: 12rpx;
+      border-radius: 20rpx;
+      border: 1rpx solid rgba(255, 255, 255, 0.12);
+      background: rgba(13, 10, 21, 0.95);
+      box-shadow: 0 0 30rpx rgba(0, 0, 0, 0.18);
+      overflow: hidden;
+    }
+
+    &__tag-scroll {
+      max-height: 300rpx;
+    }
+
+    &__tag-options {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-sm);
+      padding: var(--space-md);
+    }
   }
 
   .discover-waterfall {

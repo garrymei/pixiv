@@ -9,6 +9,7 @@ import { LoadingState } from '../../components/base/LoadingState'
 import { getPostById, markPostListShouldRefresh, updatePostEngagement } from '../../services/posts'
 import { createComment, listCommentsByPost } from '../../services/comments'
 import { getPostLikeStatus, likePost, unlikePost } from '../../services/likes'
+import { isGuestMode, promptLogin } from '../../services/request'
 import { useThemeMode } from '../../config/theme'
 import './index.scss'
 
@@ -64,6 +65,10 @@ export default function PostDetail() {
 
   const handleToggleLike = async () => {
     if (!postId || togglingLike) return
+    if (isGuestMode()) {
+      promptLogin('登录后才能点赞')
+      return
+    }
     const nextLiked = !liked
     const prev = { liked, likeCount }
     setTogglingLike(true)
@@ -90,6 +95,10 @@ export default function PostDetail() {
   }
 
   const handleSubmitComment = async () => {
+    if (isGuestMode()) {
+      promptLogin('登录后才能评论')
+      return
+    }
     if (!commentText.trim()) {
       Taro.showToast({ title: '先写点内容吧', icon: 'none' })
       return

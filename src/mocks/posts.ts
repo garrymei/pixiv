@@ -14,6 +14,8 @@ export interface Post {
   isLiked?: boolean
   tags: string[]
   createTime: string
+  createdAt?: number
+  hotScore?: number
 }
 
 export const mockPosts: Post[] = [

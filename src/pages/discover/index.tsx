@@ -1,4 +1,4 @@
-import { View, Text } from '@tarojs/components'
+import { View, Text, ScrollView } from '@tarojs/components'
 import { useEffect, useMemo, useState } from 'react'
 import Taro, { useDidShow } from '@tarojs/taro'
 import classNames from 'classnames'
@@ -11,17 +11,21 @@ import { EmptyState } from '../../components/base/EmptyState'
 
 import { listPosts } from '../../services/posts'
 import { listDemands } from '../../services/demands'
-import { getApiBaseUrl } from '../../services/request'
-import { mockPosts } from '../../mocks/posts'
-import { mockDemands } from '../../mocks/demands'
 import { useThemeMode } from '../../config/theme'
 
 import './index.scss'
+
+const DISCOVER_NAVIGATION_INTENT_KEY = 'discover_navigation_intent'
 
 const TABS = [
   { id: 'square', label: '动态广场' },
   { id: 'market', label: '次元市集' }
 ]
+
+const SQUARE_SORT_FILTERS = [
+  { id: 'hot', label: '热门' },
+  { id: 'latest', label: '最新' }
+] as const
 
 const MARKET_MAIN_FILTERS = [
   { id: 'seek', label: '我来找你' },
@@ -35,20 +39,19 @@ const MARKET_SUB_FILTERS = {
 
 export default function Discover() {
   const [activeTab, setActiveTab] = useState('square')
-  const apiBaseUrl = getApiBaseUrl()
-  const { theme, toggleTheme } = useThemeMode()
+  const { theme } = useThemeMode()
   
   // 广场状态
   const [search, setSearch] = useState('')
   const [posts, setPosts] = useState<any[]>([])
-  const [activeTag, setActiveTag] = useState<string | null>(null)
-  const [isSquareMockFallback, setIsSquareMockFallback] = useState(false)
+  const [activeTags, setActiveTags] = useState<string[]>([])
+  const [activeSort, setActiveSort] = useState<'hot' | 'latest' | null>('hot')
+  const [tagDropdownOpen, setTagDropdownOpen] = useState(false)
   
   // 市集状态
   const [demands, setDemands] = useState<any[]>([])
   const [activeMarketMain, setActiveMarketMain] = useState<'seek'|'offer'>('seek')
   const [activeMarketSub, setActiveMarketSub] = useState('全部')
-  const [isMarketMockFallback, setIsMarketMockFallback] = useState(false)
 
   const normalizeMarketType = (rawType: string) => {
     const normalized = String(rawType || '').replace(/^(找|本)/, '')
@@ -76,43 +79,54 @@ export default function Discover() {
     return main === 'seek' || main === 'offer' ? '其他' : undefined
   }
 
+  const consumeNavigationIntent = () => {
+    const next = Taro.getStorageSync(DISCOVER_NAVIGATION_INTENT_KEY) as
+      | {
+          activeTab?: 'square' | 'market'
+          marketMain?: 'seek' | 'offer'
+          marketSub?: string
+        }
+      | ''
+
+    if (!next) return false
+    Taro.removeStorageSync(DISCOVER_NAVIGATION_INTENT_KEY)
+
+    if (next.activeTab === 'market') {
+      setActiveTab('market')
+    }
+
+    if (next.marketMain === 'seek' || next.marketMain === 'offer') {
+      setActiveMarketMain(next.marketMain)
+    }
+
+    if (next.marketSub) {
+      setActiveMarketSub(next.marketSub)
+    } else if (next.marketMain === 'seek' || next.marketMain === 'offer') {
+      setActiveMarketSub('全部')
+    }
+
+    return true
+  }
+
   // 获取数据
   const loadData = async () => {
     try {
       if (activeTab === 'square') {
         const p = await listPosts()
-        if (Array.isArray(p) && p.length > 0) {
-          setPosts(p)
-          setIsSquareMockFallback(false)
-          return
-        }
-
-        setPosts(mockPosts)
-        setIsSquareMockFallback(true)
+        setPosts(Array.isArray(p) ? p : [])
       } else {
         const type = mapMarketFilterToDemandType(activeMarketMain, activeMarketSub)
         const d = await listDemands(type)
-        if (Array.isArray(d) && d.length > 0) {
-          setDemands(d)
-          setIsMarketMockFallback(false)
-          return
-        }
-
-        const fallback = type ? mockDemands.filter((item) => item.type === type) : mockDemands
-        setDemands(fallback)
-        setIsMarketMockFallback(true)
+        setDemands(Array.isArray(d) ? d : [])
       }
     } catch (err: any) {
       console.error('Discover loadData error:', err)
       if (activeTab === 'square') {
-        setPosts(mockPosts)
-        setIsSquareMockFallback(true)
+        setPosts([])
       } else {
-        const type = mapMarketFilterToDemandType(activeMarketMain, activeMarketSub)
-        setDemands(type ? mockDemands.filter((item) => item.type === type) : mockDemands)
-        setIsMarketMockFallback(true)
+        setDemands([])
       }
-      Taro.showToast({ title: '接口异常，已切换示例数据', icon: 'none' })
+      Taro.showToast({ title: err?.message || '加载失败，请稍后重试', icon: 'none' })
     }
   }
 
@@ -121,6 +135,9 @@ export default function Discover() {
   }, [activeTab, activeMarketSub, activeMarketMain])
 
   useDidShow(() => {
+    const appliedIntent = consumeNavigationIntent()
+    if (appliedIntent) return
+
     // 避免首次加载时和 useEffect 冲突，只在需要刷新时拉取数据
     if (activeTab === 'square') {
       const { consumePostListShouldRefresh } = require('../../services/posts')
@@ -139,6 +156,26 @@ export default function Discover() {
     }
   }
 
+  const handleMarketSubFilterClick = (filter: string) => {
+    if (filter === '全部') {
+      setActiveMarketSub('全部')
+      return
+    }
+    setActiveMarketSub((prev) => (prev === filter ? '全部' : filter))
+  }
+
+  const handleSortFilterClick = (sortId: 'hot' | 'latest') => {
+    setActiveSort((prev) => (prev === sortId ? null : sortId))
+  }
+
+  const handleTagFilterClick = (tag: string) => {
+    setActiveTags((prev) => (prev.includes(tag) ? prev.filter((item) => item !== tag) : [...prev, tag]))
+  }
+
+  const clearTagFilters = () => {
+    setActiveTags([])
+  }
+
   // 广场计算逻辑
   const allTags = useMemo(() => {
     const s = new Set<string>()
@@ -146,15 +183,56 @@ export default function Discover() {
     return Array.from(s)
   }, [posts])
 
+  const currentWeekStart = useMemo(() => {
+    const now = new Date()
+    const currentDay = now.getDay()
+    const diff = currentDay === 0 ? 6 : currentDay - 1
+    const start = new Date(now)
+    start.setDate(now.getDate() - diff)
+    start.setHours(0, 0, 0, 0)
+    return start.getTime()
+  }, [])
+
+  const resolvePostCreatedAt = (post: any) => {
+    if (typeof post.createdAt === 'number') return post.createdAt
+    const parsed = new Date(post.createTime).getTime()
+    return Number.isNaN(parsed) ? 0 : parsed
+  }
+
   const filterPosts = useMemo(() => {
-    let list = posts
-    if (activeTag) list = list.filter(p => p.tags.includes(activeTag))
+    let list = [...posts]
+    if (activeTags.length > 0) {
+      list = list.filter((p) => activeTags.every((tag) => p.tags.includes(tag)))
+    }
     if (search.trim()) list = list.filter(p => p.title.includes(search.trim()))
+    if (activeSort === 'hot') {
+      list = list
+        .filter((p) => resolvePostCreatedAt(p) >= currentWeekStart)
+        .sort((a, b) => {
+          if ((b.likeCount || 0) !== (a.likeCount || 0)) return (b.likeCount || 0) - (a.likeCount || 0)
+          if ((b.commentCount || 0) !== (a.commentCount || 0)) return (b.commentCount || 0) - (a.commentCount || 0)
+          return resolvePostCreatedAt(b) - resolvePostCreatedAt(a)
+        })
+    } else if (activeSort === 'latest') {
+      list = list.sort((a, b) => resolvePostCreatedAt(b) - resolvePostCreatedAt(a))
+    }
     return list
-  }, [activeTag, search, posts])
+  }, [activeSort, activeTags, currentWeekStart, posts, search])
 
   const handlePostClick = (id: string) => Taro.navigateTo({ url: `/pages/post-detail/index?id=${id}` })
   const handleDemandClick = (id: string) => Taro.navigateTo({ url: `/pages/demand-detail/index?id=${id}&marketMain=${activeMarketMain}` })
+  const getDemandStatusText = (demand: any) =>
+    demand.scheduleStatusText || demand.statusText || (demand.status === 'closed' ? '已关闭' : '招募中')
+  const getDemandActionText = (demand: any) => {
+    const currentStatus = demand.scheduleStatus || demand.status
+    if (currentStatus === 'closed' || currentStatus === 'ended' || currentStatus === 'expired' || currentStatus === 'cancelled') {
+      return '查看结果'
+    }
+    if (currentStatus === 'accepted' || currentStatus === 'confirmed' || currentStatus === 'ongoing' || currentStatus === 'cancel_pending') {
+      return '查看状态'
+    }
+    return '查看详情'
+  }
 
   return (
     <View className={classNames('page-discover', 'page-container-full', `theme-${theme}`)}>
@@ -174,9 +252,6 @@ export default function Discover() {
               </View>
             ))}
           </View>
-          <View className="discover-theme" onClick={toggleTheme}>
-            <Text className="discover-theme__text">{theme === 'light' ? '浅色' : '深色'}</Text>
-          </View>
         </View>
       </View>
 
@@ -190,36 +265,69 @@ export default function Discover() {
                 placeholder="搜索你感兴趣的动态内容"
               />
             </View>
-            <View className="discover-source">
-              <Text className="discover-source__text">
-                读取地址：{apiBaseUrl}
-              </Text>
-              <Text className={classNames('discover-source__badge', {
-                'discover-source__badge--mock': isSquareMockFallback
-              })}>
-                {isSquareMockFallback ? '当前数据：Mock 示例' : '当前数据：域名接口'}
-              </Text>
-            </View>
 
-            {allTags.length > 0 && (
-              <View className="discover-tags">
-                {allTags.map(tag => (
-                  <View key={tag} onClick={() => setActiveTag(activeTag === tag ? null : tag)}>
+            <View className="discover-square__filters">
+              <View className="discover-square__sorts">
+                {SQUARE_SORT_FILTERS.map((item) => (
+                  <View key={item.id} onClick={() => handleSortFilterClick(item.id)}>
                     <Tag
-                      type={activeTag === tag ? 'primary' : 'default'}
-                      outline={activeTag !== tag}
+                      type={activeSort === item.id ? 'secondary' : 'default'}
+                      outline={activeSort !== item.id}
                       size="medium"
                     >
-                      {tag}
+                      {item.label}
                     </Tag>
                   </View>
                 ))}
               </View>
-            )}
+
+              <View className="discover-square__tag-dropdown">
+                <View
+                  className={classNames('discover-square__tag-trigger', {
+                    'discover-square__tag-trigger--active': tagDropdownOpen || activeTags.length > 0
+                  })}
+                  onClick={() => setTagDropdownOpen((prev) => !prev)}
+                >
+                  <Text className="discover-square__tag-trigger-text">
+                    标签筛选：{activeTags.length === 0 ? '全部' : activeTags.slice(0, 2).join(' / ') + (activeTags.length > 2 ? ` 等${activeTags.length}项` : '')}
+                  </Text>
+                  <Text className="discover-square__tag-trigger-arrow">{tagDropdownOpen ? '▲' : '▼'}</Text>
+                </View>
+
+                {tagDropdownOpen && (
+                  <View className="discover-square__tag-panel">
+                    <ScrollView scrollY className="discover-square__tag-scroll">
+                      <View className="discover-square__tag-options">
+                        <View key="all" onClick={clearTagFilters}>
+                          <Tag
+                            type={activeTags.length === 0 ? 'primary' : 'default'}
+                            outline={activeTags.length > 0}
+                            size="medium"
+                          >
+                            全部
+                          </Tag>
+                        </View>
+                        {allTags.map(tag => (
+                          <View key={tag} onClick={() => handleTagFilterClick(tag)}>
+                            <Tag
+                              type={activeTags.includes(tag) ? 'primary' : 'default'}
+                              outline={!activeTags.includes(tag)}
+                              size="medium"
+                            >
+                              {tag}
+                            </Tag>
+                          </View>
+                        ))}
+                      </View>
+                    </ScrollView>
+                  </View>
+                )}
+              </View>
+            </View>
 
             <View className="discover-waterfall">
               <View style={{ display: filterPosts.length === 0 ? 'block' : 'none' }}>
-                <EmptyState title="广场暂无动态" />
+                <EmptyState title={activeSort === 'hot' ? '本周热门暂无动态' : '广场暂无动态'} />
               </View>
               
               <View style={{ display: filterPosts.length > 0 ? 'block' : 'none' }}>
@@ -285,7 +393,7 @@ export default function Discover() {
                   className={classNames('discover-market__filter', {
                     'discover-market__filter--active': activeMarketSub === filter
                   })}
-                  onClick={() => setActiveMarketSub(filter)}
+                  onClick={() => handleMarketSubFilterClick(filter)}
                 >
                   <Text>{filter}</Text>
                 </View>
@@ -293,16 +401,6 @@ export default function Discover() {
             </View>
 
             <View className="discover-market__list">
-              <View className="discover-source discover-source--market">
-                <Text className="discover-source__text">
-                  读取地址：{apiBaseUrl}
-                </Text>
-                <Text className={classNames('discover-source__badge', {
-                  'discover-source__badge--mock': isMarketMockFallback
-                })}>
-                  {isMarketMockFallback ? '当前数据：Mock 示例' : '当前数据：域名接口'}
-                </Text>
-              </View>
               <View style={{ display: demands.length === 0 ? 'block' : 'none' }}>
                 <EmptyState title="市集暂无内容" />
               </View>
@@ -320,6 +418,8 @@ export default function Discover() {
                     authorName={demand.authorName}
                     authorAvatar={demand.authorAvatar}
                     status={demand.status}
+                    statusText={getDemandStatusText(demand)}
+                    actionText={getDemandActionText(demand)}
                     onClick={() => handleDemandClick(demand.id)}
                     onActionClick={() => handleDemandClick(demand.id)}
                   />

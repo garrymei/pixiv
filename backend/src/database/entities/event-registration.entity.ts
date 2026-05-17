@@ -1,4 +1,4 @@
-import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn, Unique } from 'typeorm'
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, Unique, UpdateDateColumn } from 'typeorm'
 import { Event } from './event.entity'
 import { User } from './user.entity'
 
@@ -12,20 +12,25 @@ export class EventRegistration {
   eventId!: number
 
   @ManyToOne(() => Event, e => e.registrations)
+  @JoinColumn({ name: 'event_id' })
   event!: Event
 
   @Column({ name: 'user_id' })
   userId!: number
 
   @ManyToOne(() => User, u => u.eventRegistrations)
+  @JoinColumn({ name: 'user_id' })
   user!: User
 
-  @Column({ length: 32, default: 'registered' })
-  status!: string
+  @Column({ name: 'form_data_json', type: 'json', nullable: true })
+  formDataJson?: Record<string, unknown> | null
 
-  @Column({ type: 'varchar', length: 255, nullable: true })
-  remark?: string
+  @Column({ name: 'registration_status', type: 'tinyint', default: 1 })
+  registrationStatus!: number
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt!: Date
+
+  @UpdateDateColumn({ name: 'updated_at' })
+  updatedAt!: Date
 }

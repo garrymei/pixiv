@@ -1,4 +1,5 @@
 export default {
+  lazyCodeLoading: 'requiredComponents',
   pages: [
     'pages/login/index',
     'pages/home/index',
@@ -12,6 +13,7 @@ export default {
     'pages/publish-post/index',
     'pages/publish-demand/index',
     'pages/edit-profile/index',
+    'pages/settings/index',
     'pages/my-posts/index',
     'pages/my-demands/index',
     'pages/my-events/index',

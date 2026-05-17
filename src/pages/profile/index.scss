@@ -3,6 +3,14 @@
   padding-bottom: var(--safe-area-bottom);
 }
 
+.profile-guest {
+  min-height: calc(100vh - 220rpx);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 var(--space-lg);
+}
+
 .profile-section {
   padding: 0 var(--space-md);
   margin-bottom: var(--space-md);

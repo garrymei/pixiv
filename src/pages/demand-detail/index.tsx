@@ -15,6 +15,7 @@ import {
   markMyAppliedDemandsShouldRefresh,
   requestDemandAgreementCancel
 } from '../../services/demands'
+import { isGuestMode, promptLogin } from '../../services/request'
 import { useThemeMode } from '../../config/theme'
 import './index.scss'
 
@@ -84,6 +85,10 @@ export default function DemandDetail() {
 
   const handleApply = async () => {
     if (!demand) return
+    if (isGuestMode()) {
+      promptLogin('登录后才能申请需求')
+      return
+    }
     if (applied) {
       Taro.showToast({ title: '你已经申请过该需求了', icon: 'none' })
       return
@@ -126,6 +131,10 @@ export default function DemandDetail() {
 
   const handleConfirm = async () => {
     if (!demand || !applyStatus?.can_confirm) return
+    if (isGuestMode()) {
+      promptLogin('登录后才能确认约定')
+      return
+    }
     setSubmitting(true)
     try {
       const result = await confirmDemandSchedule(id, applyStatus?.application_id)
@@ -149,6 +158,10 @@ export default function DemandDetail() {
 
   const handleRequestCancel = async () => {
     if (!demand || !applyStatus?.can_request_cancel) return
+    if (isGuestMode()) {
+      promptLogin('登录后才能发起取消')
+      return
+    }
     setSubmitting(true)
     try {
       const result = await requestDemandAgreementCancel(id)
@@ -170,6 +183,10 @@ export default function DemandDetail() {
 
   const handleConfirmCancel = async () => {
     if (!demand || !applyStatus?.can_confirm_cancel) return
+    if (isGuestMode()) {
+      promptLogin('登录后才能确认取消')
+      return
+    }
     setSubmitting(true)
     try {
       const result = await confirmDemandAgreementCancel(id)
