@@ -9,7 +9,7 @@ import { PrimaryButton } from '../../components/base/Button'
 import { EmptyState } from '../../components/base/EmptyState'
 import { LoadingState } from '../../components/base/LoadingState'
 import { isGuestMode, promptLogin } from '../../services/request'
-import { getCurrentUser, updateCurrentUser } from '../../services/user'
+import { getCurrentUser, updateCurrentUser, type AvatarReviewStatus } from '../../services/user'
 import { uploadImage } from '../../services/uploads'
 import { useThemeMode } from '../../config/theme'
 
@@ -19,7 +19,7 @@ export default function EditProfile() {
   const [city, setCity] = useState('')
   const [role, setRole] = useState<string>('Coser')
   const [avatarUrl, setAvatarUrl] = useState<string | undefined>(undefined)
-  const [avatarReviewStatus, setAvatarReviewStatus] = useState<'PENDING' | 'APPROVED' | 'REJECTED' | undefined>(undefined)
+  const [avatarReviewStatus, setAvatarReviewStatus] = useState<AvatarReviewStatus | undefined>(undefined)
   const [avatarReviewReason, setAvatarReviewReason] = useState('')
   const [avatarPendingUrl, setAvatarPendingUrl] = useState('')
   const [uploadingAvatar, setUploadingAvatar] = useState(false)

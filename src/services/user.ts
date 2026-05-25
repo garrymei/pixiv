@@ -2,6 +2,8 @@ import Taro from '@tarojs/taro'
 import { clearAuthState, ensureToken, get, getSessionUser, hasAuthenticatedSession, isGuestSession, isMockMode, mockResponse, patch, setSessionUser, type SessionUser } from './request'
 import { currentUser } from '../mocks/user'
 
+export type AvatarReviewStatus = 'PENDING' | 'APPROVED' | 'REJECTED'
+
 type UserRecord = {
   id: number
   nickname: string
@@ -9,7 +11,7 @@ type UserRecord = {
   avatarUrl?: string
   bg_url?: string
   avatar_pending?: string
-  avatar_review_status?: 'PENDING' | 'APPROVED' | 'REJECTED'
+  avatar_review_status?: AvatarReviewStatus
   avatar_review_reason?: string
   bio?: string
   city?: string
@@ -28,7 +30,7 @@ export type CurrentUser = {
   followingCount: number
   city: string
   roleType: string
-  avatarReviewStatus?: 'PENDING' | 'APPROVED' | 'REJECTED'
+  avatarReviewStatus?: AvatarReviewStatus
   avatarReviewReason?: string
   avatarPendingUrl?: string
 }
@@ -126,7 +128,7 @@ export async function getCurrentUser(forceRefresh = false): Promise<CurrentUser>
   return currentUserPromise
 }
 
-export async function updateCurrentUser(payload: { nickname: string; bio?: string; city?: string; roleType?: string; avatar?: string }) {
+export async function updateCurrentUser(payload: { nickname: string; bio?: string; city?: string; roleType?: string; avatar?: string }): Promise<CurrentUser> {
   if (!isMockMode()) {
     const data = await patch<UserRecord>('/users/me', {
       nickname: payload.nickname,
@@ -143,12 +145,17 @@ export async function updateCurrentUser(payload: { nickname: string; bio?: strin
 
   return mockResponse({
     ...currentUser,
+    id: currentUser.id,
     nickname: payload.nickname,
+    avatarUrl: currentUser.avatarUrl || '',
     bio: payload.bio || '',
+    bgUrl: currentUser.bgUrl || '',
+    followersCount: currentUser.followersCount,
+    followingCount: currentUser.followingCount,
     city: payload.city || '',
     roleType: payload.roleType || 'user',
     avatarReviewStatus: 'APPROVED',
     avatarReviewReason: '',
     avatarPendingUrl: ''
-  })
+  } satisfies CurrentUser)
 }

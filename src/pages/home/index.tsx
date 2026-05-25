@@ -1,7 +1,7 @@
 import { View, Text } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import classNames from 'classnames'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 
 import { SectionHeader } from '../../components/base/SectionHeader'
 import { QuickEntryGrid } from '../../components/business/QuickEntryGrid'
@@ -31,9 +31,9 @@ const DISCOVER_NAVIGATION_INTENT_KEY = 'discover_navigation_intent'
 const MUTUAL_HELP_TABS = [
   { id: 'seek', label: '我来找你' },
   { id: 'offer', label: '我行我上' }
-]
+] as const
 
-const MUTUAL_HELP_ITEMS = {
+const MUTUAL_HELP_ITEMS: Record<'seek' | 'offer', Array<{ id: string; title: string; icon: string; marketMain: 'seek' | 'offer'; marketSub: string }>> = {
   seek: [
     { id: 'seek_1', title: '找毛娘', icon: '✂️', marketMain: 'seek', marketSub: '找毛娘' },
     { id: 'seek_2', title: '找妆娘', icon: '💄', marketMain: 'seek', marketSub: '找妆娘' },

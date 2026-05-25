@@ -1,10 +1,11 @@
-import { Injectable } from '@nestjs/common'
+import { Injectable, NotFoundException } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
 import { CreateCommentDto } from './dto/create-comment.dto'
 import { Comment } from '../../database/entities/comment.entity'
 import { User } from '../../database/entities/user.entity'
 import { Post } from '../../database/entities/post.entity'
+import { ModerationStatus } from '../../types/enums'
 
 function toCommentResponse(item: Comment) {
   const user = item.author
@@ -45,6 +46,11 @@ export class CommentsService {
   }
 
   async create(userId: number, dto: CreateCommentDto) {
+    const post = await this.postsRepo.findOne({ where: { id: dto.post_id } })
+    if (!post || post.moderationStatus !== ModerationStatus.APPROVED) {
+      throw new NotFoundException('post not found')
+    }
+
     const item = await this.commentsRepo.save(this.commentsRepo.create({
       postId: dto.post_id,
       authorId: userId,

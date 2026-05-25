@@ -21,7 +21,6 @@ export default function Login() {
   const [wechatStep, setWechatStep] = useState<'avatar' | 'nickname'>('avatar')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const nicknameRequestAtRef = useRef(0)
   const nicknameFallbackAtRef = useRef(0)
   const { theme } = useThemeMode()
 
@@ -87,28 +86,6 @@ export default function Login() {
     }
     nicknameFallbackAtRef.current = now
 
-    try {
-      const profile = await Taro.getUserProfile({ desc: '用于读取微信昵称并完成登录' })
-      const userInfo = profile.userInfo as any
-      applyWechatNickName(userInfo?.nickName || '')
-    } catch (err: any) {
-      if (err?.errMsg?.includes('cancel')) return
-      if (err?.errMsg?.includes('too frequently')) {
-        setError('获取微信昵称过于频繁，请稍后再试')
-        return
-      }
-      setError('未获取到微信昵称，请重试')
-    }
-  }
-
-  const handleGetWechatNickname = async () => {
-    setError('')
-    const now = Date.now()
-    if (now - nicknameRequestAtRef.current < 1800) {
-      setError('获取微信昵称过于频繁，请稍后再试')
-      return
-    }
-    nicknameRequestAtRef.current = now
     try {
       const profile = await Taro.getUserProfile({ desc: '用于读取微信昵称并完成登录' })
       const userInfo = profile.userInfo as any
