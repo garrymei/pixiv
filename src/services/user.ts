@@ -18,6 +18,7 @@ type UserRecord = {
   role_type?: string
   followers_count?: number
   following_count?: number
+  profile_complete?: boolean
 }
 
 export type CurrentUser = {
@@ -33,6 +34,7 @@ export type CurrentUser = {
   avatarReviewStatus?: AvatarReviewStatus
   avatarReviewReason?: string
   avatarPendingUrl?: string
+  profileComplete?: boolean
 }
 
 const CURRENT_USER_KEY = 'current_user_profile'
@@ -52,7 +54,10 @@ function mapUser(data: UserRecord | SessionUser | null): CurrentUser {
     roleType: data?.role_type || 'user',
     avatarReviewStatus: (data as UserRecord | null)?.avatar_review_status,
     avatarReviewReason: (data as UserRecord | null)?.avatar_review_reason || '',
-    avatarPendingUrl: (data as UserRecord | null)?.avatar_pending || ''
+    avatarPendingUrl: (data as UserRecord | null)?.avatar_pending || '',
+    profileComplete:
+      (data as UserRecord | null)?.profile_complete ??
+      !!(data?.nickname && data.nickname !== '微信用户' && (data?.avatar || data?.avatarUrl))
   }
 }
 
@@ -72,7 +77,8 @@ function syncSessionUser(user: CurrentUser) {
     avatar: user.avatarUrl,
     bio: user.bio,
     city: user.city,
-    role_type: user.roleType
+    role_type: user.roleType,
+    profile_complete: user.profileComplete
   })
 }
 

@@ -80,6 +80,7 @@ export type SessionUser = {
   city?: string
   role_type?: string
   auth_mode?: 'guest' | 'user'
+  profile_complete?: boolean
 }
 
 const MODE_KEY = 'api_mode'
@@ -367,17 +368,15 @@ export async function loginByMockId(mockId = 'dev', nickname?: string) {
   return login({ mockId, nickname })
 }
 
-export async function loginWithWechatProfile(nickname: string) {
+export async function loginWithWechatProfile(nickname = '') {
   const trimmed = nickname.trim()
-  if (!trimmed) {
-    throw new RequestError('请先填写用户名')
-  }
   if (isMockMode()) {
     const user = {
       id: 1,
-      nickname: trimmed,
+      nickname: trimmed || '微信用户',
       role_type: 'user',
-      auth_mode: 'user' as const
+      auth_mode: 'user' as const,
+      profile_complete: !!trimmed
     }
     setSessionUser(user)
     return { token: '', user }
@@ -390,7 +389,7 @@ export async function loginWithWechatProfile(nickname: string) {
 
   return login({
     code: auth.code,
-    nickname: trimmed,
+    nickname: trimmed || undefined,
     login_type: 'wechat'
   })
 }

@@ -1,4 +1,5 @@
-import { Injectable } from '@nestjs/common'
+import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common'
+import { ConfigService } from '@nestjs/config'
 import { JwtService } from '@nestjs/jwt'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
@@ -7,6 +8,15 @@ import { User } from '../../database/entities/user.entity'
 type LoginPayload = {
   mockId?: string
   nickname?: string
+  code?: string
+  login_type?: 'wechat' | 'preset'
+}
+
+type WechatSession = {
+  openid?: string
+  unionid?: string
+  errcode?: number
+  errmsg?: string
 }
 
 const loginPresets: Record<string, Partial<User> & { id?: number }> = {
@@ -48,11 +58,63 @@ const loginPresets: Record<string, Partial<User> & { id?: number }> = {
 export class AuthService {
   constructor(
     private readonly jwt: JwtService,
+    private readonly config: ConfigService,
     @InjectRepository(User)
     private readonly usersRepo: Repository<User>
   ) {}
 
+  private async exchangeWechatCode(code: string): Promise<WechatSession> {
+    const appid = this.config.get<string>('WX_APP_ID')
+    const secret = this.config.get<string>('WX_APP_SECRET')
+    if (!appid || !secret) {
+      throw new BadRequestException('wechat config missing')
+    }
+
+    const url = new URL('https://api.weixin.qq.com/sns/jscode2session')
+    url.searchParams.set('appid', appid)
+    url.searchParams.set('secret', secret)
+    url.searchParams.set('js_code', code)
+    url.searchParams.set('grant_type', 'authorization_code')
+
+    const response = await fetch(url)
+    const data = (await response.json()) as WechatSession
+    if (!response.ok || !data.openid || data.errcode) {
+      throw new UnauthorizedException(data.errmsg || 'wechat login failed')
+    }
+    return data
+  }
+
+  private async resolveWechatLoginUser(payload: LoginPayload) {
+    if (!payload.code) throw new BadRequestException('code required')
+    const session = await this.exchangeWechatCode(payload.code)
+    let user = await this.usersRepo.findOne({ where: { openid: session.openid } })
+
+    if (!user) {
+      user = this.usersRepo.create({
+        openid: session.openid,
+        unionid: session.unionid,
+        nickname: payload.nickname?.trim() || '微信用户',
+        avatarUrl: '',
+        bio: '',
+        city: '',
+        roleType: 'user'
+      })
+    } else {
+      if (!user.openid) user.openid = session.openid
+      if (session.unionid && !user.unionid) user.unionid = session.unionid
+      const nextNickname = payload.nickname?.trim()
+      if (nextNickname && nextNickname !== '微信用户') user.nickname = nextNickname
+      if (!user.roleType) user.roleType = 'user'
+    }
+
+    return this.usersRepo.save(user)
+  }
+
   private async resolveLoginUser(payload: LoginPayload) {
+    if (payload.login_type === 'wechat' || payload.code) {
+      return this.resolveWechatLoginUser(payload)
+    }
+
     const key = payload.mockId || 'dev'
     const preset = loginPresets[key]
     const parsedId = /^u_(\d+)$/.test(key) ? Number(key.replace(/^u_/, '')) : undefined
@@ -94,7 +156,8 @@ export class AuthService {
         avatar: user.avatarUrl || '',
         bio: user.bio || '',
         city: user.city || '',
-        role_type: user.roleType || 'user'
+        role_type: user.roleType || 'user',
+        profile_complete: !!(user.nickname && user.nickname !== '微信用户' && user.avatarUrl)
       }
     }
   }

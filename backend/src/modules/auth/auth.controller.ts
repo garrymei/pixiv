@@ -7,7 +7,7 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('login')
-  async login(@Body() body: { mockId?: string; nickname?: string }) {
+  async login(@Body() body: { mockId?: string; nickname?: string; code?: string; login_type?: 'wechat' | 'preset' }) {
     return this.authService.login(body || {})
   }
 

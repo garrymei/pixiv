@@ -1,12 +1,12 @@
 import { View, Text, Image, Input as TaroInput, Button as TaroButton } from '@tarojs/components'
 import Taro from '@tarojs/taro'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import classNames from 'classnames'
 
 import { PrimaryButton, SecondaryButton } from '../../components/base/Button'
 import defaultLoginPoster from '../../assets/login/login-poster.jpg'
 import { listBanners } from '../../services/banners'
-import { enterGuestMode, loginWithWechatProfile } from '../../services/request'
+import { bootstrapSession, enterGuestMode, getSessionUser, hasAuthenticatedSession, loginWithWechatProfile } from '../../services/request'
 import { updateCurrentUser } from '../../services/user'
 import { uploadImage } from '../../services/uploads'
 import { useThemeMode } from '../../config/theme'
@@ -18,13 +18,19 @@ export default function Login() {
   const [avatarPath, setAvatarPath] = useState('')
   const [posterUrl, setPosterUrl] = useState('')
   const [showWechatModal, setShowWechatModal] = useState(false)
-  const [wechatStep, setWechatStep] = useState<'avatar' | 'nickname'>('avatar')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const nicknameFallbackAtRef = useRef(0)
   const { theme } = useThemeMode()
 
   useEffect(() => {
+    if (hasAuthenticatedSession()) {
+      bootstrapSession()
+        .then(() => {
+          Taro.switchTab({ url: '/pages/home/index' })
+        })
+        .catch(() => undefined)
+    }
+
     listBanners('login_poster')
       .then((list) => {
         setPosterUrl(list[0]?.imageUrl || '')
@@ -35,8 +41,11 @@ export default function Login() {
   }, [])
 
   const handleOpenWechatModal = () => {
+    if (hasAuthenticatedSession()) {
+      Taro.switchTab({ url: '/pages/home/index' })
+      return
+    }
     setError('')
-    setWechatStep(avatarPath ? 'nickname' : 'avatar')
     setShowWechatModal(true)
   }
 
@@ -54,69 +63,19 @@ export default function Login() {
     }
     setError('')
     setAvatarPath(nextAvatar)
-    setWechatStep('nickname')
-  }
-
-  const applyWechatNickName = (nickName: string) => {
-    const next = (nickName || '').trim()
-    if (!next) {
-      setError('未获取到微信昵称，请重试')
-      return
-    }
-    if (next === '微信用户') {
-      setNickname(next)
-      Taro.showToast({ title: '微信昵称受限制，请手动修改', icon: 'none' })
-      return
-    }
-    setNickname(next)
-  }
-
-  const handleGetWechatNicknameFromButton = async (e: any) => {
-    setError('')
-    const nickName = e?.detail?.userInfo?.nickName || ''
-    if (nickName) {
-      applyWechatNickName(nickName)
-      return
-    }
-
-    const now = Date.now()
-    if (now - nicknameFallbackAtRef.current < 1800) {
-      setError('获取微信昵称过于频繁，请稍后再试')
-      return
-    }
-    nicknameFallbackAtRef.current = now
-
-    try {
-      const profile = await Taro.getUserProfile({ desc: '用于读取微信昵称并完成登录' })
-      const userInfo = profile.userInfo as any
-      applyWechatNickName(userInfo?.nickName || '')
-    } catch (err: any) {
-      if (err?.errMsg?.includes('cancel')) return
-      if (err?.errMsg?.includes('too frequently')) {
-        setError('获取微信昵称过于频繁，请稍后再试')
-        return
-      }
-      setError('未获取到微信昵称，请重试')
-    }
   }
 
   const handleLogin = async () => {
     setError('')
-    if (!avatarPath) {
-      setError('请先获取微信头像')
-      return
-    }
-    if (!nickname.trim()) {
-      setError('请先获取微信昵称')
-      return
-    }
     setLoading(true)
     try {
       const trimmedNickname = nickname.trim()
       await loginWithWechatProfile(trimmedNickname)
       if (avatarPath) {
         const uploaded = await uploadImage(avatarPath)
-        await updateCurrentUser({ nickname: trimmedNickname, avatar: uploaded.url })
+        await updateCurrentUser({ nickname: trimmedNickname || getSessionUser()?.nickname || '微信用户', avatar: uploaded.url })
+      } else if (trimmedNickname) {
+        await updateCurrentUser({ nickname: trimmedNickname })
       }
       Taro.showToast({ title: '次元连接成功', icon: 'success' })
       setShowWechatModal(false)
@@ -172,7 +131,7 @@ export default function Login() {
         <View className="page-login__modal-mask" onClick={handleCloseWechatModal}>
           <View className="page-login__modal" onClick={(e) => e.stopPropagation()}>
             <Text className="page-login__modal-title">微信登录</Text>
-            <Text className="page-login__modal-desc">请先获取微信头像，再获取微信昵称；头像和昵称齐全后才可确认登录。</Text>
+            <Text className="page-login__modal-desc">首次登录建议填写昵称和头像；之后会自动保持登录，无需每次重新授权。</Text>
 
             <View className="page-login__wechat-card">
               <View className="page-login__wechat-avatar">
@@ -184,32 +143,23 @@ export default function Login() {
                   className="page-login__wechat-input"
                   value={nickname}
                   onInput={(e) => setNickname((e.detail as any).value)}
-                  placeholder="获取微信昵称后会自动填充，也可手动修改"
+                  type="nickname"
+                  placeholder="填写昵称"
                   placeholderTextColor="rgba(255,255,255,0.38)"
                 />
               </View>
             </View>
 
             <View className="page-login__wechat-action">
-              {wechatStep === 'avatar' ? (
-                <TaroButton
-                  openType="chooseAvatar"
-                  className="page-login__wechat-avatar-btn"
-                  onChooseAvatar={handleChooseWechatAvatar}
-                >
-                  获取微信头像
-                </TaroButton>
-              ) : (
-                <TaroButton
-                  openType="getUserInfo"
-                  className="page-login__wechat-nickname-btn"
-                  onGetUserInfo={handleGetWechatNicknameFromButton}
-                >
-                  {nickname.trim() ? '重新获取微信昵称' : '获取微信昵称'}
-                </TaroButton>
-              )}
+              <TaroButton
+                openType="chooseAvatar"
+                className="page-login__wechat-avatar-btn"
+                onChooseAvatar={handleChooseWechatAvatar}
+              >
+                {avatarPath ? '重新选择头像' : '选择头像'}
+              </TaroButton>
               <Text className="page-login__wechat-tip">
-                {wechatStep === 'avatar' ? '第一步：先获取微信头像' : '第二步：再获取微信昵称'}
+                昵称可手动填写；头像可选，之后也能在编辑资料里修改
               </Text>
             </View>
 
