@@ -62,6 +62,20 @@ function getAcceptedApplication(list: DemandApplication[]) {
   return list.find((item) => !!item.publisherAcceptedAt && !item.cancelledAt) || null
 }
 
+function getActiveAcceptedApplications(list: DemandApplication[]) {
+  return list.filter((item) => !!item.publisherAcceptedAt && !item.cancelledAt)
+}
+
+function getConfirmedApplications(list: DemandApplication[]) {
+  return list.filter((item) => !!item.publisherAcceptedAt && !!item.applicantConfirmedAt && !item.cancelledAt)
+}
+
+function assertFutureTime(timestamp: number) {
+  if (!Number.isFinite(timestamp) || timestamp <= Date.now()) {
+    throw new BadRequestException('event time must be in future')
+  }
+}
+
 export function getDemandApplicationSnapshot(list: DemandApplication[]) {
   const doubleConfirmedCount = list.filter((item) => !!item.publisherAcceptedAt && !!item.applicantConfirmedAt && !item.cancelledAt).length
   return {
@@ -96,6 +110,11 @@ function formatDemandApplicationSnapshot(eventTime: number | null | undefined, i
     cancel_requested_at: item.cancelRequestedAt ? new Date(item.cancelRequestedAt).getTime() : null,
     cancelled: !!item.cancelledAt,
     cancelled_at: item.cancelledAt ? new Date(item.cancelledAt).getTime() : null,
+    exit_requested: !!item.exitRequestedAt && !item.exitApprovedAt && !item.cancelledAt,
+    exit_requested_at: item.exitRequestedAt ? new Date(item.exitRequestedAt).getTime() : null,
+    exit_approved: !!item.exitApprovedAt,
+    time_change_confirmed: !!item.timeChangeConfirmedAt,
+    demand_cancel_confirmed: !!item.demandCancelConfirmedAt,
     schedule_status: status,
     schedule_status_text: mapExtendedScheduleStatusText(status)
   }
@@ -134,10 +153,26 @@ export class DemandApplicationService {
     if (demand.deadline && Date.now() > demand.deadline) throw new BadRequestException('deadline passed')
     const demandApplications = await this.listApplications(demandId)
     const existing = demandApplications.find(a => a.demandId === demandId && a.userId === userId)
-    if (existing) throw new BadRequestException('already applied')
-    if (hasActiveAcceptedApplication(demandApplications)) throw new BadRequestException('already accepted')
+    if (existing && !existing.cancelledAt) throw new BadRequestException('already applied')
+    if (getConfirmedApplications(demandApplications).length >= (demand.participant_limit || 1)) throw new BadRequestException('full')
     if (demand.event_time && floorToHour(Date.now()) > floorToHour(demand.event_time)) {
       throw new BadRequestException('event ended')
+    }
+    if (existing && existing.cancelledAt) {
+      existing.status = ApplicationStatus.APPLIED
+      existing.publisherAcceptedAt = null
+      existing.applicantConfirmedAt = null
+      existing.cancelRequestedAt = null
+      existing.cancelRequestedBy = null
+      existing.publisherCancelConfirmedAt = null
+      existing.applicantCancelConfirmedAt = null
+      existing.cancelledAt = null
+      existing.exitRequestedAt = null
+      existing.exitApprovedAt = null
+      existing.timeChangeConfirmedAt = null
+      existing.demandCancelConfirmedAt = null
+      await this.applicationsRepo.save(existing)
+      return { applied: true }
     }
     await this.applicationsRepo.save(this.applicationsRepo.create({
       demandId,
@@ -181,6 +216,22 @@ export class DemandApplicationService {
         confirm_action: canFinalConfirm ? 'final_confirm' : null,
         can_request_cancel: canRequestCancel,
         can_confirm_cancel: canConfirmCancel,
+        can_request_exit: !!mine.publisherAcceptedAt && !!mine.applicantConfirmedAt && !mine.exitRequestedAt && !mine.cancelledAt,
+        can_confirm_time_change:
+          !!demand.requested_event_time &&
+          demand.time_change_requested_by !== userId &&
+          !!mine.publisherAcceptedAt &&
+          !!mine.applicantConfirmedAt &&
+          !mine.timeChangeConfirmedAt &&
+          !mine.cancelledAt,
+        can_confirm_demand_cancel:
+          !!demand.cancel_requested_at &&
+          demand.cancel_requested_by !== userId &&
+          !!mine.publisherAcceptedAt &&
+          !!mine.applicantConfirmedAt &&
+          !mine.demandCancelConfirmedAt &&
+          !mine.cancelledAt,
+        requested_event_time: demand.requested_event_time || null,
         cancel_requested_by: mine.cancelRequestedBy || null,
         schedule_status: status,
         schedule_status_text: mapExtendedScheduleStatusText(status)
@@ -189,11 +240,14 @@ export class DemandApplicationService {
 
     const isPublisher = demand.author_id === userId
     if (isPublisher && demandApplies.length > 0) {
+      const confirmedCount = getConfirmedApplications(demandApplies).length
+      const acceptedCount = getActiveAcceptedApplications(demandApplies).length
       const accepted = getAcceptedApplication(demandApplies)
-      const target = accepted || demandApplies.find((a) => !a.publisherAcceptedAt) || demandApplies[0]
+      const pendingTarget = demandApplies.find((a) => !a.publisherAcceptedAt && !a.cancelledAt)
+      const target = acceptedCount < (demand.participant_limit || 1) && pendingTarget ? pendingTarget : accepted || demandApplies[0]
       const status = resolveApplicationStatus(demand.event_time, target)
       const canAccept =
-        !accepted &&
+        acceptedCount < (demand.participant_limit || 1) &&
         !target.publisherAcceptedAt &&
         !isEventPast(demand.event_time)
       const canRequestCancel =
@@ -222,6 +276,15 @@ export class DemandApplicationService {
         confirm_action: canAccept ? 'accept' : null,
         can_request_cancel: canRequestCancel,
         can_confirm_cancel: canConfirmCancel,
+        can_continue_recruit: confirmedCount < (demand.participant_limit || 1) && !isEventAtOrPast(demand.event_time),
+        can_complete: demand.status !== DemandStatus.COMPLETED && confirmedCount > 0,
+        can_update_time: !isEventAtOrPast(demand.event_time),
+        can_update_limit: demand.status !== DemandStatus.CANCELLED,
+        can_cancel_demand: demand.status !== DemandStatus.CANCELLED,
+        confirmed_count: confirmedCount,
+        accepted_count: acceptedCount,
+        participant_limit: demand.participant_limit || 1,
+        requested_event_time: demand.requested_event_time || null,
         cancel_requested_by: target.cancelRequestedBy || null,
         schedule_status: status,
         schedule_status_text: mapExtendedScheduleStatusText(status)
@@ -232,8 +295,16 @@ export class DemandApplicationService {
       applied: false,
       can_confirm: false,
       can_accept: false,
-      can_apply: !hasActiveAcceptedApplication(demandApplies) && !isEventPast(demand.event_time),
-      apply_disabled_reason: hasActiveAcceptedApplication(demandApplies) ? 'already accepted' : undefined
+      can_apply:
+        demand.status === DemandStatus.OPEN &&
+        getConfirmedApplications(demandApplies).length < (demand.participant_limit || 1) &&
+        !isEventPast(demand.event_time),
+      apply_disabled_reason:
+        demand.status !== DemandStatus.OPEN
+          ? 'closed'
+          : getConfirmedApplications(demandApplies).length >= (demand.participant_limit || 1)
+          ? 'full'
+          : undefined
     }
   }
 
@@ -248,6 +319,10 @@ export class DemandApplicationService {
       if (mine.cancelRequestedAt || mine.cancelledAt) throw new BadRequestException('agreement is cancelling or cancelled')
       mine.applicantConfirmedAt = mine.applicantConfirmedAt || new Date()
       await this.applicationsRepo.save(mine)
+      const confirmedCount = getConfirmedApplications(await this.listApplications(demandId)).length
+      if (confirmedCount >= (demand.participant_limit || 1)) {
+        await this.demandsService.setStatus(demandId, DemandStatus.COMPLETED)
+      }
       const status = resolveApplicationStatus(demand.event_time, mine)
       return {
         confirmed: true,
@@ -273,8 +348,8 @@ export class DemandApplicationService {
     if (!target) {
       throw new BadRequestException('application not found')
     }
-    const accepted = getAcceptedApplication(demandApplies)
-    if (accepted && accepted.id !== target.id) throw new BadRequestException('already accepted another applicant')
+    const acceptedCount = getActiveAcceptedApplications(demandApplies).length
+    if (acceptedCount >= (demand.participant_limit || 1) && !target.publisherAcceptedAt) throw new BadRequestException('full')
     if (target.cancelledAt) throw new BadRequestException('application cancelled')
     if (isEventPast(demand.event_time)) throw new BadRequestException('event ended')
     target.publisherAcceptedAt = target.publisherAcceptedAt || new Date()
@@ -363,6 +438,150 @@ export class DemandApplicationService {
       schedule_status: accepted.cancelledAt ? 'cancelled' : 'cancel_pending',
       schedule_status_text: mapExtendedScheduleStatusText(accepted.cancelledAt ? 'cancelled' : 'cancel_pending')
     }
+  }
+
+  async completeDemand(demandId: number, userId: number) {
+    const demand = await this.demandsService.getById(demandId)
+    if (!demand) throw new NotFoundException('demand not found')
+    if (demand.author_id !== userId) throw new BadRequestException('no permission')
+    return this.demandsService.setStatus(demandId, DemandStatus.COMPLETED)
+  }
+
+  async continueRecruit(demandId: number, userId: number) {
+    const demand = await this.demandsService.getById(demandId)
+    if (!demand) throw new NotFoundException('demand not found')
+    if (demand.author_id !== userId) throw new BadRequestException('no permission')
+    if (isEventAtOrPast(demand.event_time)) throw new BadRequestException('event started or ended')
+    const confirmedCount = getConfirmedApplications(await this.listApplications(demandId)).length
+    if (confirmedCount >= (demand.participant_limit || 1)) throw new BadRequestException('full')
+    return this.demandsService.setStatus(demandId, DemandStatus.OPEN)
+  }
+
+  async requestExit(demandId: number, userId: number) {
+    const demand = await this.demandsService.getById(demandId)
+    if (!demand) throw new NotFoundException('demand not found')
+    const mine = (await this.listApplications(demandId)).find((item) => item.userId === userId)
+    if (!mine || !mine.publisherAcceptedAt || !mine.applicantConfirmedAt || mine.cancelledAt) {
+      throw new BadRequestException('no confirmed agreement')
+    }
+    if (mine.exitRequestedAt && !mine.exitApprovedAt) throw new BadRequestException('exit already requested')
+    mine.exitRequestedAt = new Date()
+    await this.applicationsRepo.save(mine)
+    return { requested: true, application_id: mine.id }
+  }
+
+  async approveExit(demandId: number, userId: number, applicationId: number) {
+    const demand = await this.demandsService.getById(demandId)
+    if (!demand) throw new NotFoundException('demand not found')
+    if (demand.author_id !== userId) throw new BadRequestException('no permission')
+    const target = (await this.listApplications(demandId)).find((item) => item.id === applicationId)
+    if (!target || !target.exitRequestedAt || target.cancelledAt) throw new BadRequestException('no pending exit request')
+    target.exitApprovedAt = new Date()
+    target.cancelledAt = target.exitApprovedAt
+    await this.applicationsRepo.save(target)
+    return { approved: true, application_id: target.id, can_continue_recruit: true }
+  }
+
+  async requestTimeChange(demandId: number, userId: number, eventTime: number) {
+    assertFutureTime(eventTime)
+    const demand = await this.demandsService.getEntityById(demandId)
+    if (!demand) throw new NotFoundException('demand not found')
+    const applications = await this.listApplications(demandId)
+    const isPublisher = demand.authorId === userId
+    const isConfirmedApplicant = applications.some((item) => item.userId === userId && item.publisherAcceptedAt && item.applicantConfirmedAt && !item.cancelledAt)
+    if (!isPublisher && !isConfirmedApplicant) throw new BadRequestException('no permission')
+
+    demand.requestedEventTime = new Date(eventTime)
+    demand.timeChangeRequestedBy = userId
+    if (isPublisher) {
+      demand.eventTime = new Date(eventTime)
+      demand.requestedEventTime = null
+      demand.timeChangeRequestedBy = null
+      for (const app of getConfirmedApplications(applications)) {
+        app.timeChangeConfirmedAt = null
+      }
+      await this.applicationsRepo.save(applications)
+      const data = await this.demandsService.saveEntity(demand)
+      return { updated: true, notifications: getConfirmedApplications(applications).map((item) => item.userId), demand: data }
+    }
+    for (const app of applications) app.timeChangeConfirmedAt = null
+    await this.applicationsRepo.save(applications)
+    const data = await this.demandsService.saveEntity(demand)
+    return { requested: true, demand: data }
+  }
+
+  async confirmTimeChange(demandId: number, userId: number) {
+    const demand = await this.demandsService.getEntityById(demandId)
+    if (!demand) throw new NotFoundException('demand not found')
+    if (!demand.requestedEventTime || !demand.timeChangeRequestedBy) throw new BadRequestException('no pending time change')
+    if (demand.authorId !== userId) throw new BadRequestException('no permission')
+    assertFutureTime(new Date(demand.requestedEventTime).getTime())
+    demand.eventTime = demand.requestedEventTime
+    demand.requestedEventTime = null
+    demand.timeChangeRequestedBy = null
+    const applications = await this.listApplications(demandId)
+    for (const app of getConfirmedApplications(applications)) {
+      app.timeChangeConfirmedAt = null
+    }
+    await this.applicationsRepo.save(applications)
+    const data = await this.demandsService.saveEntity(demand)
+    return { confirmed: true, notifications: getConfirmedApplications(applications).map((item) => item.userId), demand: data }
+  }
+
+  async updateParticipantLimit(demandId: number, userId: number, participantLimit: number) {
+    if (!Number.isInteger(participantLimit) || participantLimit < 1) throw new BadRequestException('invalid participant limit')
+    const demand = await this.demandsService.getEntityById(demandId)
+    if (!demand) throw new NotFoundException('demand not found')
+    if (demand.authorId !== userId) throw new BadRequestException('no permission')
+    const confirmedCount = getConfirmedApplications(await this.listApplications(demandId)).length
+    if (participantLimit < confirmedCount) throw new BadRequestException('participant limit below confirmed count')
+    demand.participantLimit = participantLimit
+    if (confirmedCount < participantLimit && demand.status === DemandStatus.COMPLETED) {
+      demand.status = DemandStatus.OPEN
+    }
+    return this.demandsService.saveEntity(demand)
+  }
+
+  async requestCancelDemand(demandId: number, userId: number) {
+    const demand = await this.demandsService.getEntityById(demandId)
+    if (!demand) throw new NotFoundException('demand not found')
+    if (demand.authorId !== userId) throw new BadRequestException('no permission')
+    const applications = await this.listApplications(demandId)
+    const confirmed = getConfirmedApplications(applications)
+    const eventTime = demand.eventTime ? new Date(demand.eventTime).getTime() : null
+    const threeDays = 3 * 24 * 3600000
+    if (!eventTime || eventTime - Date.now() > threeDays || confirmed.length === 0) {
+      demand.status = DemandStatus.CANCELLED
+      demand.cancelledAt = new Date()
+      const data = await this.demandsService.saveEntity(demand)
+      return { cancelled: true, notifications: confirmed.map((item) => item.userId), demand: data }
+    }
+    demand.status = DemandStatus.CANCEL_PENDING
+    demand.cancelRequestedAt = new Date()
+    demand.cancelRequestedBy = userId
+    for (const app of confirmed) app.demandCancelConfirmedAt = null
+    await this.applicationsRepo.save(confirmed)
+    const data = await this.demandsService.saveEntity(demand)
+    return { cancelled: false, pending: true, notifications: confirmed.map((item) => item.userId), demand: data }
+  }
+
+  async confirmCancelDemand(demandId: number, userId: number) {
+    const demand = await this.demandsService.getEntityById(demandId)
+    if (!demand) throw new NotFoundException('demand not found')
+    if (!demand.cancelRequestedAt) throw new BadRequestException('no pending demand cancel')
+    const applications = await this.listApplications(demandId)
+    const mine = applications.find((item) => item.userId === userId && item.publisherAcceptedAt && item.applicantConfirmedAt && !item.cancelledAt)
+    if (!mine) throw new BadRequestException('no permission')
+    mine.demandCancelConfirmedAt = new Date()
+    await this.applicationsRepo.save(mine)
+    const confirmed = getConfirmedApplications(await this.listApplications(demandId))
+    if (confirmed.every((item) => !!item.demandCancelConfirmedAt)) {
+      demand.status = DemandStatus.CANCELLED
+      demand.cancelledAt = new Date()
+      const data = await this.demandsService.saveEntity(demand)
+      return { cancelled: true, demand: data }
+    }
+    return { confirmed: true, cancelled: false }
   }
 
   async listByDemand(demandId: number, userId: number) {

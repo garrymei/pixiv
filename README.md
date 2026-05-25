@@ -163,6 +163,60 @@
 - 需求本身仅允许维护一个当前有效的被接受关联（`accepted_application_id` / `accepted_user_id`）。
 - 当双方完成取消约定后，该唯一关联会被清空，需求可重新进入可编辑和重新选择阶段。
 
+### 需求协作状态机补充（多人活动版，2026-05-25 更新）
+
+以下规则是在原有“发布方接受 -> 申请方最终确认 -> 双方取消约定”基础上的多人活动补充：
+
+1. 多人参与与自动完成
+- `participant_limit` 表示本次发布最多可确认参与的人数。
+- 发布方可从申请列表中逐个接受申请；申请方最终确认后才计入已参与人数。
+- 已确认人数达到 `participant_limit` 后，发布状态自动进入 `COMPLETED`（已完成/已满员）。
+- 发布方也可以手动将发布置为 `COMPLETED`。
+
+2. 继续招募
+- 当已有参与人退出并经发布方同意后，发布方可以点击“继续招募”。
+- 继续招募会把发布状态恢复为 `OPEN`，但仍不能超过 `participant_limit`。
+- 如果活动时间已开始或已结束，不允许继续招募。
+
+3. 接单人退出
+- 已被接受且已最终确认的接单人，可以发起退出申请。
+- 退出必须经过发布方同意；发布方同意后，该参与记录标记为已取消，不再计入已参与人数。
+- 退出后发布不会自动重新招募，发布方需要主动点击“继续招募”。
+
+4. 修改活动时间
+- 活动时间不能早于当前时间。
+- 接单人可申请修改活动时间，必须经发布方同意后生效。
+- 发布方修改活动时间不需要接单人同意，但需要通知所有已确认参与人。
+- 当前实现先通过接口返回 `notifications` 用户 ID 列表表达通知目标，后续可接微信订阅消息或站内通知。
+
+5. 修改人数限制
+- 发布方可修改 `participant_limit`。
+- 新人数限制不能小于当前已确认参与人数。
+- 若原发布已完成，但人数限制调大后未满员，发布方可继续招募。
+
+6. 取消活动
+- 发布方可取消活动。
+- 距活动开始时间大于 3 天，发布方可直接取消，并通知已确认参与人。
+- 距活动开始时间 3 天内，必须所有已确认参与人同意后才取消。
+- 取消中的发布状态为 `CANCEL_PENDING`，全部确认后变为 `CANCELLED`。
+
+7. 新增接口动作
+- `POST /demands/:id/complete`：发布方手动标记完成。
+- `POST /demands/:id/recruit/continue`：发布方继续招募。
+- `POST /demands/:id/apply/exit/request`：接单人申请退出。
+- `POST /demands/:id/apply/exit/approve`：发布方同意接单人退出，参数 `application_id`。
+- `POST /demands/:id/time-change/request`：发起修改活动时间，参数 `event_time`。
+- `POST /demands/:id/time-change/confirm`：发布方同意接单人的改时间申请。
+- `POST /demands/:id/participant-limit`：发布方修改人数限制，参数 `participant_limit`。
+- `POST /demands/:id/cancel/request`：发布方取消活动。
+- `POST /demands/:id/cancel/confirm`：已确认参与人同意取消活动。
+
+8. 新增状态
+- `OPEN`：招募中 / 进行中。
+- `COMPLETED`：已完成 / 已满员。
+- `CANCEL_PENDING`：取消待确认。
+- `CANCELLED`：已取消。
+
 ## 七、项目结构
 
 ```text

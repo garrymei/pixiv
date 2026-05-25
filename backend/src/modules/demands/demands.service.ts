@@ -25,6 +25,14 @@ type DemandResponse = {
   participant_limit: number | null
   deadline: number | null
   status: DemandStatus
+  confirmed_count: number
+  accepted_count: number
+  can_continue_recruit: boolean
+  time_change_requested_by: number | null
+  requested_event_time: number | null
+  cancel_requested_by: number | null
+  cancel_requested_at: number | null
+  cancelled_at: number | null
   moderation_status: ModerationStatus
   moderation_reason: string
   created_at: number
@@ -77,10 +85,13 @@ export class DemandsService {
       this.usersRepo.find({ where: { id: In(authorIds) } })
     ])
 
-    const appStats = new Map<number, { count: number; doubleConfirmedCount: number }>()
+    const appStats = new Map<number, { count: number; doubleConfirmedCount: number; acceptedCount: number }>()
     for (const app of applications) {
-      const prev = appStats.get(app.demandId) || { count: 0, doubleConfirmedCount: 0 }
+      const prev = appStats.get(app.demandId) || { count: 0, doubleConfirmedCount: 0, acceptedCount: 0 }
       prev.count += 1
+      if (app.publisherAcceptedAt && !app.cancelledAt) {
+        prev.acceptedCount += 1
+      }
       if (app.publisherAcceptedAt && app.applicantConfirmedAt && !app.cancelledAt) {
         prev.doubleConfirmedCount += 1
       }
@@ -89,7 +100,7 @@ export class DemandsService {
     const userMap = new Map(users.map((user) => [user.id, user]))
 
     return items.map((item) => {
-      const stats = appStats.get(item.id) || { count: 0, doubleConfirmedCount: 0 }
+      const stats = appStats.get(item.id) || { count: 0, doubleConfirmedCount: 0, acceptedCount: 0 }
       const scheduleStatus = resolveScheduleStatusByHour(
         item.eventTime ? new Date(item.eventTime).getTime() : null,
         stats.doubleConfirmedCount > 0
@@ -111,6 +122,17 @@ export class DemandsService {
         participant_limit: item.participantLimit ?? null,
         deadline: item.deadline ? new Date(item.deadline).getTime() : null,
         status: item.status,
+        confirmed_count: stats.doubleConfirmedCount,
+        accepted_count: stats.acceptedCount,
+        can_continue_recruit:
+          item.status !== DemandStatus.CANCELLED &&
+          stats.doubleConfirmedCount < (item.participantLimit || 1) &&
+          (!item.eventTime || Math.floor(Date.now() / 3600000) < Math.floor(new Date(item.eventTime).getTime() / 3600000)),
+        time_change_requested_by: item.timeChangeRequestedBy ?? null,
+        requested_event_time: item.requestedEventTime ? new Date(item.requestedEventTime).getTime() : null,
+        cancel_requested_by: item.cancelRequestedBy ?? null,
+        cancel_requested_at: item.cancelRequestedAt ? new Date(item.cancelRequestedAt).getTime() : null,
+        cancelled_at: item.cancelledAt ? new Date(item.cancelledAt).getTime() : null,
         moderation_status: item.moderationStatus,
         moderation_reason: item.moderationReason || '',
         created_at: item.createdAt?.getTime?.() || Date.now(),
@@ -184,6 +206,11 @@ export class DemandsService {
       participantLimit: dto.participant_limit ?? 1,
       deadline: dto.deadline ? new Date(dto.deadline) : undefined,
       status: DemandStatus.OPEN,
+      timeChangeRequestedBy: null,
+      requestedEventTime: null,
+      cancelRequestedBy: null,
+      cancelRequestedAt: null,
+      cancelledAt: null,
       moderationStatus: review.status,
       moderationReason: review.reason || ''
     }))
@@ -218,6 +245,7 @@ export class DemandsService {
     if (!item) return null
     item.acceptedApplicationId = applicationId
     item.acceptedUserId = applicantId
+    item.status = DemandStatus.OPEN
     const saved = await this.demandsRepo.save(item)
     const [data] = await this.buildResponses([saved])
     return data || null
@@ -229,6 +257,26 @@ export class DemandsService {
     item.acceptedApplicationId = null
     item.acceptedUserId = null
     const saved = await this.demandsRepo.save(item)
+    const [data] = await this.buildResponses([saved])
+    return data || null
+  }
+
+  async setStatus(demandId: number, status: DemandStatus) {
+    const item = await this.demandsRepo.findOne({ where: { id: demandId } })
+    if (!item) return null
+    item.status = status
+    if (status === DemandStatus.CANCELLED) item.cancelledAt = item.cancelledAt || new Date()
+    const saved = await this.demandsRepo.save(item)
+    const [data] = await this.buildResponses([saved])
+    return data || null
+  }
+
+  async getEntityById(id: number) {
+    return this.demandsRepo.findOne({ where: { id } })
+  }
+
+  async saveEntity(entity: Demand) {
+    const saved = await this.demandsRepo.save(entity)
     const [data] = await this.buildResponses([saved])
     return data || null
   }

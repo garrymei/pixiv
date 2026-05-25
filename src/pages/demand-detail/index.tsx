@@ -7,13 +7,20 @@ import { EmptyState } from '../../components/base/EmptyState'
 import { LoadingState } from '../../components/base/LoadingState'
 import {
   applyDemand,
+  approveDemandExit,
+  completeDemand,
   confirmDemandAgreementCancel,
+  confirmCancelDemand,
   confirmDemandSchedule,
+  confirmDemandTimeChange,
+  continueRecruitDemand,
   getDemandApplicationStatus,
   getDemandById,
   listDemandApplicationsByDemand,
   markMyAppliedDemandsShouldRefresh,
-  requestDemandAgreementCancel
+  requestCancelDemand,
+  requestDemandAgreementCancel,
+  requestDemandExit
 } from '../../services/demands'
 import { isGuestMode, promptLogin } from '../../services/request'
 import { useThemeMode } from '../../config/theme'
@@ -206,6 +213,25 @@ export default function DemandDetail() {
     }
   }
 
+  const runDemandAction = async (action: () => Promise<unknown>, successText: string) => {
+    if (!demand || submitting) return
+    if (isGuestMode()) {
+      promptLogin('登录后才能操作')
+      return
+    }
+    setSubmitting(true)
+    try {
+      await action()
+      markMyAppliedDemandsShouldRefresh()
+      Taro.showToast({ title: successText, icon: 'success' })
+      await loadData()
+    } catch (err: any) {
+      Taro.showToast({ title: getApplyErrorMessage(err), icon: 'none' })
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
   if (loading) return <LoadingState fullScreen text="需求加载中..." />
   if (error || !demand) return <EmptyState title="加载失败" description={error || '需求不存在'} actionText="重试" onAction={loadData} />
 
@@ -230,6 +256,9 @@ export default function DemandDetail() {
   const canConfirm = !!applyStatus?.can_confirm
   const canRequestCancel = !!applyStatus?.can_request_cancel
   const canConfirmCancel = !!applyStatus?.can_confirm_cancel
+  const canRequestExit = !!applyStatus?.can_request_exit
+  const canConfirmDemandCancel = !!applyStatus?.can_confirm_demand_cancel
+  const canConfirmTimeChange = !!applyStatus?.can_confirm_time_change
   const isPublisherRole = applyStatus?.role === 'publisher'
   const applyButtonDisabled =
     applied || applyStatus?.can_apply === false || demand.status === 'closed' || !!(demand.deadline && Date.now() > demand.deadline)
@@ -303,12 +332,81 @@ export default function DemandDetail() {
             {canConfirmCancel ? '同意取消约定' : canRequestCancel ? '取掉约定（待对方确认）' : primaryActionText}
           </Button>
         </View>
+        {(canRequestExit || canConfirmDemandCancel || canConfirmTimeChange) && (
+          <View style={{ display: 'flex', gap: '12rpx', marginTop: '16rpx' }}>
+            {canRequestExit && (
+              <Button
+                size="small"
+                type="secondary"
+                loading={submitting}
+                onClick={() => runDemandAction(() => requestDemandExit(id), '已申请退出，等待发起人同意')}
+              >
+                申请退出
+              </Button>
+            )}
+            {canConfirmDemandCancel && (
+              <Button
+                size="small"
+                type="secondary"
+                loading={submitting}
+                onClick={() => runDemandAction(() => confirmCancelDemand(id), '已同意取消活动')}
+              >
+                同意取消活动
+              </Button>
+            )}
+            {canConfirmTimeChange && (
+              <Button
+                size="small"
+                type="secondary"
+                loading={submitting}
+                onClick={() => runDemandAction(() => confirmDemandTimeChange(id), '已同意修改时间')}
+              >
+                同意改时间
+              </Button>
+            )}
+          </View>
+        )}
+        {isPublisherRole && (
+          <View style={{ display: 'flex', flexWrap: 'wrap', gap: '12rpx', marginTop: '16rpx' }}>
+            {applyStatus?.can_continue_recruit && (
+              <Button
+                size="small"
+                type="secondary"
+                loading={submitting}
+                onClick={() => runDemandAction(() => continueRecruitDemand(id), '已继续招募')}
+              >
+                继续招募
+              </Button>
+            )}
+            {applyStatus?.can_complete && (
+              <Button
+                size="small"
+                type="secondary"
+                loading={submitting}
+                onClick={() => runDemandAction(() => completeDemand(id), '已标记完成')}
+              >
+                标记完成
+              </Button>
+            )}
+            {applyStatus?.can_cancel_demand && (
+              <Button
+                size="small"
+                type="secondary"
+                loading={submitting}
+                onClick={() => runDemandAction(() => requestCancelDemand(id), '已提交取消活动')}
+              >
+                取消活动
+              </Button>
+            )}
+          </View>
+        )}
         {isPublisherRole && applications.length > 0 && (
           <View style={{ marginTop: '24rpx' }}>
             <Text style={{ color: 'var(--color-text-primary)', fontSize: '30rpx', fontWeight: 600 }}>申请人列表</Text>
             {applications.map((item) => {
               const canAcceptThis = !!applyStatus?.can_confirm && item.schedule_status === 'pending_confirm'
               const isAccepted = demand.acceptedApplicationId === item.application_id
+              const canApproveExit = !!item.exit_requested && !item.exit_approved
               return (
                 <View
                   key={item.application_id}
@@ -332,16 +430,20 @@ export default function DemandDetail() {
                     </View>
                     <Button
                       size="small"
-                      type={isAccepted ? 'secondary' : 'primary'}
+                      type={isAccepted || canApproveExit ? 'secondary' : 'primary'}
                       loading={submitting}
-                      disabled={!canAcceptThis || isAccepted}
+                      disabled={!(canAcceptThis || canApproveExit) || isAccepted}
                       onClick={async () => {
-                        if (!canAcceptThis || isAccepted || submitting) return
+                        if (!(canAcceptThis || canApproveExit) || isAccepted || submitting) return
                         setSubmitting(true)
                         try {
-                          await confirmDemandSchedule(id, item.application_id)
+                          if (canApproveExit) {
+                            await approveDemandExit(id, item.application_id)
+                          } else {
+                            await confirmDemandSchedule(id, item.application_id)
+                          }
                           markMyAppliedDemandsShouldRefresh()
-                          Taro.showToast({ title: '已接受该申请人', icon: 'success' })
+                          Taro.showToast({ title: canApproveExit ? '已同意退出' : '已接受该申请人', icon: 'success' })
                           await loadData()
                         } catch (err: any) {
                           Taro.showToast({ title: getApplyErrorMessage(err), icon: 'none' })
@@ -350,7 +452,7 @@ export default function DemandDetail() {
                         }
                       }}
                     >
-                      {isAccepted ? '已接受' : '接受'}
+                      {canApproveExit ? '同意退出' : isAccepted ? '已接受' : '接受'}
                     </Button>
                   </View>
                 </View>

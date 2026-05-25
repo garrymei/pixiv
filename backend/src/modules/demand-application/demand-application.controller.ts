@@ -51,4 +51,70 @@ export class DemandApplicationController {
   async confirmCancelAgreement(@Req() req: any, @Param('id') id: string) {
     return this.demandApplicationService.confirmCancelAgreement(Number(id), req.user.id)
   }
+
+  @Post(':id/complete')
+  @UseGuards(JwtAuthGuard)
+  async completeDemand(@Req() req: any, @Param('id') id: string) {
+    return this.demandApplicationService.completeDemand(Number(id), req.user.id)
+  }
+
+  @Post(':id/recruit/continue')
+  @UseGuards(JwtAuthGuard)
+  async continueRecruit(@Req() req: any, @Param('id') id: string) {
+    return this.demandApplicationService.continueRecruit(Number(id), req.user.id)
+  }
+
+  @Post(':id/apply/exit/request')
+  @UseGuards(JwtAuthGuard)
+  async requestExit(@Req() req: any, @Param('id') id: string) {
+    return this.demandApplicationService.requestExit(Number(id), req.user.id)
+  }
+
+  @Post(':id/apply/exit/approve')
+  @UseGuards(JwtAuthGuard)
+  async approveExit(
+    @Req() req: any,
+    @Param('id') id: string,
+    @Body() body: { application_id?: number }
+  ) {
+    return this.demandApplicationService.approveExit(Number(id), req.user.id, Number(body?.application_id || 0))
+  }
+
+  @Post(':id/time-change/request')
+  @UseGuards(JwtAuthGuard)
+  async requestTimeChange(
+    @Req() req: any,
+    @Param('id') id: string,
+    @Body() body: { event_time?: number }
+  ) {
+    return this.demandApplicationService.requestTimeChange(Number(id), req.user.id, Number(body?.event_time || 0))
+  }
+
+  @Post(':id/time-change/confirm')
+  @UseGuards(JwtAuthGuard)
+  async confirmTimeChange(@Req() req: any, @Param('id') id: string) {
+    return this.demandApplicationService.confirmTimeChange(Number(id), req.user.id)
+  }
+
+  @Post(':id/participant-limit')
+  @UseGuards(JwtAuthGuard)
+  async updateParticipantLimit(
+    @Req() req: any,
+    @Param('id') id: string,
+    @Body() body: { participant_limit?: number }
+  ) {
+    return this.demandApplicationService.updateParticipantLimit(Number(id), req.user.id, Number(body?.participant_limit || 0))
+  }
+
+  @Post(':id/cancel/request')
+  @UseGuards(JwtAuthGuard)
+  async requestCancelDemand(@Req() req: any, @Param('id') id: string) {
+    return this.demandApplicationService.requestCancelDemand(Number(id), req.user.id)
+  }
+
+  @Post(':id/cancel/confirm')
+  @UseGuards(JwtAuthGuard)
+  async confirmCancelDemand(@Req() req: any, @Param('id') id: string) {
+    return this.demandApplicationService.confirmCancelDemand(Number(id), req.user.id)
+  }
 }

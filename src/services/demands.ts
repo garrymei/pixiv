@@ -20,11 +20,17 @@ type DemandRecord = {
   budget_amount?: number | null
   participant_limit?: number | null
   deadline?: number | string | null
-  status: 'OPEN' | 'CLOSED'
+  status: 'OPEN' | 'COMPLETED' | 'CANCEL_PENDING' | 'CANCELLED' | 'CLOSED'
   authorId?: number
   author_id?: number
   created_at?: number | string | null
   application_count?: number | null
+  confirmed_count?: number
+  accepted_count?: number
+  can_continue_recruit?: boolean
+  requested_event_time?: number | string | null
+  cancel_requested_at?: number | string | null
+  cancelled_at?: number | string | null
   schedule_status?:
     | 'pending_confirm'
     | 'accepted'
@@ -71,6 +77,12 @@ export type ExtendedDemand = Demand & {
   statusText?: string
   acceptedApplicationId?: number
   acceptedUserId?: string
+  confirmedCount?: number
+  acceptedCount?: number
+  canContinueRecruit?: boolean
+  requestedEventTime?: number
+  cancelRequestedAt?: number
+  cancelledAt?: number
 }
 
 export type DemandApplicationListItem = {
@@ -85,6 +97,11 @@ export type DemandApplicationListItem = {
   cancel_requested_at?: number | null
   cancelled: boolean
   cancelled_at?: number | null
+  exit_requested?: boolean
+  exit_requested_at?: number | null
+  exit_approved?: boolean
+  time_change_confirmed?: boolean
+  demand_cancel_confirmed?: boolean
   schedule_status:
     | 'pending_confirm'
     | 'accepted'
@@ -136,6 +153,26 @@ function formatDateTime(value?: number | string | null) {
   return new Date(timestamp).toLocaleString('zh-CN', { hour12: false })
 }
 
+function getTimestamp(value?: number | string | null) {
+  if (value === null || value === undefined || value === '') return undefined
+  const timestamp = typeof value === 'number' ? value : new Date(value).getTime()
+  return timestamp && !Number.isNaN(timestamp) ? timestamp : undefined
+}
+
+function resolveDemandStatusText(item: DemandRecord) {
+  if (item.status === 'COMPLETED') return '已完成'
+  if (item.status === 'CANCEL_PENDING') return '取消待确认'
+  if (item.status === 'CANCELLED') return '已取消'
+  if (item.status === 'CLOSED') return '已关闭'
+
+  const now = Date.now()
+  const eventTime = getTimestamp(item.event_time)
+  const deadline = getTimestamp(item.deadline)
+  if (eventTime && now > eventTime) return '已结束'
+  if (deadline && now > deadline) return '已截止'
+  return item.schedule_status_text || '招募中'
+}
+
 function parseBudgetSelection(value?: string) {
   if (!value) return {}
   if (value === '无偿') return { budget_type: 'free' }
@@ -184,7 +221,7 @@ function mapDemand(item: DemandRecord): ExtendedDemand {
     authorAvatar: author.authorAvatar,
     status: item.status === 'OPEN' ? 'open' : 'closed',
     createTime: createdTimeText || '刚刚',
-    deadline: typeof item.deadline === 'number' ? item.deadline : item.deadline ? new Date(item.deadline).getTime() : undefined,
+    deadline: getTimestamp(item.deadline),
     participantLimit: item.participant_limit ?? undefined,
     applicationCount: item.application_count ?? undefined,
     scheduleStatus: item.schedule_status,
@@ -192,10 +229,16 @@ function mapDemand(item: DemandRecord): ExtendedDemand {
     applicantConfirmed: !!item.applicant_confirmed,
     publisherConfirmed: !!item.publisher_confirmed,
     deadlineText: formatDateTime(item.deadline),
-    statusText: item.status === 'OPEN' ? '招募中' : '已关闭'
+    statusText: resolveDemandStatusText(item)
     ,
     acceptedApplicationId: item.accepted_application_id ? Number(item.accepted_application_id) : undefined,
-    acceptedUserId: item.accepted_user_id ? String(item.accepted_user_id) : undefined
+    acceptedUserId: item.accepted_user_id ? String(item.accepted_user_id) : undefined,
+    confirmedCount: item.confirmed_count ?? 0,
+    acceptedCount: item.accepted_count ?? 0,
+    canContinueRecruit: !!item.can_continue_recruit,
+    requestedEventTime: typeof item.requested_event_time === 'number' ? item.requested_event_time : item.requested_event_time ? new Date(item.requested_event_time).getTime() : undefined,
+    cancelRequestedAt: typeof item.cancel_requested_at === 'number' ? item.cancel_requested_at : item.cancel_requested_at ? new Date(item.cancel_requested_at).getTime() : undefined,
+    cancelledAt: typeof item.cancelled_at === 'number' ? item.cancelled_at : item.cancelled_at ? new Date(item.cancelled_at).getTime() : undefined
   }
 }
 
@@ -296,8 +339,20 @@ export async function getDemandApplicationStatus(id: string) {
       confirm_action?: 'accept' | 'final_confirm' | null
       can_request_cancel?: boolean
       can_confirm_cancel?: boolean
+      can_request_exit?: boolean
+      can_confirm_time_change?: boolean
+      can_confirm_demand_cancel?: boolean
+      can_continue_recruit?: boolean
+      can_complete?: boolean
+      can_update_time?: boolean
+      can_update_limit?: boolean
+      can_cancel_demand?: boolean
+      confirmed_count?: number
+      accepted_count?: number
+      participant_limit?: number
+      requested_event_time?: number | null
       cancel_requested_by?: 'applicant' | 'publisher' | null
-      apply_disabled_reason?: 'already accepted'
+      apply_disabled_reason?: 'already accepted' | 'full' | 'closed'
       application_id?: number
       schedule_status?:
         | 'pending_confirm'
@@ -399,4 +454,49 @@ export async function listDemandApplicationsByDemand(demandId: string) {
     return get<{ list: DemandApplicationListItem[] }>(`/demands/${demandId}/applications`, { requireAuth: true })
   }
   return mockResponse({ list: [] as DemandApplicationListItem[] })
+}
+
+export async function completeDemand(id: string) {
+  if (!isMockMode()) return post(`/demands/${id}/complete`, {}, { requireAuth: true })
+  return mockResponse({ status: 'COMPLETED' })
+}
+
+export async function continueRecruitDemand(id: string) {
+  if (!isMockMode()) return post(`/demands/${id}/recruit/continue`, {}, { requireAuth: true })
+  return mockResponse({ status: 'OPEN' })
+}
+
+export async function requestDemandExit(id: string) {
+  if (!isMockMode()) return post(`/demands/${id}/apply/exit/request`, {}, { requireAuth: true })
+  return mockResponse({ requested: true })
+}
+
+export async function approveDemandExit(id: string, applicationId: number) {
+  if (!isMockMode()) return post(`/demands/${id}/apply/exit/approve`, { application_id: applicationId }, { requireAuth: true })
+  return mockResponse({ approved: true })
+}
+
+export async function requestDemandTimeChange(id: string, eventTime: number) {
+  if (!isMockMode()) return post(`/demands/${id}/time-change/request`, { event_time: eventTime }, { requireAuth: true })
+  return mockResponse({ requested: true })
+}
+
+export async function confirmDemandTimeChange(id: string) {
+  if (!isMockMode()) return post(`/demands/${id}/time-change/confirm`, {}, { requireAuth: true })
+  return mockResponse({ confirmed: true })
+}
+
+export async function updateDemandParticipantLimit(id: string, participantLimit: number) {
+  if (!isMockMode()) return post(`/demands/${id}/participant-limit`, { participant_limit: participantLimit }, { requireAuth: true })
+  return mockResponse({ participant_limit: participantLimit })
+}
+
+export async function requestCancelDemand(id: string) {
+  if (!isMockMode()) return post(`/demands/${id}/cancel/request`, {}, { requireAuth: true })
+  return mockResponse({ cancelled: true })
+}
+
+export async function confirmCancelDemand(id: string) {
+  if (!isMockMode()) return post(`/demands/${id}/cancel/confirm`, {}, { requireAuth: true })
+  return mockResponse({ confirmed: true })
 }

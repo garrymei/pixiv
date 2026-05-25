@@ -50,6 +50,18 @@ export class DemandApplication {
   @Column({ name: 'cancelled_at', type: 'datetime', nullable: true })
   cancelledAt?: Date | null
 
+  @Column({ name: 'exit_requested_at', type: 'datetime', nullable: true })
+  exitRequestedAt?: Date | null
+
+  @Column({ name: 'exit_approved_at', type: 'datetime', nullable: true })
+  exitApprovedAt?: Date | null
+
+  @Column({ name: 'time_change_confirmed_at', type: 'datetime', nullable: true })
+  timeChangeConfirmedAt?: Date | null
+
+  @Column({ name: 'demand_cancel_confirmed_at', type: 'datetime', nullable: true })
+  demandCancelConfirmedAt?: Date | null
+
   @CreateDateColumn({ name: 'created_at' })
   createdAt!: Date
 

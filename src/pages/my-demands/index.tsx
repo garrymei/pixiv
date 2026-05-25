@@ -66,6 +66,8 @@ export default function MyDemands() {
             authorName={d.authorName}
             authorAvatar={d.authorAvatar}
             status={d.status}
+            statusText={d.statusText || d.scheduleStatusText}
+            actionText={d.statusText === '已截止' || d.statusText === '已结束' ? '查看状态' : undefined}
             onClick={() => Taro.navigateTo({ url: `/pages/demand-detail/index?id=${d.id}` })}
             onActionClick={() => Taro.navigateTo({ url: `/pages/demand-detail/index?id=${d.id}` })}
           />

@@ -57,6 +57,8 @@ export default function MyAppliedDemands() {
             authorName={demand.authorName}
             authorAvatar={demand.authorAvatar}
             status={demand.status}
+            statusText={demand.statusText || demand.scheduleStatusText}
+            actionText={demand.statusText === '已截止' || demand.statusText === '已结束' ? '查看状态' : undefined}
             onClick={() => Taro.navigateTo({ url: `/pages/demand-detail/index?id=${demand.id}` })}
             onActionClick={() => Taro.navigateTo({ url: `/pages/demand-detail/index?id=${demand.id}` })}
           />

@@ -54,6 +54,21 @@ export class Demand {
   @Column({ type: 'enum', enum: DemandStatus, default: DemandStatus.OPEN })
   status!: DemandStatus
 
+  @Column({ name: 'time_change_requested_by', type: 'bigint', nullable: true })
+  timeChangeRequestedBy?: number | null
+
+  @Column({ name: 'requested_event_time', type: 'datetime', nullable: true })
+  requestedEventTime?: Date | null
+
+  @Column({ name: 'cancel_requested_by', type: 'bigint', nullable: true })
+  cancelRequestedBy?: number | null
+
+  @Column({ name: 'cancel_requested_at', type: 'datetime', nullable: true })
+  cancelRequestedAt?: Date | null
+
+  @Column({ name: 'cancelled_at', type: 'datetime', nullable: true })
+  cancelledAt?: Date | null
+
   @Column({ name: 'moderation_status', type: 'enum', enum: ModerationStatus, default: ModerationStatus.APPROVED })
   moderationStatus!: ModerationStatus
 

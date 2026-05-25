@@ -6,6 +6,9 @@ export enum EventStatus {
 
 export enum DemandStatus {
   OPEN = 'OPEN',
+  COMPLETED = 'COMPLETED',
+  CANCEL_PENDING = 'CANCEL_PENDING',
+  CANCELLED = 'CANCELLED',
   CLOSED = 'CLOSED'
 }
 
