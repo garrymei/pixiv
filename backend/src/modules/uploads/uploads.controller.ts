@@ -3,9 +3,10 @@ import { FileInterceptor } from '@nestjs/platform-express'
 import { JwtAuthGuard } from '../auth/jwt-auth.guard'
 import { UploadsService } from './uploads.service'
 import { diskStorage } from 'multer'
-import { extname, join } from 'path'
+import { extname } from 'path'
 import { existsSync, mkdirSync } from 'fs'
 import type { Express } from 'express'
+import { getUploadDir } from '../../common/utils/upload-dir'
 
 const ALLOWED_IMAGE_EXTS = new Set(['.png', '.jpg', '.jpeg', '.gif', '.webp'])
 const uploadBuckets = new Map<number, { windowStart: number; count: number }>()
@@ -40,7 +41,7 @@ function checkAndConsumeUploadRate(userId: number) {
 }
 
 function storageFactory() {
-  const dir = join(process.cwd(), 'uploads')
+  const dir = getUploadDir()
   if (!existsSync(dir)) mkdirSync(dir, { recursive: true })
   return diskStorage({
     destination: dir,
