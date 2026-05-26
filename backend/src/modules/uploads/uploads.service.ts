@@ -52,7 +52,8 @@ export class UploadsService {
       throw new BadRequestException('invalid image')
     }
 
-    const base = this.config.get<string>('UPLOAD_BASE_URL')
+    const configuredBase = this.config.get<string>('UPLOAD_BASE_URL')?.trim()
+    const base = configuredBase && !configuredBase.includes('your-upload-base-url') ? configuredBase : ''
     const url = base ? `${base.replace(/\/$/, '')}/uploads/${file.filename}` : `/uploads/${file.filename}`
     return { url }
   }

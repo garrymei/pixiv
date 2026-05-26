@@ -1,5 +1,5 @@
 import Taro from '@tarojs/taro'
-import { clearAuthState, ensureToken, get, getSessionUser, hasAuthenticatedSession, isGuestSession, isMockMode, mockResponse, patch, setSessionUser, type SessionUser } from './request'
+import { clearAuthState, ensureToken, get, getSessionUser, hasAuthenticatedSession, isGuestSession, isMockMode, mockResponse, patch, resolveAssetUrl, setSessionUser, type SessionUser } from './request'
 import { currentUser } from '../mocks/user'
 
 export type AvatarReviewStatus = 'PENDING' | 'APPROVED' | 'REJECTED'
@@ -45,7 +45,7 @@ function mapUser(data: UserRecord | SessionUser | null): CurrentUser {
   return {
     id: String(data?.id || ''),
     nickname: data?.nickname || '未命名用户',
-    avatarUrl: data?.avatar || data?.avatarUrl || '',
+    avatarUrl: resolveAssetUrl(data?.avatar || data?.avatarUrl || ''),
     bio: data?.bio || '',
     bgUrl: (data as UserRecord | null)?.bg_url || '',
     followersCount: (data as UserRecord | null)?.followers_count || 0,
@@ -54,10 +54,10 @@ function mapUser(data: UserRecord | SessionUser | null): CurrentUser {
     roleType: data?.role_type || 'user',
     avatarReviewStatus: (data as UserRecord | null)?.avatar_review_status,
     avatarReviewReason: (data as UserRecord | null)?.avatar_review_reason || '',
-    avatarPendingUrl: (data as UserRecord | null)?.avatar_pending || '',
+    avatarPendingUrl: resolveAssetUrl((data as UserRecord | null)?.avatar_pending || ''),
     profileComplete:
       (data as UserRecord | null)?.profile_complete ??
-      !!(data?.nickname && data.nickname !== '微信用户' && (data?.avatar || data?.avatarUrl))
+      !!(data?.nickname && data.nickname !== '微信用户' && resolveAssetUrl(data?.avatar || data?.avatarUrl || ''))
   }
 }
 

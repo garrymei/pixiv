@@ -40,13 +40,35 @@ export default function Login() {
       })
   }, [])
 
-  const handleOpenWechatModal = () => {
+  const enterHome = () => {
+    setShowWechatModal(false)
+    setTimeout(() => {
+      Taro.switchTab({ url: '/pages/home/index' })
+    }, 300)
+  }
+
+  const handleOpenWechatModal = async () => {
     if (hasAuthenticatedSession()) {
       Taro.switchTab({ url: '/pages/home/index' })
       return
     }
     setError('')
-    setShowWechatModal(true)
+    setLoading(true)
+    try {
+      const result = await loginWithWechatProfile('')
+      const user = result.user || getSessionUser()
+      if (user?.nickname) setNickname(user.nickname)
+      if (user?.profile_complete) {
+        Taro.showToast({ title: '登录成功', icon: 'success' })
+        enterHome()
+        return
+      }
+      setShowWechatModal(true)
+    } catch (err: any) {
+      setError(err?.message || '连接失败，请稍后重试')
+    } finally {
+      setLoading(false)
+    }
   }
 
   const handleCloseWechatModal = () => {
@@ -70,7 +92,9 @@ export default function Login() {
     setLoading(true)
     try {
       const trimmedNickname = nickname.trim()
-      await loginWithWechatProfile(trimmedNickname)
+      if (!hasAuthenticatedSession()) {
+        await loginWithWechatProfile(trimmedNickname)
+      }
       if (avatarPath) {
         const uploaded = await uploadImage(avatarPath)
         await updateCurrentUser({ nickname: trimmedNickname || getSessionUser()?.nickname || '微信用户', avatar: uploaded.url })
@@ -78,10 +102,7 @@ export default function Login() {
         await updateCurrentUser({ nickname: trimmedNickname })
       }
       Taro.showToast({ title: '次元连接成功', icon: 'success' })
-      setShowWechatModal(false)
-      setTimeout(() => {
-        Taro.switchTab({ url: '/pages/home/index' })
-      }, 600)
+      enterHome()
     } catch (err: any) {
       setError(err?.message || '连接失败，请稍后重试')
     } finally {
@@ -92,6 +113,15 @@ export default function Login() {
   const handleSkip = () => {
     enterGuestMode()
     Taro.switchTab({ url: '/pages/home/index' })
+  }
+
+  const handleCompleteLater = () => {
+    if (!hasAuthenticatedSession()) {
+      handleCloseWechatModal()
+      return
+    }
+    Taro.showToast({ title: '登录成功', icon: 'success' })
+    enterHome()
   }
 
   return (
@@ -167,7 +197,7 @@ export default function Login() {
 
             <View className="page-login__modal-actions">
               <PrimaryButton className="page-login__modal-btn" loading={loading} onClick={handleLogin}>确认微信登录</PrimaryButton>
-              <SecondaryButton className="page-login__modal-btn" onClick={handleCloseWechatModal}>取消</SecondaryButton>
+              <SecondaryButton className="page-login__modal-btn" onClick={handleCompleteLater}>稍后完善</SecondaryButton>
             </View>
           </View>
         </View>

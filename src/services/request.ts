@@ -154,6 +154,9 @@ export function resolveApiUrl(path: string) {
 
 export function resolveAssetUrl(url?: string) {
   if (!url) return ''
+  if (url.startsWith('https://your-upload-base-url')) {
+    return url.replace(/^https:\/\/your-upload-base-url/, getUploadBaseUrl())
+  }
   if (/^https?:\/\//.test(url)) return url
   return joinUrl(getUploadBaseUrl(), url)
 }
