@@ -12,10 +12,10 @@ export class User {
   @PrimaryGeneratedColumn()
   id!: number
 
-  @Column({ length: 128, nullable: true, unique: true })
+  @Column({ type: 'varchar', length: 128, nullable: true, unique: true })
   openid?: string | null
 
-  @Column({ length: 128, nullable: true })
+  @Column({ type: 'varchar', length: 128, nullable: true })
   unionid?: string | null
 
   @Column({ length: 64 })
