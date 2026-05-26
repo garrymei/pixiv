@@ -1,23 +1,22 @@
 .business-demand-card {
-  background-color: rgba(30, 20, 50, 0.4);
+  background: var(--color-bg-card);
   border-radius: var(--radius-lg);
   padding: var(--space-md);
   margin-bottom: var(--space-md);
   box-shadow: var(--shadow-card);
   display: flex;
   flex-direction: column;
-  border: 1px solid rgba(0, 229, 255, 0.2);
-  transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
-  backdrop-filter: blur(10px);
+  border: 1rpx solid rgba(255, 255, 255, 0.08);
+  transition: transform 0.18s ease, background 0.18s ease, border-color 0.18s ease;
 
   &:active {
-    transform: scale(0.98);
-    box-shadow: 0 0 30rpx rgba(0, 229, 255, 0.3);
-    border-color: rgba(0, 229, 255, 0.5);
+    transform: scale(0.985);
+    background: var(--color-bg-card-hover);
+    border-color: rgba(34, 211, 238, 0.28);
   }
 
   &--closed {
-    opacity: 0.6;
+    opacity: 0.62;
   }
 
   &__header {
@@ -44,7 +43,7 @@
   &__author-name {
     font-size: var(--font-size-sm);
     color: var(--color-text-primary);
-    font-weight: var(--font-weight-bold);
+    font-weight: 700;
   }
 
   &__time-post {
@@ -59,7 +58,7 @@
 
   &__title {
     font-size: var(--font-size-md);
-    font-weight: var(--font-weight-bold);
+    font-weight: 700;
     color: var(--color-text-primary);
     margin-bottom: var(--space-sm);
     line-height: 1.4;
@@ -76,7 +75,7 @@
   &__status-text {
     font-size: var(--font-size-sm);
     color: var(--color-secondary);
-    font-weight: var(--font-weight-bold);
+    font-weight: 700;
   }
 
   &__status-text--closed {
@@ -105,7 +104,7 @@
     justify-content: space-between;
     align-items: center;
     padding-top: var(--space-sm);
-    border-top: 1rpx solid rgba(255, 255, 255, 0.05);
+    border-top: 1rpx solid rgba(255, 255, 255, 0.06);
   }
 
   &__budget {
@@ -120,23 +119,23 @@
 
   &__budget-value {
     font-size: var(--font-size-md);
-    font-weight: var(--font-weight-bold);
+    font-weight: 700;
     color: var(--color-secondary);
   }
 
-  // Icons
-  &__icon-time {
+  &__icon-time,
+  &__icon-location {
     width: 28rpx;
     height: 28rpx;
     background-color: var(--color-text-secondary);
+  }
+
+  &__icon-time {
     mask: url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z'/%3E%3Cpath d='M12.5 7H11v6l5.25 3.15.75-1.23-4.5-2.67z'/%3E%3C/svg%3E") no-repeat center / contain;
     -webkit-mask: url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z'/%3E%3Cpath d='M12.5 7H11v6l5.25 3.15.75-1.23-4.5-2.67z'/%3E%3C/svg%3E") no-repeat center / contain;
   }
 
   &__icon-location {
-    width: 28rpx;
-    height: 28rpx;
-    background-color: var(--color-text-secondary);
     mask: url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z'/%3E%3C/svg%3E") no-repeat center / contain;
     -webkit-mask: url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z'/%3E%3C/svg%3E") no-repeat center / contain;
   }
@@ -144,38 +143,16 @@
 
 .theme-light {
   .business-demand-card {
-    background-color: var(--color-bg-card);
-    border: 1rpx solid rgba(20, 16, 31, 0.08);
-    box-shadow: var(--shadow-card);
-
-    &:active {
-      box-shadow: 0 0 28rpx rgba(0, 187, 214, 0.14);
-      border-color: rgba(0, 187, 214, 0.2);
-    }
+    background: var(--color-bg-card);
+    border-color: rgba(20, 16, 31, 0.08);
   }
 
-  .business-demand-card__time-post {
-    color: rgba(20, 16, 31, 0.56);
+  .business-demand-card__footer {
+    border-top-color: rgba(20, 16, 31, 0.08);
   }
 
   .business-demand-card__meta-item {
     color: rgba(20, 16, 31, 0.72);
-  }
-
-  .business-demand-card__status-text {
-    color: var(--color-primary);
-  }
-
-  .business-demand-card__status-text--closed {
-    color: rgba(20, 16, 31, 0.56);
-  }
-
-  .business-demand-card__budget-label {
-    color: rgba(20, 16, 31, 0.56);
-  }
-
-  .business-demand-card__footer {
-    border-top: 1rpx solid rgba(20, 16, 31, 0.08);
   }
 
   .business-demand-card__icon-time,

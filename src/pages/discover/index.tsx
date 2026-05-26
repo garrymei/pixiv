@@ -19,7 +19,7 @@ const DISCOVER_NAVIGATION_INTENT_KEY = 'discover_navigation_intent'
 
 const TABS = [
   { id: 'square', label: '动态广场' },
-  { id: 'market', label: '次元市集' }
+  { id: 'market', label: '合作市集' }
 ]
 
 const SQUARE_SORT_FILTERS = [
@@ -29,32 +29,28 @@ const SQUARE_SORT_FILTERS = [
 
 const MARKET_MAIN_FILTERS = [
   { id: 'seek', label: '我来找你' },
-  { id: 'offer', label: '我行我上' }
+  { id: 'offer', label: '我能提供' }
 ]
 
 const MARKET_SUB_FILTERS = {
   seek: ['全部', '找毛娘', '找妆娘', '找摄影', '其他'],
-  offer: ['全部', '本毛娘', '本妆娘', '本摄影', '其他']
+  offer: ['全部', '接毛娘', '接妆娘', '接摄影', '其他']
 }
 
 export default function Discover() {
   const [activeTab, setActiveTab] = useState('square')
   const { theme } = useThemeMode()
-  
-  // 广场状态
   const [search, setSearch] = useState('')
   const [posts, setPosts] = useState<any[]>([])
   const [activeTags, setActiveTags] = useState<string[]>([])
   const [activeSort, setActiveSort] = useState<'hot' | 'latest' | null>('hot')
   const [tagDropdownOpen, setTagDropdownOpen] = useState(false)
-  
-  // 市集状态
   const [demands, setDemands] = useState<any[]>([])
   const [activeMarketMain, setActiveMarketMain] = useState<'seek'|'offer'>('seek')
   const [activeMarketSub, setActiveMarketSub] = useState('全部')
 
   const normalizeMarketType = (rawType: string) => {
-    const normalized = String(rawType || '').replace(/^(找|本)/, '')
+    const normalized = String(rawType || '').replace(/^(找|接)/, '')
     if (normalized === '摄影') return '摄影'
     if (normalized === '妆娘') return '妆娘'
     if (normalized === '毛娘') return '毛娘'
@@ -65,18 +61,18 @@ export default function Discover() {
     if (!rawType) return rawType
     const normalized = normalizeMarketType(rawType)
     if (normalized === '其他') return '其他'
-    const prefix = main === 'seek' ? '找' : '本'
+    const prefix = main === 'seek' ? '找' : '接'
     return `${prefix}${normalized}`
   }
 
-  const mapMarketFilterToDemandType = (main: 'seek' | 'offer', sub: string) => {
+  const mapMarketFilterToDemandType = (_main: 'seek' | 'offer', sub: string) => {
     if (sub === '全部') return undefined
-    const normalized = sub.replace(/^(找|本)/, '')
+    const normalized = sub.replace(/^(找|接)/, '')
     if (normalized === '摄影') return '摄影'
     if (normalized === '妆娘') return '妆娘'
     if (normalized === '毛娘') return '毛娘'
     if (normalized === '其他') return '其他'
-    return main === 'seek' || main === 'offer' ? '其他' : undefined
+    return undefined
   }
 
   const consumeNavigationIntent = () => {
@@ -91,24 +87,14 @@ export default function Discover() {
     if (!next) return false
     Taro.removeStorageSync(DISCOVER_NAVIGATION_INTENT_KEY)
 
-    if (next.activeTab === 'market') {
-      setActiveTab('market')
-    }
-
-    if (next.marketMain === 'seek' || next.marketMain === 'offer') {
-      setActiveMarketMain(next.marketMain)
-    }
-
-    if (next.marketSub) {
-      setActiveMarketSub(next.marketSub)
-    } else if (next.marketMain === 'seek' || next.marketMain === 'offer') {
-      setActiveMarketSub('全部')
-    }
+    if (next.activeTab === 'market') setActiveTab('market')
+    if (next.marketMain === 'seek' || next.marketMain === 'offer') setActiveMarketMain(next.marketMain)
+    if (next.marketSub) setActiveMarketSub(next.marketSub)
+    else if (next.marketMain === 'seek' || next.marketMain === 'offer') setActiveMarketSub('全部')
 
     return true
   }
 
-  // 获取数据
   const loadData = async () => {
     try {
       if (activeTab === 'square') {
@@ -121,11 +107,8 @@ export default function Discover() {
       }
     } catch (err: any) {
       console.error('Discover loadData error:', err)
-      if (activeTab === 'square') {
-        setPosts([])
-      } else {
-        setDemands([])
-      }
+      if (activeTab === 'square') setPosts([])
+      else setDemands([])
       Taro.showToast({ title: err?.message || '加载失败，请稍后重试', icon: 'none' })
     }
   }
@@ -138,7 +121,6 @@ export default function Discover() {
     const appliedIntent = consumeNavigationIntent()
     if (appliedIntent) return
 
-    // 避免首次加载时和 useEffect 冲突，只在需要刷新时拉取数据
     if (activeTab === 'square') {
       const { consumePostListShouldRefresh } = require('../../services/posts')
       if (consumePostListShouldRefresh()) loadData()
@@ -148,7 +130,6 @@ export default function Discover() {
     }
   })
 
-  // 当主分类切换时，重置子分类为“全部”
   const handleMainFilterChange = (mainId: 'seek' | 'offer') => {
     if (activeMarketMain !== mainId) {
       setActiveMarketMain(mainId)
@@ -157,11 +138,7 @@ export default function Discover() {
   }
 
   const handleMarketSubFilterClick = (filter: string) => {
-    if (filter === '全部') {
-      setActiveMarketSub('全部')
-      return
-    }
-    setActiveMarketSub((prev) => (prev === filter ? '全部' : filter))
+    setActiveMarketSub((prev) => (prev === filter || filter === '全部' ? '全部' : filter))
   }
 
   const handleSortFilterClick = (sortId: 'hot' | 'latest') => {
@@ -176,10 +153,9 @@ export default function Discover() {
     setActiveTags([])
   }
 
-  // 广场计算逻辑
   const allTags = useMemo(() => {
     const s = new Set<string>()
-    posts.forEach(p => p.tags.forEach((t: string) => s.add(t)))
+    posts.forEach(p => (p.tags || []).forEach((t: string) => s.add(t)))
     return Array.from(s)
   }, [posts])
 
@@ -202,9 +178,9 @@ export default function Discover() {
   const filterPosts = useMemo(() => {
     let list = [...posts]
     if (activeTags.length > 0) {
-      list = list.filter((p) => activeTags.every((tag) => p.tags.includes(tag)))
+      list = list.filter((p) => activeTags.every((tag) => (p.tags || []).includes(tag)))
     }
-    if (search.trim()) list = list.filter(p => p.title.includes(search.trim()))
+    if (search.trim()) list = list.filter(p => String(p.title || '').includes(search.trim()))
     if (activeSort === 'hot') {
       list = list
         .filter((p) => resolvePostCreatedAt(p) >= currentWeekStart)
@@ -236,22 +212,23 @@ export default function Discover() {
 
   return (
     <View className={classNames('page-discover', 'page-container-full', `theme-${theme}`)}>
-      {/* 顶部 Tab 切换 */}
       <View className="discover-header">
-        <View className="discover-header__inner">
-          <View className="discover-tabs">
-            {TABS.map(tab => (
-              <View
-                key={tab.id}
-                className={classNames('discover-tab', {
-                  'discover-tab--active': activeTab === tab.id
-                })}
-                onClick={() => setActiveTab(tab.id)}
-              >
-                <Text className="discover-tab__text">{tab.label}</Text>
-              </View>
-            ))}
-          </View>
+        <View className="discover-title">
+          <Text className="discover-title__main">发现</Text>
+          <Text className="discover-title__sub">动态与合作机会</Text>
+        </View>
+        <View className="discover-tabs">
+          {TABS.map(tab => (
+            <View
+              key={tab.id}
+              className={classNames('discover-tab', {
+                'discover-tab--active': activeTab === tab.id
+              })}
+              onClick={() => setActiveTab(tab.id)}
+            >
+              <Text className="discover-tab__text">{tab.label}</Text>
+            </View>
+          ))}
         </View>
       </View>
 
@@ -262,7 +239,7 @@ export default function Discover() {
               <Input
                 value={search}
                 onInput={e => setSearch((e.detail as any).value)}
-                placeholder="搜索你感兴趣的动态内容"
+                placeholder="搜索动态内容"
               />
             </View>
 
@@ -291,7 +268,7 @@ export default function Discover() {
                   <Text className="discover-square__tag-trigger-text">
                     标签筛选：{activeTags.length === 0 ? '全部' : activeTags.slice(0, 2).join(' / ') + (activeTags.length > 2 ? ` 等${activeTags.length}项` : '')}
                   </Text>
-                  <Text className="discover-square__tag-trigger-arrow">{tagDropdownOpen ? '▲' : '▼'}</Text>
+                  <Text className="discover-square__tag-trigger-arrow">{tagDropdownOpen ? '收起' : '展开'}</Text>
                 </View>
 
                 {tagDropdownOpen && (
@@ -299,21 +276,13 @@ export default function Discover() {
                     <ScrollView scrollY className="discover-square__tag-scroll">
                       <View className="discover-square__tag-options">
                         <View key="all" onClick={clearTagFilters}>
-                          <Tag
-                            type={activeTags.length === 0 ? 'primary' : 'default'}
-                            outline={activeTags.length > 0}
-                            size="medium"
-                          >
+                          <Tag type={activeTags.length === 0 ? 'primary' : 'default'} outline={activeTags.length > 0} size="medium">
                             全部
                           </Tag>
                         </View>
                         {allTags.map(tag => (
                           <View key={tag} onClick={() => handleTagFilterClick(tag)}>
-                            <Tag
-                              type={activeTags.includes(tag) ? 'primary' : 'default'}
-                              outline={!activeTags.includes(tag)}
-                              size="medium"
-                            >
+                            <Tag type={activeTags.includes(tag) ? 'primary' : 'default'} outline={!activeTags.includes(tag)} size="medium">
                               {tag}
                             </Tag>
                           </View>
@@ -327,9 +296,9 @@ export default function Discover() {
 
             <View className="discover-waterfall">
               <View style={{ display: filterPosts.length === 0 ? 'block' : 'none' }}>
-                <EmptyState title={activeSort === 'hot' ? '本周热门暂无动态' : '广场暂无动态'} />
+                <EmptyState title={activeSort === 'hot' ? '本周暂无热门动态' : '广场暂无动态'} />
               </View>
-              
+
               <View style={{ display: filterPosts.length > 0 ? 'block' : 'none' }}>
                 <View className="discover-waterfall__cols">
                   <View className="discover-waterfall__col">
@@ -404,7 +373,7 @@ export default function Discover() {
               <View style={{ display: demands.length === 0 ? 'block' : 'none' }}>
                 <EmptyState title="市集暂无内容" />
               </View>
-              
+
               <View style={{ display: demands.length > 0 ? 'block' : 'none' }}>
                 {demands.map(demand => (
                   <DemandCard

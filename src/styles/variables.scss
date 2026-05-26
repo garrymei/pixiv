@@ -1,99 +1,70 @@
-/* 
-  粤次元君 - 前端 Design Tokens 样式变量文件 
-  严格按照第 1 阶段 design-tokens.md 定义落地
-*/
+// Yue Ci Yuan Jun design tokens
 
-// ==========================================
-// 1. 颜色 Tokens (Color)
-// ==========================================
+$color-primary: #8B5CF6;
+$color-secondary: #F43F7F;
+$color-tertiary: #22D3EE;
 
-// 1.1 主题色与强调色
-$color-primary: #7C4DFF;       // 品牌主色调（紫蓝色）
-$color-secondary: #FF4081;     // 辅助强调色（霓虹粉）
-$color-tertiary: #00E5FF;      // 赛博青色
+$color-bg-page: #0E1018;
+$color-bg-card: #171923;
+$color-bg-card-hover: #202330;
+$color-bg-overlay: rgba(0, 0, 0, 0.72);
 
-// 1.2 背景色 (深色主题)
-$color-bg-page: #0d0a15;       // 页面最底层背景色
-$color-bg-card: #181328;       // 卡片背景色
-$color-bg-card-hover: #211936; // 卡片点击/按压反馈
-$color-bg-overlay: rgba(0,0,0,0.75); // 遮罩层背景色
+$color-text-primary: #FFFFFF;
+$color-text-regular: #E5E7EB;
+$color-text-secondary: #9CA3AF;
+$color-text-placeholder: #6B7280;
 
-// 1.3 文字颜色
-$color-text-primary: #FFFFFF;    // 主要文字
-$color-text-regular: #E0E0E0;    // 常规文字
-$color-text-secondary: #9E9E9E;  // 辅助文字
-$color-text-placeholder: #757575;// 占位符文字
+$color-success: #22C55E;
+$color-warning: #F59E0B;
+$color-error: #EF4444;
 
-// 1.4 功能状态色
-$color-success: #00C853;         // 成功状态
-$color-warning: #FFD600;         // 警告状态
-$color-error: #D50000;           // 错误状态
-
-// ==========================================
-// 2. 字体与排版 Tokens (Typography)
-// ==========================================
-$font-size-xxl: 48rpx; // 超大标题
-$font-size-xl: 40rpx;  // 页面大标题
-$font-size-lg: 36rpx;  // 模块标题
-$font-size-md: 32rpx;  // 基础正文字号
-$font-size-sm: 28rpx;  // 辅助信息
-$font-size-xs: 24rpx;  // 最小字号
+$font-size-xxl: 48rpx;
+$font-size-xl: 40rpx;
+$font-size-lg: 34rpx;
+$font-size-md: 30rpx;
+$font-size-sm: 26rpx;
+$font-size-xs: 22rpx;
 
 $font-weight-bold: 600;
 $font-weight-regular: 400;
 
-// ==========================================
-// Light Theme Tokens (浅色主题)
-// ==========================================
-$color-primary-light: #6A4CFF;
-$color-secondary-light: #FF2D7A;
-$color-tertiary-light: #00BBD6;
+$color-primary-light: #7C3AED;
+$color-secondary-light: #E11D64;
+$color-tertiary-light: #0891B2;
 
-$color-bg-page-light: #F7F7FB;
-$color-bg-card-light: rgba(255, 255, 255, 0.82);
-$color-bg-card-hover-light: rgba(255, 255, 255, 0.94);
+$color-bg-page-light: #F6F7FB;
+$color-bg-card-light: rgba(255, 255, 255, 0.9);
+$color-bg-card-hover-light: rgba(255, 255, 255, 0.98);
 $color-bg-overlay-light: rgba(9, 6, 18, 0.5);
 
-$color-text-primary-light: #14101f;
+$color-text-primary-light: #14101F;
 $color-text-regular-light: rgba(20, 16, 31, 0.82);
 $color-text-secondary-light: rgba(20, 16, 31, 0.58);
 $color-text-placeholder-light: rgba(20, 16, 31, 0.38);
 
-$color-success-light: #00A855;
-$color-warning-light: #FFB300;
-$color-error-light: #D50000;
+$color-success-light: #16A34A;
+$color-warning-light: #D97706;
+$color-error-light: #DC2626;
 
-$shadow-card-light: 0 18rpx 54rpx rgba(17, 10, 36, 0.12);
-$shadow-glow-primary-light: 0 0 18rpx rgba(106, 76, 255, 0.26);
-$shadow-glow-pink-light: 0 0 18rpx rgba(255, 45, 122, 0.22);
+$space-xs: 8rpx;
+$space-sm: 16rpx;
+$space-md: 24rpx;
+$space-lg: 32rpx;
+$space-xl: 48rpx;
 
-// ==========================================
-// 3. 间距 Tokens (Spacing)
-// ==========================================
-$space-xs: 8rpx;   // 极小间距
-$space-sm: 16rpx;  // 紧凑间距
-$space-md: 24rpx;  // 基础间距
-$space-lg: 32rpx;  // 宽松间距
-$space-xl: 48rpx;  // 大区块分隔间距
+$radius-sm: 8rpx;
+$radius-md: 18rpx;
+$radius-lg: 24rpx;
+$radius-round: 9999rpx;
 
-// ==========================================
-// 4. 圆角 Tokens (Border Radius)
-// ==========================================
-$radius-sm: 8rpx;    // 小元素圆角
-$radius-md: 16rpx;   // 中等圆角
-$radius-lg: 24rpx;   // 大圆角
-$radius-round: 9999rpx; // 全圆角
+$shadow-card: 0 18rpx 44rpx rgba(0, 0, 0, 0.22);
+$shadow-glow-primary: 0 16rpx 34rpx rgba(139, 92, 246, 0.2);
+$shadow-glow-pink: 0 16rpx 34rpx rgba(244, 63, 127, 0.18);
 
-// ==========================================
-// 5. 阴影与发光 Tokens (Shadow & Glow)
-// ==========================================
-$shadow-card: 0 4rpx 16rpx rgba(0, 0, 0, 0.4);
-$shadow-glow-primary: 0 0 16rpx rgba(124, 77, 255, 0.4);
-$shadow-glow-pink: 0 0 16rpx rgba(255, 64, 129, 0.5);
+$shadow-card-light: 0 18rpx 50rpx rgba(15, 23, 42, 0.08);
+$shadow-glow-primary-light: 0 14rpx 34rpx rgba(124, 58, 237, 0.16);
+$shadow-glow-pink-light: 0 14rpx 34rpx rgba(225, 29, 100, 0.14);
 
-// ==========================================
-// 6. 层级 Tokens (Z-Index)
-// ==========================================
 $z-index-base: 1;
 $z-index-sticky: 100;
 $z-index-navbar: 500;
@@ -102,54 +73,41 @@ $z-index-overlay: 900;
 $z-index-modal: 1000;
 $z-index-toast: 2000;
 
-// ==========================================
-// 导出为 CSS Variables (原生支持)
-// 方便在行内样式或无法使用scss变量的地方使用
-// ==========================================
 :root, page {
   --color-primary: #{$color-primary};
   --color-secondary: #{$color-secondary};
   --color-tertiary: #{$color-tertiary};
-  
   --color-bg-page: #{$color-bg-page};
   --color-bg-card: #{$color-bg-card};
   --color-bg-card-hover: #{$color-bg-card-hover};
   --color-bg-overlay: #{$color-bg-overlay};
-  
   --color-text-primary: #{$color-text-primary};
   --color-text-regular: #{$color-text-regular};
   --color-text-secondary: #{$color-text-secondary};
   --color-text-placeholder: #{$color-text-placeholder};
-  
   --color-success: #{$color-success};
   --color-warning: #{$color-warning};
   --color-error: #{$color-error};
-
   --font-size-xxl: #{$font-size-xxl};
   --font-size-xl: #{$font-size-xl};
   --font-size-lg: #{$font-size-lg};
   --font-size-md: #{$font-size-md};
   --font-size-sm: #{$font-size-sm};
   --font-size-xs: #{$font-size-xs};
-
   --font-weight-bold: #{$font-weight-bold};
   --font-weight-regular: #{$font-weight-regular};
-  
   --space-xs: #{$space-xs};
   --space-sm: #{$space-sm};
   --space-md: #{$space-md};
   --space-lg: #{$space-lg};
   --space-xl: #{$space-xl};
-  
   --radius-sm: #{$radius-sm};
   --radius-md: #{$radius-md};
   --radius-lg: #{$radius-lg};
   --radius-round: #{$radius-round};
-  
   --shadow-card: #{$shadow-card};
   --shadow-glow-primary: #{$shadow-glow-primary};
   --shadow-glow-pink: #{$shadow-glow-pink};
-
   --safe-area-bottom: env(safe-area-inset-bottom);
 }
 
@@ -157,21 +115,17 @@ $z-index-toast: 2000;
   --color-primary: #{$color-primary};
   --color-secondary: #{$color-secondary};
   --color-tertiary: #{$color-tertiary};
-  
   --color-bg-page: #{$color-bg-page};
   --color-bg-card: #{$color-bg-card};
   --color-bg-card-hover: #{$color-bg-card-hover};
   --color-bg-overlay: #{$color-bg-overlay};
-  
   --color-text-primary: #{$color-text-primary};
   --color-text-regular: #{$color-text-regular};
   --color-text-secondary: #{$color-text-secondary};
   --color-text-placeholder: #{$color-text-placeholder};
-  
   --color-success: #{$color-success};
   --color-warning: #{$color-warning};
   --color-error: #{$color-error};
-
   --shadow-card: #{$shadow-card};
   --shadow-glow-primary: #{$shadow-glow-primary};
   --shadow-glow-pink: #{$shadow-glow-pink};
@@ -181,21 +135,17 @@ $z-index-toast: 2000;
   --color-primary: #{$color-primary-light};
   --color-secondary: #{$color-secondary-light};
   --color-tertiary: #{$color-tertiary-light};
-  
   --color-bg-page: #{$color-bg-page-light};
   --color-bg-card: #{$color-bg-card-light};
   --color-bg-card-hover: #{$color-bg-card-hover-light};
   --color-bg-overlay: #{$color-bg-overlay-light};
-  
   --color-text-primary: #{$color-text-primary-light};
   --color-text-regular: #{$color-text-regular-light};
   --color-text-secondary: #{$color-text-secondary-light};
   --color-text-placeholder: #{$color-text-placeholder-light};
-  
   --color-success: #{$color-success-light};
   --color-warning: #{$color-warning-light};
   --color-error: #{$color-error-light};
-
   --shadow-card: #{$shadow-card-light};
   --shadow-glow-primary: #{$shadow-glow-primary-light};
   --shadow-glow-pink: #{$shadow-glow-pink-light};

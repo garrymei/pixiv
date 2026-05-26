@@ -5,71 +5,68 @@
   box-sizing: border-box;
   font-weight: var(--font-weight-bold);
   border-radius: var(--radius-md);
-  transition: all 0.2s;
+  transition: transform 0.18s ease, opacity 0.18s ease, box-shadow 0.18s ease;
   cursor: pointer;
   position: relative;
   overflow: hidden;
 
-  // Sizes
   &--large {
-    height: 96rpx;
-    padding: 0 48rpx;
-    font-size: var(--font-size-lg);
+    height: 92rpx;
+    padding: 0 44rpx;
+    font-size: var(--font-size-md);
     border-radius: var(--radius-lg);
   }
 
   &--medium {
-    height: 80rpx;
+    height: 78rpx;
     padding: 0 32rpx;
     font-size: var(--font-size-md);
   }
 
   &--small {
-    height: 64rpx;
-    padding: 0 24rpx;
+    height: 60rpx;
+    padding: 0 22rpx;
     font-size: var(--font-size-sm);
     border-radius: var(--radius-sm);
   }
 
-  // Types
   &--primary {
-    background-color: var(--color-primary);
-    color: var(--color-text-primary);
+    background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+    color: #fff;
     box-shadow: var(--shadow-glow-primary);
-    border: 2rpx solid rgba(255,255,255,0.2);
+    border: 1rpx solid rgba(255, 255, 255, 0.12);
 
     &:active {
-      opacity: 0.8;
-      box-shadow: 0 0 30rpx rgba(124, 77, 255, 0.8);
+      opacity: 0.92;
       transform: scale(0.98);
+      box-shadow: 0 18rpx 38rpx rgba(139, 92, 246, 0.26);
     }
   }
 
   &--secondary {
-    background-color: var(--color-secondary);
+    background: rgba(255, 255, 255, 0.08);
     color: var(--color-text-primary);
-    box-shadow: var(--shadow-glow-pink);
-    border: 2rpx solid rgba(255,255,255,0.2);
+    border: 1rpx solid rgba(255, 255, 255, 0.12);
+    box-shadow: none;
 
     &:active {
-      opacity: 0.8;
-      box-shadow: 0 0 30rpx rgba(255, 64, 129, 0.8);
+      opacity: 0.88;
       transform: scale(0.98);
     }
   }
 
   &--outline {
-    background-color: transparent;
+    background: transparent;
     color: var(--color-primary);
-    border: 2rpx solid var(--color-primary);
+    border: 1rpx solid rgba(139, 92, 246, 0.46);
 
     &:active {
-      background-color: rgba(124, 77, 255, 0.1);
+      background: rgba(139, 92, 246, 0.1);
     }
   }
 
   &--text {
-    background-color: transparent;
+    background: transparent;
     color: var(--color-text-regular);
     padding: 0;
     height: auto;
@@ -79,7 +76,6 @@
     }
   }
 
-  // States
   &--block {
     display: flex;
     width: 100%;
@@ -89,9 +85,10 @@
     opacity: 0.5;
     cursor: not-allowed;
     box-shadow: none;
-    
+
     &:active {
       opacity: 0.5;
+      transform: none;
     }
   }
 
@@ -117,30 +114,19 @@
 
 .theme-light {
   .base-button {
-    &--primary,
     &--secondary {
-      border: 2rpx solid rgba(20, 16, 31, 0.08);
+      background: rgba(20, 16, 31, 0.05);
+      color: rgba(20, 16, 31, 0.88);
+      border-color: rgba(20, 16, 31, 0.1);
     }
 
     &--primary {
-      box-shadow: 0 0 18rpx rgba(106, 76, 255, 0.18);
-
-      &:active {
-        box-shadow: 0 0 26rpx rgba(106, 76, 255, 0.22);
-      }
-    }
-
-    &--secondary {
-      box-shadow: 0 0 18rpx rgba(255, 45, 122, 0.16);
-
-      &:active {
-        box-shadow: 0 0 26rpx rgba(255, 45, 122, 0.2);
-      }
+      box-shadow: 0 16rpx 34rpx rgba(124, 58, 237, 0.16);
     }
 
     &--outline {
       &:active {
-        background-color: rgba(106, 76, 255, 0.08);
+        background: rgba(124, 58, 237, 0.08);
       }
     }
 

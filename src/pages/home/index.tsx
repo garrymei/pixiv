@@ -13,9 +13,11 @@ import { useThemeMode } from '../../config/theme'
 
 import './index.scss'
 
+type MutualIconType = 'wig' | 'makeup' | 'camera'
+
 const QUICK_ENTRIES = [
-  { id: 'q_1', title: '漫展资讯', icon: '📅', url: '/pages/events/index' },
-  { id: 'q_2', title: '找CP/扩列', icon: '🤝', url: '/pages/discover/index' }
+  { id: 'events', title: '漫展活动', iconType: 'calendar' as const, url: '/pages/events/index' },
+  { id: 'market', title: '合作市集', iconType: 'handshake' as const, url: '/pages/discover/index' }
 ]
 
 const TAB_BAR_PAGES = new Set([
@@ -30,20 +32,30 @@ const DISCOVER_NAVIGATION_INTENT_KEY = 'discover_navigation_intent'
 
 const MUTUAL_HELP_TABS = [
   { id: 'seek', label: '我来找你' },
-  { id: 'offer', label: '我行我上' }
+  { id: 'offer', label: '我能提供' }
 ] as const
 
-const MUTUAL_HELP_ITEMS: Record<'seek' | 'offer', Array<{ id: string; title: string; icon: string; marketMain: 'seek' | 'offer'; marketSub: string }>> = {
+const MUTUAL_HELP_ITEMS: Record<'seek' | 'offer', Array<{ id: string; title: string; iconType: MutualIconType; marketMain: 'seek' | 'offer'; marketSub: string }>> = {
   seek: [
-    { id: 'seek_1', title: '找毛娘', icon: '✂️', marketMain: 'seek', marketSub: '找毛娘' },
-    { id: 'seek_2', title: '找妆娘', icon: '💄', marketMain: 'seek', marketSub: '找妆娘' },
-    { id: 'seek_3', title: '找摄影', icon: '📷', marketMain: 'seek', marketSub: '找摄影' }
+    { id: 'seek_wig', title: '找毛娘', iconType: 'wig', marketMain: 'seek', marketSub: '找毛娘' },
+    { id: 'seek_makeup', title: '找妆娘', iconType: 'makeup', marketMain: 'seek', marketSub: '找妆娘' },
+    { id: 'seek_photo', title: '找摄影', iconType: 'camera', marketMain: 'seek', marketSub: '找摄影' }
   ],
   offer: [
-    { id: 'offer_1', title: '本毛娘', icon: '✨', marketMain: 'offer', marketSub: '本毛娘' },
-    { id: 'offer_2', title: '本妆娘', icon: '💅', marketMain: 'offer', marketSub: '本妆娘' },
-    { id: 'offer_3', title: '本摄影', icon: '📸', marketMain: 'offer', marketSub: '本摄影' }
+    { id: 'offer_wig', title: '接毛娘', iconType: 'wig', marketMain: 'offer', marketSub: '接毛娘' },
+    { id: 'offer_makeup', title: '接妆娘', iconType: 'makeup', marketMain: 'offer', marketSub: '接妆娘' },
+    { id: 'offer_photo', title: '接摄影', iconType: 'camera', marketMain: 'offer', marketSub: '接摄影' }
   ]
+}
+
+function MutualIcon({ type }: { type: MutualIconType }) {
+  return (
+    <View className={classNames('page-home__mutual-icon-graphic', `page-home__mutual-icon-graphic--${type}`)}>
+      <View className="page-home__mutual-icon-line page-home__mutual-icon-line--a" />
+      <View className="page-home__mutual-icon-line page-home__mutual-icon-line--b" />
+      <View className="page-home__mutual-icon-line page-home__mutual-icon-line--c" />
+    </View>
+  )
 }
 
 export default function Home() {
@@ -61,10 +73,6 @@ export default function Home() {
     Taro.navigateTo({ url })
   }, [])
 
-  const handleEntryClick = (url?: string) => {
-    openPage(url)
-  }
-
   const handleMutualHelpClick = (marketMain: 'seek' | 'offer', marketSub: string) => {
     Taro.setStorageSync(DISCOVER_NAVIGATION_INTENT_KEY, {
       activeTab: 'market',
@@ -80,10 +88,7 @@ export default function Home() {
 
   const handleBannerClick = useCallback((linkUrl?: string) => {
     if (!linkUrl) return
-    if (linkUrl.startsWith('/pages/')) {
-      openPage(linkUrl)
-      return
-    }
+    if (linkUrl.startsWith('/pages/')) openPage(linkUrl)
   }, [openPage])
 
   const loadData = useCallback(async () => {
@@ -116,12 +121,13 @@ export default function Home() {
   return (
     <View className={classNames('page-home', `theme-${theme}`)}>
       <View className="page-home__hero-shell">
-        <View className="page-home__hero-topbar">
-          <View className="page-home__hero-copy">
-            <Text className="page-home__eyebrow">YUE CI YUAN JUN</Text>
-            <Text className="page-home__headline">粤次元君</Text>
-            <Text className="page-home__subheadline">发现湾区同好，连接热爱与创作。</Text>
-          </View>
+        <View className="page-home__hero-copy">
+          <Text className="page-home__eyebrow">YUE CI YUAN JUN</Text>
+          <Text className="page-home__headline">粤次元君</Text>
+          <Text className="page-home__subheadline">发现同城同好，连接创作、活动与合作。</Text>
+        </View>
+        <View className="page-home__hero-badge">
+          <Text className="page-home__hero-badge-text">社区 Beta</Text>
         </View>
       </View>
 
@@ -139,19 +145,22 @@ export default function Home() {
         ) : null}
 
         <SectionHeader
-          title="次元快捷入口"
-          actionText="查看全部"
-          onAction={() => handleEntryClick('/pages/events/index')}
+          title="快捷入口"
+          actionText="全部"
+          onAction={() => openPage('/pages/discover/index')}
         />
         <QuickEntryGrid
           className="page-home__quick-grid"
           items={QUICK_ENTRIES}
-          onItemClick={(item) => handleEntryClick(item.url)}
+          onItemClick={(item) => openPage(item.url)}
         />
 
         <View className="page-home__mutual-help">
           <View className="page-home__mutual-header">
-            <Text className="page-home__mutual-title">次元互帮互助</Text>
+            <View>
+              <Text className="page-home__mutual-title">合作互助</Text>
+              <Text className="page-home__mutual-desc">按角色快速进入市集筛选</Text>
+            </View>
             <View className="page-home__mutual-tabs">
               {MUTUAL_HELP_TABS.map(tab => (
                 <View
@@ -159,7 +168,7 @@ export default function Home() {
                   className={classNames('page-home__mutual-tab', {
                     'page-home__mutual-tab--active': mutualHelpTab === tab.id
                   })}
-                  onClick={() => setMutualHelpTab(tab.id as 'seek' | 'offer')}
+                  onClick={() => setMutualHelpTab(tab.id)}
                 >
                   <Text>{tab.label}</Text>
                 </View>
@@ -168,12 +177,14 @@ export default function Home() {
           </View>
           <View className="page-home__mutual-content">
             {MUTUAL_HELP_ITEMS[mutualHelpTab].map(item => (
-              <View 
-                key={item.id} 
+              <View
+                key={item.id}
                 className="page-home__mutual-item"
                 onClick={() => handleMutualHelpClick(item.marketMain, item.marketSub)}
               >
-                <View className="page-home__mutual-icon">{item.icon}</View>
+                <View className="page-home__mutual-icon">
+                  <MutualIcon type={item.iconType} />
+                </View>
                 <Text className="page-home__mutual-text">{item.title}</Text>
               </View>
             ))}
@@ -183,10 +194,10 @@ export default function Home() {
         <View className="page-home__feed-panel">
           <View className="page-home__panel-header">
             <View className="page-home__panel-copy">
-              <Text className="page-home__panel-title">一周热帖</Text>
-              <Text className="page-home__panel-desc">最近一周最受欢迎的同好动态</Text>
+              <Text className="page-home__panel-title">本周热帖</Text>
+              <Text className="page-home__panel-desc">最近更受欢迎的同好动态</Text>
             </View>
-            <View className="page-home__panel-chip">🔥 最新</View>
+            <View className="page-home__panel-chip">热门</View>
           </View>
 
           <View className="page-home__waterfall">

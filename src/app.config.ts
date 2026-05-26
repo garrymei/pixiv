@@ -22,7 +22,7 @@ export default {
   window: {
     backgroundTextStyle: 'light',
     navigationBarTitleText: '粤次元君',
-    navigationBarBackgroundColor: '#0d0a15',
+    navigationBarBackgroundColor: '#0E1018',
     navigationBarTextStyle: 'white'
   },
   tabBar: {
@@ -58,9 +58,9 @@ export default {
         selectedIconPath: 'assets/tabbar/profile-active.png'
       }
     ],
-    selectedColor: '#FF4081',
-    color: '#999999',
-    backgroundColor: '#0d0a15',
+    selectedColor: '#F43F7F',
+    color: '#9CA3AF',
+    backgroundColor: '#0E1018',
     borderStyle: 'black'
   }
 }
