@@ -479,6 +479,9 @@ export class DemandApplicationService {
     target.exitApprovedAt = new Date()
     target.cancelledAt = target.exitApprovedAt
     await this.applicationsRepo.save(target)
+    if (demand.accepted_application_id === target.id) {
+      await this.demandsService.clearAcceptedApplication(demandId)
+    }
     return { approved: true, application_id: target.id, can_continue_recruit: true }
   }
 

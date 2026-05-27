@@ -1,4 +1,4 @@
-import { ConflictException, Injectable } from '@nestjs/common'
+import { ConflictException, Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { In, Repository } from 'typeorm'
 import { CreateDemandDto } from './dto/create-demand.dto'
@@ -65,8 +65,14 @@ function buildDemandSubmissionKey(authorId: number, dto: CreateDemandDto) {
   })
 }
 
+const DEMAND_STATUS_REFRESH_INTERVAL = 60 * 60 * 1000
+
 @Injectable()
-export class DemandsService {
+export class DemandsService implements OnModuleInit, OnModuleDestroy {
+  private readonly logger = new Logger(DemandsService.name)
+  private refreshTimer?: NodeJS.Timeout
+  private refreshPromise: Promise<void> | null = null
+
   constructor(
     @InjectRepository(Demand)
     private readonly demandsRepo: Repository<Demand>,
@@ -75,6 +81,77 @@ export class DemandsService {
     @InjectRepository(User)
     private readonly usersRepo: Repository<User>
   ) {}
+
+  onModuleInit() {
+    this.refreshStaleStatuses().catch((error) => {
+      this.logger.warn(`initial demand status refresh failed: ${error?.message || error}`)
+    })
+    this.refreshTimer = setInterval(() => {
+      this.refreshStaleStatuses().catch((error) => {
+        this.logger.warn(`scheduled demand status refresh failed: ${error?.message || error}`)
+      })
+    }, DEMAND_STATUS_REFRESH_INTERVAL)
+    this.refreshTimer.unref?.()
+  }
+
+  onModuleDestroy() {
+    if (this.refreshTimer) {
+      clearInterval(this.refreshTimer)
+      this.refreshTimer = undefined
+    }
+  }
+
+  async refreshStaleStatuses() {
+    if (this.refreshPromise) return this.refreshPromise
+    this.refreshPromise = this.runStatusRefresh().finally(() => {
+      this.refreshPromise = null
+    })
+    return this.refreshPromise
+  }
+
+  private async runStatusRefresh() {
+    const openDemands = await this.demandsRepo.find({
+      where: { status: DemandStatus.OPEN },
+      select: ['id', 'participantLimit']
+    })
+    if (openDemands.length > 0) {
+      const ids = openDemands.map((item) => item.id)
+      const rows = await this.applicationsRepo
+        .createQueryBuilder('app')
+        .select('app.demand_id', 'demandId')
+        .addSelect('COUNT(*)', 'total')
+        .where('app.demand_id IN (:...ids)', { ids })
+        .andWhere('app.publisher_accepted_at IS NOT NULL')
+        .andWhere('app.applicant_confirmed_at IS NOT NULL')
+        .andWhere('app.cancelled_at IS NULL')
+        .groupBy('app.demand_id')
+        .getRawMany<{ demandId: string; total: string }>()
+
+      const confirmedMap = new Map(rows.map((row) => [Number(row.demandId), Number(row.total || 0)]))
+      const completedIds = openDemands
+        .filter((item) => (confirmedMap.get(item.id) || 0) >= (item.participantLimit || 1))
+        .map((item) => item.id)
+
+      if (completedIds.length > 0) {
+        await this.demandsRepo
+          .createQueryBuilder()
+          .update(Demand)
+          .set({ status: DemandStatus.COMPLETED })
+          .where('id IN (:...completedIds)', { completedIds })
+          .andWhere('status = :status', { status: DemandStatus.OPEN })
+          .execute()
+      }
+    }
+
+    const now = new Date()
+    await this.demandsRepo
+      .createQueryBuilder()
+      .update(Demand)
+      .set({ status: DemandStatus.CLOSED })
+      .where('status = :status', { status: DemandStatus.OPEN })
+      .andWhere('(deadline IS NOT NULL AND deadline < :now OR event_time IS NOT NULL AND event_time < :now)', { now })
+      .execute()
+  }
 
   private async buildResponses(items: Demand[]): Promise<DemandResponse[]> {
     if (items.length === 0) return []
@@ -159,6 +236,7 @@ export class DemandsService {
   }
 
   async list(params: { demand_type?: DemandType; page?: number; pageSize?: number }) {
+    await this.refreshStaleStatuses()
     const { demand_type, page = 1, pageSize = 10 } = params || {}
     const [items, total] = await this.demandsRepo.findAndCount({
       where: {
@@ -174,6 +252,7 @@ export class DemandsService {
   }
 
   async getById(id: number) {
+    await this.refreshStaleStatuses()
     const item = await this.demandsRepo.findOne({ where: { id } })
     if (!item || item.moderationStatus !== ModerationStatus.APPROVED) return null
     const [data] = await this.buildResponses([item])
@@ -282,6 +361,7 @@ export class DemandsService {
   }
 
   async listMine(authorId: number, page = 1, pageSize = 10) {
+    await this.refreshStaleStatuses()
     const [items, total] = await this.demandsRepo.findAndCount({
       where: { authorId },
       order: { createdAt: 'DESC', id: 'DESC' },
