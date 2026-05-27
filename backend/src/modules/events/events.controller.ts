@@ -2,6 +2,7 @@ import { Body, Controller, Delete, Get, Param, Patch, Post, Query, Req, UseGuard
 import { EventsService } from './events.service'
 import { ListEventsDto } from './dto/list-events.dto'
 import { JwtAuthGuard } from '../auth/jwt-auth.guard'
+import { AdminTokenGuard } from '../../common/guards/admin-token.guard'
 import { EventRegistrationService } from '../event-registration/event-registration.service'
 import { UpsertEventDto } from './dto/upsert-event.dto'
 
@@ -29,19 +30,19 @@ export class EventsController {
   }
 
   @Post()
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(AdminTokenGuard)
   async create(@Body() dto: UpsertEventDto) {
     return this.eventsService.create(dto)
   }
 
   @Patch(':id')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(AdminTokenGuard)
   async update(@Param('id') id: string, @Body() dto: Partial<UpsertEventDto>) {
     return this.eventsService.update(Number(id), dto)
   }
 
   @Delete(':id')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(AdminTokenGuard)
   async remove(@Param('id') id: string) {
     return this.eventsService.remove(Number(id))
   }

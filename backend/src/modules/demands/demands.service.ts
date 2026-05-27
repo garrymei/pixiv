@@ -251,6 +251,22 @@ export class DemandsService implements OnModuleInit, OnModuleDestroy {
     return { list: data, total, page, pageSize }
   }
 
+  async listForAdmin(params: { status?: DemandStatus; moderationStatus?: ModerationStatus; page?: number; pageSize?: number }) {
+    await this.refreshStaleStatuses()
+    const { status, moderationStatus, page = 1, pageSize = 20 } = params || {}
+    const [items, total] = await this.demandsRepo.findAndCount({
+      where: {
+        ...(status ? { status } : {}),
+        ...(moderationStatus ? { moderationStatus } : {})
+      },
+      order: { createdAt: 'DESC', id: 'DESC' },
+      skip: (page - 1) * pageSize,
+      take: pageSize
+    })
+    const data = await this.buildResponses(items)
+    return { list: data, total, page, pageSize }
+  }
+
   async getById(id: number) {
     await this.refreshStaleStatuses()
     const item = await this.demandsRepo.findOne({ where: { id } })

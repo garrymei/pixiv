@@ -345,6 +345,10 @@
                 <label>昵称（可选）</label>
                 <input id="nickname" value="平台运营" />
               </div>
+              <div>
+                <label>后台 Token</label>
+                <input id="adminToken" type="password" placeholder="ADMIN_TOKEN" />
+              </div>
             </div>
             <div class="toolbar">
               <button id="loginBtn" style="max-width:180px;">登录并获取 Token</button>
@@ -376,6 +380,30 @@
               <span class="module-meta ok">规划中</span>
               <p>目标指标：首屏接口成功率、首屏耗时、Banner 点击率、首页空数据告警。</p>
             </div>
+          </div>
+          <div class="card span-12">
+            <div class="section-head">
+              <div>
+                <h3>Banner 管理</h3>
+                <p>同步 banners 表的 position、jump_link、sort_order、status 字段。</p>
+              </div>
+              <button id="refreshBannersBtn" class="secondary" style="max-width:140px;">刷新 Banner</button>
+            </div>
+            <div class="row">
+              <div><label>标题</label><input id="bannerTitle" /></div>
+              <div><label>位置</label><input id="bannerPosition" value="home_top" /></div>
+              <div><label>排序</label><input id="bannerSort" type="number" value="0" /></div>
+              <div><label>状态</label><select id="bannerStatus"><option value="1">启用</option><option value="0">停用</option></select></div>
+            </div>
+            <div class="row">
+              <div style="flex:2 1 420px;"><label>图片 URL</label><input id="bannerImageUrl" /></div>
+              <div style="flex:2 1 420px;"><label>跳转链接</label><input id="bannerJumpLink" /></div>
+              <div><label>&nbsp;</label><button id="createBannerBtn">新增 Banner</button></div>
+            </div>
+            <table id="bannerTable">
+              <thead><tr><th>ID</th><th>标题</th><th>位置</th><th>排序</th><th>状态</th><th>图片</th><th>跳转</th><th>操作</th></tr></thead>
+              <tbody><tr><td colspan="8"><span class="muted">请输入后台 Token 后刷新</span></td></tr></tbody>
+            </table>
           </div>
         </div>
       </section>
@@ -448,6 +476,25 @@
               <tbody>
                 <tr><td colspan="8"><span class="muted">请先登录并加载我发布的需求</span></td></tr>
               </tbody>
+            </table>
+          </div>
+          <div class="card span-12">
+            <div class="section-head">
+              <div>
+                <h3>内容审核</h3>
+                <p>查看并处理帖子、需求的 moderation_status / moderation_reason。</p>
+              </div>
+              <button id="refreshReviewsBtn" class="secondary" style="max-width:160px;">刷新审核列表</button>
+            </div>
+            <h4>帖子审核</h4>
+            <table id="postReviewTable">
+              <thead><tr><th>ID</th><th>标题</th><th>作者</th><th>状态</th><th>原因</th><th>操作</th></tr></thead>
+              <tbody><tr><td colspan="6"><span class="muted">请输入后台 Token 后刷新</span></td></tr></tbody>
+            </table>
+            <h4 style="margin-top:18px;">需求审核与状态</h4>
+            <table id="demandReviewTable">
+              <thead><tr><th>ID</th><th>标题</th><th>状态</th><th>审核</th><th>人数</th><th>取消/改期</th><th>操作</th></tr></thead>
+              <tbody><tr><td colspan="7"><span class="muted">请输入后台 Token 后刷新</span></td></tr></tbody>
             </table>
           </div>
         </div>
@@ -600,6 +647,19 @@
               <p>目标指标：资料更新成功率、异常账号识别、高频操作告警、用户留存趋势。</p>
             </div>
           </div>
+          <div class="card span-12">
+            <div class="section-head">
+              <div>
+                <h3>头像审核</h3>
+                <p>同步 avatar_pending、avatar_review_status、avatar_review_reason 字段。</p>
+              </div>
+              <button id="refreshAvatarReviewsBtn" class="secondary" style="max-width:160px;">刷新头像审核</button>
+            </div>
+            <table id="avatarReviewTable">
+              <thead><tr><th>用户ID</th><th>昵称</th><th>当前头像</th><th>待审头像</th><th>状态</th><th>原因</th><th>操作</th></tr></thead>
+              <tbody><tr><td colspan="7"><span class="muted">请输入后台 Token 后刷新</span></td></tr></tbody>
+            </table>
+          </div>
         </div>
       </section>
 
@@ -682,8 +742,13 @@
   <script>
     const state = {
       token: localStorage.getItem('admin_token') || '',
+      adminToken: localStorage.getItem('admin_api_token') || '',
       editingId: null,
       events: [],
+      banners: [],
+      postReviews: [],
+      demandReviews: [],
+      avatarReviews: [],
       publishDemands: [],
       demandApplications: [],
       currentView: 'dashboard'
@@ -735,6 +800,12 @@
     async function request(path, method = 'GET', body) {
       const headers = { 'Content-Type': 'application/json' }
       if (state.token) headers.Authorization = `Bearer ${state.token}`
+      const adminToken = ($('adminToken')?.value || state.adminToken || '').trim()
+      if (adminToken) {
+        headers['x-admin-token'] = adminToken
+        state.adminToken = adminToken
+        localStorage.setItem('admin_api_token', adminToken)
+      }
       const res = await fetch(`${apiBase()}${path}`, {
         method,
         headers,
@@ -743,6 +814,14 @@
       const json = await res.json().catch(() => ({}))
       if (!res.ok) throw new Error((json && json.message) || `HTTP ${res.status}`)
       return unwrap(json)
+    }
+
+    function requireAdminToken() {
+      const adminToken = ($('adminToken')?.value || state.adminToken || '').trim()
+      if (!adminToken) throw new Error('请先填写后台 Token')
+      state.adminToken = adminToken
+      localStorage.setItem('admin_api_token', adminToken)
+      return adminToken
     }
 
     function toTs(value) {
@@ -809,6 +888,193 @@
       `).join('')
     }
 
+    function renderBanners() {
+      const tbody = document.querySelector('#bannerTable tbody')
+      const list = state.banners || []
+      if (!list.length) {
+        tbody.innerHTML = '<tr><td colspan="8"><span class="muted">暂无 Banner 数据</span></td></tr>'
+        return
+      }
+      tbody.innerHTML = list.map((item) => `
+        <tr>
+          <td>${item.id}</td>
+          <td>${item.title || ''}</td>
+          <td>${item.position || ''}</td>
+          <td>${item.sort_order ?? 0}</td>
+          <td>${item.status === 1 ? '<span class="chip ok">启用</span>' : '<span class="chip warn">停用</span>'}</td>
+          <td><small>${item.image_url || ''}</small></td>
+          <td><small>${item.jump_link || item.link_url || ''}</small></td>
+          <td><button class="secondary" data-banner-toggle="${item.id}">${item.status === 1 ? '停用' : '启用'}</button></td>
+        </tr>
+      `).join('')
+      tbody.querySelectorAll('[data-banner-toggle]').forEach((btn) => {
+        btn.addEventListener('click', async () => {
+          try {
+            requireAdminToken()
+            const id = Number(btn.getAttribute('data-banner-toggle'))
+            const item = state.banners.find((banner) => banner.id === id)
+            await request(`/admin/banners/${id}`, 'PATCH', { status: item?.status === 1 ? 0 : 1 })
+            await loadBanners()
+          } catch (err) {
+            setStatus(err.message || '更新 Banner 失败', true)
+          }
+        })
+      })
+    }
+
+    async function loadBanners() {
+      try {
+        requireAdminToken()
+        const data = await request('/admin/banners')
+        state.banners = data.list || []
+        renderBanners()
+        setStatus(`已加载 ${state.banners.length} 条 Banner`)
+      } catch (err) {
+        state.banners = []
+        renderBanners()
+        setStatus(err.message || '加载 Banner 失败', true)
+      }
+    }
+
+    async function createBanner() {
+      try {
+        requireAdminToken()
+        await request('/admin/banners', 'POST', {
+          title: $('bannerTitle').value.trim(),
+          image_url: $('bannerImageUrl').value.trim(),
+          jump_link: $('bannerJumpLink').value.trim(),
+          position: $('bannerPosition').value.trim() || 'home_top',
+          sort_order: Number($('bannerSort').value || 0),
+          status: Number($('bannerStatus').value || 1)
+        })
+        $('bannerTitle').value = ''
+        $('bannerImageUrl').value = ''
+        $('bannerJumpLink').value = ''
+        await loadBanners()
+      } catch (err) {
+        setStatus(err.message || '新增 Banner 失败', true)
+      }
+    }
+
+    function renderReviewTable(type) {
+      const isPost = type === 'post'
+      const tbody = document.querySelector(isPost ? '#postReviewTable tbody' : '#demandReviewTable tbody')
+      const list = isPost ? state.postReviews : state.demandReviews
+      if (!list.length) {
+        tbody.innerHTML = `<tr><td colspan="${isPost ? 6 : 7}"><span class="muted">暂无数据</span></td></tr>`
+        return
+      }
+      tbody.innerHTML = list.map((item) => {
+        if (isPost) {
+          return `
+            <tr>
+              <td>${item.id}</td>
+              <td>${item.title || ''}<br/><small>${item.content || ''}</small></td>
+              <td>${item.user?.nickname || item.author_id || ''}</td>
+              <td>${item.moderation_status || ''}</td>
+              <td>${item.moderation_reason || ''}</td>
+              <td><div class="actions"><button data-review-post="${item.id}" data-action="approve">通过</button><button class="danger" data-review-post="${item.id}" data-action="reject">拒绝</button></div></td>
+            </tr>
+          `
+        }
+        return `
+          <tr>
+            <td>${item.id}</td>
+            <td>${item.title || ''}</td>
+            <td>${item.status || ''}</td>
+            <td>${item.moderation_status || ''}<br/><small>${item.moderation_reason || ''}</small></td>
+            <td>${item.confirmed_count || 0}/${item.participant_limit || 1}</td>
+            <td><small>改期:${item.requested_event_time || '-'}<br/>取消:${item.cancel_requested_at || '-'}</small></td>
+            <td><div class="actions"><button data-review-demand="${item.id}" data-action="approve">通过</button><button class="danger" data-review-demand="${item.id}" data-action="reject">拒绝</button></div></td>
+          </tr>
+        `
+      }).join('')
+      tbody.querySelectorAll('[data-review-post], [data-review-demand]').forEach((btn) => {
+        btn.addEventListener('click', async () => {
+          try {
+            requireAdminToken()
+            const targetType = btn.hasAttribute('data-review-post') ? 'posts' : 'demands'
+            const id = btn.getAttribute(targetType === 'posts' ? 'data-review-post' : 'data-review-demand')
+            const action = btn.getAttribute('data-action')
+            const reason = action === 'reject' ? (prompt('拒绝原因', '内容审核未通过') || '内容审核未通过') : ''
+            await request(`/admin/reviews/${targetType}/${id}`, 'PATCH', { action, reason })
+            await loadReviews()
+          } catch (err) {
+            setStatus(err.message || '审核操作失败', true)
+          }
+        })
+      })
+    }
+
+    async function loadReviews() {
+      try {
+        requireAdminToken()
+        const [posts, demands] = await Promise.all([
+          request('/admin/reviews/posts'),
+          request('/admin/reviews/demands')
+        ])
+        state.postReviews = posts.list || []
+        state.demandReviews = demands.list || []
+        renderReviewTable('post')
+        renderReviewTable('demand')
+        setStatus(`已加载审核数据：帖子 ${state.postReviews.length}，需求 ${state.demandReviews.length}`)
+      } catch (err) {
+        state.postReviews = []
+        state.demandReviews = []
+        renderReviewTable('post')
+        renderReviewTable('demand')
+        setStatus(err.message || '加载审核数据失败', true)
+      }
+    }
+
+    function renderAvatarReviews() {
+      const tbody = document.querySelector('#avatarReviewTable tbody')
+      const list = state.avatarReviews || []
+      if (!list.length) {
+        tbody.innerHTML = '<tr><td colspan="7"><span class="muted">暂无头像审核数据</span></td></tr>'
+        return
+      }
+      tbody.innerHTML = list.map((item) => `
+        <tr>
+          <td>${item.id}</td>
+          <td>${item.nickname || ''}</td>
+          <td><small>${item.avatar || ''}</small></td>
+          <td><small>${item.avatar_pending || ''}</small></td>
+          <td>${item.avatar_review_status || ''}</td>
+          <td>${item.avatar_review_reason || ''}</td>
+          <td><div class="actions"><button data-avatar-review="${item.id}" data-action="approve">通过</button><button class="danger" data-avatar-review="${item.id}" data-action="reject">拒绝</button></div></td>
+        </tr>
+      `).join('')
+      tbody.querySelectorAll('[data-avatar-review]').forEach((btn) => {
+        btn.addEventListener('click', async () => {
+          try {
+            requireAdminToken()
+            const id = btn.getAttribute('data-avatar-review')
+            const action = btn.getAttribute('data-action')
+            const reason = action === 'reject' ? (prompt('拒绝原因', '头像审核未通过') || '头像审核未通过') : ''
+            await request(`/admin/reviews/avatars/${id}`, 'PATCH', { action, reason })
+            await loadAvatarReviews()
+          } catch (err) {
+            setStatus(err.message || '头像审核失败', true)
+          }
+        })
+      })
+    }
+
+    async function loadAvatarReviews() {
+      try {
+        requireAdminToken()
+        const data = await request('/admin/reviews/avatars')
+        state.avatarReviews = data.list || []
+        renderAvatarReviews()
+        setStatus(`已加载 ${state.avatarReviews.length} 条头像审核数据`)
+      } catch (err) {
+        state.avatarReviews = []
+        renderAvatarReviews()
+        setStatus(err.message || '加载头像审核失败', true)
+      }
+    }
+
     function renderPublishDemandOptions() {
       const select = $('publishDemandSelect')
       const list = state.publishDemands || []
@@ -851,6 +1117,7 @@
           const demandId = Number($('publishDemandSelect').value || 0)
           if (!demandId || !applicationId) return
           try {
+            requireAdminToken()
             if (!state.token) throw new Error('请先登录获取 token')
             await request(`/demands/${demandId}/apply/confirm`, 'POST', { application_id: applicationId })
             setStatus(`发布方确认成功：需求 #${demandId} / 申请 #${applicationId}`)
@@ -955,7 +1222,7 @@
 
     async function loadRegistrations(eventId) {
       try {
-        if (!state.token) throw new Error('请先登录获取 token')
+        requireAdminToken()
         const data = await request(`/events/${eventId}/registrations`)
         renderRegistrations(eventId, data.list || [])
         setStatus(`已加载活动 #${eventId} 报名名单`)
@@ -1033,7 +1300,7 @@
 
     async function saveEvent() {
       try {
-        if (!state.token) throw new Error('请先登录获取 token')
+        requireAdminToken()
         const payload = collectFormPayload()
         if (state.editingId) {
           await request(`/events/${state.editingId}`, 'PATCH', payload)
@@ -1084,10 +1351,19 @@
     $('refreshPublishDemandsBtn').addEventListener('click', loadPublishDemands)
     $('loadDemandAppsBtn').addEventListener('click', loadDemandApplicationsForSelected)
     $('publishDemandSelect').addEventListener('change', loadDemandApplicationsForSelected)
+    $('refreshBannersBtn').addEventListener('click', loadBanners)
+    $('createBannerBtn').addEventListener('click', createBanner)
+    $('refreshReviewsBtn').addEventListener('click', loadReviews)
+    $('refreshAvatarReviewsBtn').addEventListener('click', loadAvatarReviews)
 
     $('baseUrl').value = `${location.protocol}//${location.host}`
+    $('adminToken').value = state.adminToken
     renderModuleMatrix()
     renderOverviewMetrics()
+    renderBanners()
+    renderReviewTable('post')
+    renderReviewTable('demand')
+    renderAvatarReviews()
     renderPublishDemandOptions()
     renderDemandApplications()
     fillForm(null)

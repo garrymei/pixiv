@@ -131,6 +131,18 @@ export class PostsService {
     return { list: data, total, page, pageSize }
   }
 
+  async listForAdmin(params: { status?: ModerationStatus; page?: number; pageSize?: number }) {
+    const { status, page = 1, pageSize = 20 } = params || {}
+    const [items, total] = await this.postsRepo.findAndCount({
+      where: status ? { moderationStatus: status } : {},
+      order: { createdAt: 'DESC', id: 'DESC' },
+      skip: (page - 1) * pageSize,
+      take: pageSize
+    })
+    const data = await this.buildResponse(items)
+    return { list: data, total, page, pageSize }
+  }
+
   async getById(id: number) {
     const item = await this.postsRepo.findOne({ where: { id } })
     if (!item || item.moderationStatus !== ModerationStatus.APPROVED) return null

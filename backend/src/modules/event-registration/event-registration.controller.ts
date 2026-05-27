@@ -1,6 +1,7 @@
 import { Controller, Get, Param, Post, UseGuards, Req } from '@nestjs/common'
 import { EventRegistrationService } from './event-registration.service'
 import { JwtAuthGuard } from '../auth/jwt-auth.guard'
+import { AdminTokenGuard } from '../../common/guards/admin-token.guard'
 
 @Controller('events')
 export class EventRegistrationController {
@@ -19,7 +20,7 @@ export class EventRegistrationController {
   }
 
   @Get(':id/registrations')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(AdminTokenGuard)
   async listByEvent(@Param('id') id: string) {
     return this.registrationService.listByEvent(Number(id))
   }

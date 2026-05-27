@@ -98,6 +98,16 @@ export class UsersService {
     return toUserSummary(await this.usersRepo.findOne({ where: { id } }))
   }
 
+  async listAvatarReviews(status?: ModerationStatus): Promise<{ list: UserSummary[]; total: number }> {
+    const list = await this.usersRepo.find({
+      where: status ? { avatarReviewStatus: status } : {},
+      order: { updatedAt: 'DESC', id: 'DESC' },
+      take: 100
+    })
+    const data = list.map((item) => toUserSummary(item)).filter(Boolean) as UserSummary[]
+    return { list: data, total: data.length }
+  }
+
   async reviewAvatar(userId: number, action: 'approve' | 'reject', reason?: string): Promise<UserSummary | null> {
     const current = await this.usersRepo.findOne({ where: { id: userId } })
     if (!current) return null
