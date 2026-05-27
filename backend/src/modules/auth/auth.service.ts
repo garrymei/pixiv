@@ -115,6 +115,13 @@ export class AuthService {
       return this.resolveWechatLoginUser(payload)
     }
 
+    const presetLoginEnabled =
+      this.config.get<string>('ENABLE_PRESET_LOGIN') === 'true' ||
+      this.config.get<string>('NODE_ENV') !== 'production'
+    if (!presetLoginEnabled) {
+      throw new BadRequestException('preset login disabled')
+    }
+
     const key = payload.mockId || 'dev'
     const preset = loginPresets[key]
     const parsedId = /^u_(\d+)$/.test(key) ? Number(key.replace(/^u_/, '')) : undefined
