@@ -98,7 +98,10 @@ export default function EditProfile() {
     }
     if (uploadingAvatar || submitting) return
     try {
-      const picked = await Taro.chooseImage({ count: 1 })
+      const picked = await Taro.chooseImage({
+        count: 1,
+        sizeType: ['compressed']
+      })
       const localPath = picked.tempFilePaths?.[0]
       if (!localPath) return
       setUploadingAvatar(true)

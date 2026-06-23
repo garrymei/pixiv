@@ -73,7 +73,10 @@ export default function PublishPost() {
       return
     }
     try {
-      const res = await Taro.chooseImage({ count: remaining })
+      const res = await Taro.chooseImage({
+        count: remaining,
+        sizeType: ['compressed']
+      })
       const selected = (res.tempFilePaths || []).map((filePath, index) => ({
         id: `${Date.now()}_${index}_${Math.random().toString(36).slice(2, 8)}`,
         localPath: filePath,

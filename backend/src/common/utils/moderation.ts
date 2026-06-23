@@ -35,18 +35,17 @@ function normalize(value: string) {
 
 export function autoModerate(input: ModerationInput): ModerationResult {
   const text = String(input.text || '')
-  const imageList = input.images || []
-  const merged = normalize(`${text} ${imageList.join(' ')}`)
+  const normalizedText = normalize(text)
 
-  if (!merged.trim()) {
+  if (!normalizedText.trim()) {
     return { status: ModerationStatus.APPROVED }
   }
 
-  if (URL_PATTERN.test(merged)) {
+  if (URL_PATTERN.test(normalizedText)) {
     return { status: ModerationStatus.PENDING, reason: '包含外链，需人工复核' }
   }
 
-  const hit = SUSPECT_KEYWORDS.find((keyword) => merged.includes(normalize(keyword)))
+  const hit = SUSPECT_KEYWORDS.find((keyword) => normalizedText.includes(normalize(keyword)))
   if (hit) {
     return { status: ModerationStatus.PENDING, reason: `命中敏感词：${hit}` }
   }
