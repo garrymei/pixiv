@@ -30,6 +30,16 @@ const TAB_BAR_PAGES = new Set([
 
 const DISCOVER_NAVIGATION_INTENT_KEY = 'discover_navigation_intent'
 
+function getCurrentWeekStart() {
+  const now = new Date()
+  const currentDay = now.getDay()
+  const diff = currentDay === 0 ? 6 : currentDay - 1
+  const start = new Date(now)
+  start.setDate(now.getDate() - diff)
+  start.setHours(0, 0, 0, 0)
+  return start.getTime()
+}
+
 const MUTUAL_HELP_TABS = [
   { id: 'seek', label: '我来找你' },
   { id: 'offer', label: '我能提供' }
@@ -97,7 +107,10 @@ export default function Home() {
         listPosts(),
         listBanners().catch(() => [])
       ])
-      const sortedPosts = [...postsRes]
+      const currentWeekStart = getCurrentWeekStart()
+      const weeklyPosts = postsRes.filter((post) => (post.createdAt || 0) >= currentWeekStart)
+      const visiblePosts = weeklyPosts.length > 0 ? weeklyPosts : postsRes
+      const sortedPosts = [...visiblePosts]
         .sort((a, b) => {
           const scoreDiff = (b.hotScore || 0) - (a.hotScore || 0)
           if (scoreDiff !== 0) return scoreDiff
