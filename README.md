@@ -262,7 +262,7 @@ docs/
 ### 数据库
 
 - MySQL 8.0
-- `mysql://[DB-USERNAME]:[DB-PASSWORD]@sh-cynosdbmysql-grp-9k31bzlm.sql.tencentcdb.com:27853/demo-1gp5eo6c4e09685e`
+- `mysql://[DB-USERNAME]:[DB-PASSWORD]@gz-cdb-6ytpw8g9.sql.tencentcdb.com:27283/pivix`
 
 ### 可选
 
@@ -530,8 +530,8 @@ UPLOAD_RATE_LIMIT_WINDOW_MS=
 - `/health` 为服务健康检查标准接口
 - `/admin` 为后台平台统一入口，后续不再仅限“活动管理页”
 - 当前数据库连接目标：
-  - `DB_HOST=sh-cynosdbmysql-grp-9k31bzlm.sql.tencentcdb.com`
-  - `DB_PORT=27853`
+  - `DB_HOST=gz-cdb-6ytpw8g9.sql.tencentcdb.com`
+  - `DB_PORT=27283`
   - `DB_NAME=pivix`
   - 实际运行配置文件：`backend/.env`
   - 密码与敏感凭据不写入文档，统一从环境变量读取
