@@ -12,7 +12,7 @@ import { useThemeMode } from '../../config/theme'
 import './index.scss'
 
 const ALL_TAGS = ['Cosplay', '正片', '日常', '摄影', '妆娘', '后期']
-const MAX_IMAGES = 3
+const MAX_IMAGES = 9
 
 type UploadItem = {
   id: string

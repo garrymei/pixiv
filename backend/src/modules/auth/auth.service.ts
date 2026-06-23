@@ -164,7 +164,7 @@ export class AuthService {
         bio: user.bio || '',
         city: user.city || '',
         role_type: user.roleType || 'user',
-        profile_complete: !!(user.nickname && user.nickname !== '微信用户' && user.avatarUrl)
+        profile_complete: !!(user.nickname && user.nickname !== '微信用户')
       }
     }
   }

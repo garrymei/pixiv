@@ -1,4 +1,4 @@
-import { ArrayMinSize, IsArray, IsIn, IsOptional, IsString, Length } from 'class-validator'
+import { ArrayMaxSize, IsArray, IsIn, IsOptional, IsString, Length } from 'class-validator'
 
 export class CreatePostDto {
   @IsString()
@@ -18,7 +18,7 @@ export class CreatePostDto {
   cover_image?: string
 
   @IsArray()
-  @ArrayMinSize(1)
+  @ArrayMaxSize(9)
   @IsString({ each: true })
   images?: string[]
 

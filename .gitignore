@@ -15,6 +15,7 @@ yarn.lock
 # Logs
 logs
 *.log
+backend/tmp-*.js
 
 # Taro cache
 .taro4.0/

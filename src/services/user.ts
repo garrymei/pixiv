@@ -57,7 +57,7 @@ function mapUser(data: UserRecord | SessionUser | null): CurrentUser {
     avatarPendingUrl: resolveAssetUrl((data as UserRecord | null)?.avatar_pending || ''),
     profileComplete:
       (data as UserRecord | null)?.profile_complete ??
-      !!(data?.nickname && data.nickname !== '微信用户' && resolveAssetUrl(data?.avatar || data?.avatarUrl || ''))
+      !!(data?.nickname && data.nickname !== '微信用户')
   }
 }
 
