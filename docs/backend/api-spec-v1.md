@@ -1,6 +1,6 @@
-# 粤次元君 (Yue Ci Yuan Jun) - API 详细定义规格 (API Spec V1)
+# 就酱次元区 (Jiu Jiang Ci Yuan Qu) - API 详细定义规格 (API Spec V1)
 
-本文档为“粤次元君”MVP 阶段的后端 API 详细规格说明，可直接用于后端实现与前端联调。
+本文档为“就酱次元区”MVP 阶段的后端 API 详细规格说明，可直接用于后端实现与前端联调。
 
 ## 阶段 4 联调字段对齐结论
 
@@ -60,7 +60,7 @@
   ```json
   {
     "id": 1,
-    "nickname": "粤次元君",
+    "nickname": "就酱次元区",
     "avatar": "",
     "bio": "二次元同好聚集地",
     "city": "广州",

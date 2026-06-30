@@ -129,9 +129,9 @@ export default function Login() {
       <View className="page-login__hero">
         <View className="page-login__status">
           <View className="page-login__status-dot anim-pulse-secondary" />
-          <Text className="page-login__status-text">System Online / 湾区枢纽</Text>
+          <Text className="page-login__status-text">System Online / 次元区在线</Text>
         </View>
-        <Text className="page-login__title anim-text-glow">粤次元君</Text>
+        <Text className="page-login__title anim-text-glow">就酱次元区</Text>
         <Text className="page-login__subtitle">游客模式仅浏览内容；正式登录后才可点赞、评论、发布和报名。</Text>
         <View className="page-login__poster">
           <Image className="page-login__poster-image" src={posterUrl || defaultLoginPoster} mode="aspectFill" />

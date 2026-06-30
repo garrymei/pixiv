@@ -4,9 +4,9 @@ const mysql = require('mysql2/promise')
 const users = [
   {
     id: 1,
-    nickname: '粤次元君_官方',
-    avatar_url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=YueCiYuan',
-    bio: '欢迎来到粤次元！这里是二次元同好的聚集地~',
+    nickname: '就酱次元区_官方',
+    avatar_url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=JiuJiangCiYuanQu',
+    bio: '欢迎来到就酱次元区！这里是二次元同好的聚集地~',
     city: '广州',
     role_type: 'user'
   },
@@ -92,8 +92,8 @@ const posts = [
   {
     id: 5,
     author_id: 1,
-    title: '粤次元君开站啦，欢迎大家来发作品、找搭子、看活动。',
-    content: '粤次元君开站啦，欢迎大家来发作品、找搭子、看活动。',
+    title: '就酱次元区开站啦，欢迎大家来发作品、找搭子、看活动。',
+    content: '就酱次元区开站啦，欢迎大家来发作品、找搭子、看活动。',
     post_type: 'daily',
     cover_image: 'https://images.unsplash.com/photo-1526628953301-3e589a6a8b74?auto=format&fit=crop&q=80&w=600',
     location: '广州',
@@ -151,7 +151,7 @@ const events = [
     location: '广州市天河区动漫星城',
     description: '适合扩列、面基与线下交流的官方活动。',
     price: 0,
-    organizer: '粤次元君_官方',
+    organizer: '就酱次元区_官方',
     status: 'UPCOMING',
     event_type: 'official',
     capacity: 50,

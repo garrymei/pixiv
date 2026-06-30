@@ -1,5 +1,5 @@
 export default {
-  navigationBarTitleText: '粤次元',
+  navigationBarTitleText: '就酱次元区',
   enablePullDownRefresh: true,
   backgroundTextStyle: 'light'
 }

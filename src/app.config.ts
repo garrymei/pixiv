@@ -21,7 +21,7 @@ export default {
   ],
   window: {
     backgroundTextStyle: 'light',
-    navigationBarTitleText: '粤次元君',
+    navigationBarTitleText: '就酱次元区',
     navigationBarBackgroundColor: '#0E1018',
     navigationBarTextStyle: 'white'
   },

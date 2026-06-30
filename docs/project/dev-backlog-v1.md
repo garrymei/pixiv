@@ -1,4 +1,4 @@
-# 粤次元君 (Yue Ci Yuan Jun) - 开发任务 Backlog (V1)
+# 就酱次元区 (Jiu Jiang Ci Yuan Qu) - 开发任务 Backlog (V1)
 
 本文档将“阶段 2 (前端骨架)”和“阶段 3 (后端核心能力)”的开发工作拆解为可执行的独立任务。Trae 后续可直接按照任务编号顺次执行。
 

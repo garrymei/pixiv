@@ -135,8 +135,8 @@ export default function Home() {
     <View className={classNames('page-home', `theme-${theme}`)}>
       <View className="page-home__hero-shell">
         <View className="page-home__hero-copy">
-          <Text className="page-home__eyebrow">YUE CI YUAN JUN</Text>
-          <Text className="page-home__headline">粤次元君</Text>
+          <Text className="page-home__eyebrow">JIU JIANG CI YUAN QU</Text>
+          <Text className="page-home__headline">就酱次元区</Text>
           <Text className="page-home__subheadline">发现同城同好，连接创作、活动与合作。</Text>
         </View>
         <View className="page-home__hero-badge">

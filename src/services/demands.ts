@@ -199,7 +199,7 @@ function resolveAuthor(item: DemandRecord) {
   const authorId = String(item.user?.id || item.authorId || item.author_id || 0)
   return {
     authorId,
-    authorName: item.user?.nickname || (Number(authorId) === 1 ? '粤次元君' : `用户${authorId || ''}`),
+    authorName: item.user?.nickname || (Number(authorId) === 1 ? '就酱次元区' : `用户${authorId || ''}`),
     authorAvatar: resolveAssetUrl(item.user?.avatar) || ''
   }
 }

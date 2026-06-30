@@ -2,7 +2,7 @@
   "name": "frontend",
   "version": "1.0.0",
   "private": true,
-  "description": "粤次元君 - 前端",
+  "description": "就酱次元区 - 前端",
   "templateInfo": {
     "name": "default",
     "typescript": true,

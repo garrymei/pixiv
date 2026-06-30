@@ -28,7 +28,7 @@ export const mockEvents: Event[] = [
     location: '广州市天河区动漫星城',
     status: 'ongoing',
     price: '免费',
-    organizer: '粤次元君_官方'
+    organizer: '就酱次元区_官方'
   },
   {
     id: 'e_3',

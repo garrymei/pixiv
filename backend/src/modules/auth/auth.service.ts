@@ -22,17 +22,17 @@ type WechatSession = {
 const loginPresets: Record<string, Partial<User> & { id?: number }> = {
   dev: {
     id: 1,
-    nickname: '粤次元君_官方',
-    avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=YueCiYuan',
-    bio: '欢迎来到粤次元！这里是二次元同好的聚集地~',
+    nickname: '就酱次元区_官方',
+    avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=JiuJiangCiYuanQu',
+    bio: '欢迎来到就酱次元区！这里是二次元同好的聚集地~',
     city: '广州',
     roleType: 'user'
   },
   u_1001: {
     id: 1,
-    nickname: '粤次元君_官方',
-    avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=YueCiYuan',
-    bio: '欢迎来到粤次元！这里是二次元同好的聚集地~',
+    nickname: '就酱次元区_官方',
+    avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=JiuJiangCiYuanQu',
+    bio: '欢迎来到就酱次元区！这里是二次元同好的聚集地~',
     city: '广州',
     roleType: 'user'
   },

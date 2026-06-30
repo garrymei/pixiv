@@ -30,12 +30,12 @@ type AuthLoginResponse = {
 const LOCAL_LOGIN_PRESETS: Record<string, SessionUser> = {
   dev: {
     id: 1,
-    nickname: '粤次元君_官方',
+    nickname: '就酱次元区_官方',
     role_type: 'user'
   },
   u_1001: {
     id: 1,
-    nickname: '粤次元君_官方',
+    nickname: '就酱次元区_官方',
     role_type: 'user'
   },
   u_1002: {

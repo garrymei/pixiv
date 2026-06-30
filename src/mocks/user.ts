@@ -11,9 +11,9 @@ export interface User {
 
 export const currentUser: User = {
   id: 'u_1001',
-  nickname: '粤次元君_官方',
-  avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=YueCiYuan',
-  bio: '欢迎来到粤次元！这里是二次元同好的聚集地~',
+  nickname: '就酱次元区_官方',
+  avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=JiuJiangCiYuanQu',
+  bio: '欢迎来到就酱次元区！这里是二次元同好的聚集地~',
   bgUrl: 'https://images.unsplash.com/photo-1578632767115-351597cf2477?auto=format&fit=crop&q=80&w=1000',
   followersCount: 12500,
   followingCount: 128

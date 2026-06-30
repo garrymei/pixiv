@@ -56,7 +56,7 @@ function resolveAuthor(item: PostRecord) {
 
   return {
     authorId: String(authorId),
-    authorName: item.user?.nickname || item.authorName || item.author_name || (authorId === 1 ? '粤次元君' : `用户${authorId || ''}`),
+    authorName: item.user?.nickname || item.authorName || item.author_name || (authorId === 1 ? '就酱次元区' : `用户${authorId || ''}`),
     authorAvatar: resolveAssetUrl(item.user?.avatar) || item.authorAvatar || item.author_avatar || ''
   }
 }
@@ -158,7 +158,7 @@ export async function createPost(payload: {
       coverUrl: cover_image,
       images: payload.images || [],
       authorId: 'u_1001',
-      authorName: '粤次元君_官方',
+      authorName: '就酱次元区_官方',
       authorAvatar: '',
       likeCount: 0,
       commentCount: 0,
