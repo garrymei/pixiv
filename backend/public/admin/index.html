@@ -299,6 +299,7 @@
         <button class="nav-btn" data-view="discover">发现</button>
         <button class="nav-btn" data-view="publish">发布</button>
         <button class="nav-btn" data-view="events">活动</button>
+        <button class="nav-btn" data-view="venues">场地预约</button>
         <button class="nav-btn" data-view="users">用户</button>
         <button class="nav-btn" data-view="auth">登录会话</button>
         <button class="nav-btn" data-view="uploads">上传资源</button>
@@ -631,6 +632,72 @@
         </div>
       </section>
 
+      <section class="admin-view hidden" data-view="venues">
+        <div class="grid">
+          <div class="card span-12">
+            <div class="section-head">
+              <div>
+                <h3>场地预约配置</h3>
+                <p>配置场馆、场景图片和可预约场景；用户可在小程序首页进入并预约未来 24 小时内的时段。</p>
+              </div>
+              <button id="refreshVenuesBtn" class="secondary" style="max-width:140px;">刷新场地</button>
+            </div>
+          </div>
+
+          <div class="card span-6">
+            <h3>新增场馆</h3>
+            <div class="row">
+              <div><label>场馆名称</label><input id="venueName" /></div>
+              <div><label>城市</label><input id="venueCity" /></div>
+              <div><label>地址</label><input id="venueAddress" /></div>
+              <div><label>排序</label><input id="venueSort" type="number" value="0" /></div>
+              <div><label>状态</label><select id="venueStatus"><option value="1">启用</option><option value="0">停用</option></select></div>
+            </div>
+            <div class="row">
+              <div style="flex:2 1 420px;"><label>封面 URL</label><input id="venueCoverImage" /></div>
+            </div>
+            <div class="row">
+              <div style="flex:2 1 420px;"><label>描述</label><textarea id="venueDescription" rows="3"></textarea></div>
+            </div>
+            <button id="createVenueBtn">新增场馆</button>
+          </div>
+
+          <div class="card span-6">
+            <h3>新增场景</h3>
+            <div class="row">
+              <div><label>所属场馆</label><select id="sceneVenueSelect"></select></div>
+              <div><label>场景名称</label><input id="sceneName" /></div>
+              <div><label>容量</label><input id="sceneCapacity" type="number" /></div>
+              <div><label>排序</label><input id="sceneSort" type="number" value="0" /></div>
+              <div><label>状态</label><select id="sceneStatus"><option value="1">启用</option><option value="0">停用</option></select></div>
+            </div>
+            <div class="row">
+              <div style="flex:2 1 420px;"><label>场景图片 URL</label><input id="sceneImageUrl" /></div>
+            </div>
+            <div class="row">
+              <div style="flex:2 1 420px;"><label>描述</label><textarea id="sceneDescription" rows="3"></textarea></div>
+            </div>
+            <button id="createSceneBtn">新增场景</button>
+          </div>
+
+          <div class="card span-12">
+            <h3>场馆与场景列表</h3>
+            <table id="venueTable">
+              <thead><tr><th>ID</th><th>场馆</th><th>城市/地址</th><th>场景</th><th>状态</th><th>操作</th></tr></thead>
+              <tbody><tr><td colspan="6"><span class="muted">请填写后台 Token 后刷新</span></td></tr></tbody>
+            </table>
+          </div>
+
+          <div class="card span-12">
+            <h3>未来预约记录</h3>
+            <table id="venueBookingTable">
+              <thead><tr><th>ID</th><th>场馆</th><th>场景</th><th>用户</th><th>预约时间</th><th>备注</th></tr></thead>
+              <tbody><tr><td colspan="6"><span class="muted">暂无数据</span></td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
       <section class="admin-view hidden" data-view="users">
         <div class="grid">
           <div class="card span-6">
@@ -746,6 +813,9 @@
       editingId: null,
       events: [],
       banners: [],
+      venues: [],
+      venueScenes: [],
+      venueBookings: [],
       postReviews: [],
       demandReviews: [],
       avatarReviews: [],
@@ -759,6 +829,7 @@
       { id: 'discover', title: '发现', desc: '广场、市集、标签、推荐词、需求内容', status: '骨架已接入', monitor: '搜索成功率 / Mock 兜底 / 空结果率' },
       { id: 'publish', title: '发布', desc: '帖子、需求、审核、敏感词、频控', status: '规划中', monitor: '发布成功率 / 上传失败率 / 慢请求' },
       { id: 'events', title: '活动', desc: '活动 CRUD、可报名开关、报名名单', status: '已接入', monitor: '报名成功率 / 满额告警 / 截止告警' },
+      { id: 'venues', title: '场地预约', desc: '场馆、场景、24 小时时段预约', status: '已接入', monitor: '预约冲突 / 场景可用率 / 未来预约量' },
       { id: 'users', title: '用户', desc: '资料、状态、违规、封禁、内容总览', status: '规划中', monitor: '资料更新成功率 / 异常账号识别' },
       { id: 'auth', title: '登录会话', desc: '登录记录、Token、账号策略、会话状态', status: '规划中', monitor: '登录成功率 / 401 / 403 / 会话失败' },
       { id: 'uploads', title: '上传资源', desc: '资源管理、失效清理、审核、存储配置', status: '规划中', monitor: '上传成功率 / 404 / 非法资源告警' },
@@ -771,6 +842,7 @@
       discover: ['发现模块', '管理动态广场、次元市集与发现页监控指标。'],
       publish: ['发布模块', '管理帖子、需求、审核、上传与发布链路指标。'],
       events: ['活动模块', '管理活动数据、报名能力、报名名单与活动异常情况。'],
+      venues: ['场地预约模块', '配置场馆与场景，查看未来预约记录。'],
       users: ['用户模块', '管理用户资料、状态、内容行为与账号风险。'],
       auth: ['登录会话模块', '管理登录会话、Token 和鉴权异常。'],
       uploads: ['上传资源模块', '管理资源文件、上传链路和资源异常。'],
@@ -953,6 +1025,136 @@
         await loadBanners()
       } catch (err) {
         setStatus(err.message || '新增 Banner 失败', true)
+      }
+    }
+
+    function renderVenueOptions() {
+      const select = $('sceneVenueSelect')
+      if (!select) return
+      const venues = state.venues || []
+      select.innerHTML = venues.length
+        ? venues.map((item) => `<option value="${item.id}">#${item.id} ${item.name}</option>`).join('')
+        : '<option value="">请先新增场馆</option>'
+    }
+
+    function renderVenues() {
+      renderVenueOptions()
+      const tbody = document.querySelector('#venueTable tbody')
+      if (!tbody) return
+      const venues = state.venues || []
+      if (!venues.length) {
+        tbody.innerHTML = '<tr><td colspan="6"><span class="muted">暂无场馆</span></td></tr>'
+        return
+      }
+      tbody.innerHTML = venues.map((item) => {
+        const scenes = item.scenes || []
+        return `
+          <tr>
+            <td>${item.id}</td>
+            <td><strong>${item.name || ''}</strong><br/><small>${item.description || ''}</small></td>
+            <td>${item.city || ''}<br/><small>${item.address || ''}</small></td>
+            <td>${scenes.map((scene) => `#${scene.id} ${scene.name}${scene.status === 1 ? '' : '（停用）'}`).join('<br/>') || '<span class="muted">暂无场景</span>'}</td>
+            <td>${item.status === 1 ? '<span class="chip ok">启用</span>' : '<span class="chip warn">停用</span>'}</td>
+            <td><button class="secondary" data-toggle-venue="${item.id}">${item.status === 1 ? '停用' : '启用'}</button></td>
+          </tr>
+        `
+      }).join('')
+      tbody.querySelectorAll('[data-toggle-venue]').forEach((btn) => {
+        btn.addEventListener('click', async () => {
+          const id = Number(btn.getAttribute('data-toggle-venue'))
+          const item = state.venues.find((venue) => venue.id === id)
+          await request(`/admin/venues/${id}`, 'PATCH', { status: item?.status === 1 ? 0 : 1 })
+          await loadVenues()
+        })
+      })
+    }
+
+    function renderVenueBookings() {
+      const tbody = document.querySelector('#venueBookingTable tbody')
+      if (!tbody) return
+      const bookings = state.venueBookings || []
+      if (!bookings.length) {
+        tbody.innerHTML = '<tr><td colspan="6"><span class="muted">暂无未来预约</span></td></tr>'
+        return
+      }
+      const venues = state.venues || []
+      const scenes = state.venueScenes || []
+      tbody.innerHTML = bookings.map((item) => {
+        const venue = venues.find((v) => v.id === item.venue_id)
+        const scene = scenes.find((s) => s.id === item.scene_id)
+        const start = item.start_time ? new Date(item.start_time).toLocaleString() : ''
+        const end = item.end_time ? new Date(item.end_time).toLocaleString() : ''
+        return `
+          <tr>
+            <td>${item.id}</td>
+            <td>${venue?.name || item.venue_id}</td>
+            <td>${scene?.name || item.scene_id}</td>
+            <td>${item.user_id}</td>
+            <td>${start}<br/><small>${end}</small></td>
+            <td>${item.note || ''}</td>
+          </tr>
+        `
+      }).join('')
+    }
+
+    async function loadVenues() {
+      try {
+        requireAdminToken()
+        const data = await request('/admin/venues')
+        state.venues = data.venues || []
+        state.venueScenes = data.scenes || []
+        state.venueBookings = data.bookings || []
+        renderVenues()
+        renderVenueBookings()
+        renderOverviewMetrics()
+        setStatus(`已加载 ${state.venues.length} 个场馆`)
+      } catch (err) {
+        setStatus(err.message || '加载场地失败', true)
+      }
+    }
+
+    async function createVenue() {
+      try {
+        requireAdminToken()
+        await request('/admin/venues', 'POST', {
+          name: $('venueName').value.trim(),
+          city: $('venueCity').value.trim(),
+          address: $('venueAddress').value.trim(),
+          cover_image: $('venueCoverImage').value.trim(),
+          description: $('venueDescription').value.trim(),
+          sort_order: Number($('venueSort').value || 0),
+          status: Number($('venueStatus').value || 1)
+        })
+        $('venueName').value = ''
+        $('venueCity').value = ''
+        $('venueAddress').value = ''
+        $('venueCoverImage').value = ''
+        $('venueDescription').value = ''
+        await loadVenues()
+      } catch (err) {
+        setStatus(err.message || '新增场馆失败', true)
+      }
+    }
+
+    async function createScene() {
+      try {
+        requireAdminToken()
+        await request('/admin/venue-scenes', 'POST', {
+          venue_id: Number($('sceneVenueSelect').value),
+          name: $('sceneName').value.trim(),
+          image_url: $('sceneImageUrl').value.trim(),
+          description: $('sceneDescription').value.trim(),
+          capacity: $('sceneCapacity').value ? Number($('sceneCapacity').value) : null,
+          sort_order: Number($('sceneSort').value || 0),
+          status: Number($('sceneStatus').value || 1)
+        })
+        $('sceneName').value = ''
+        $('sceneImageUrl').value = ''
+        $('sceneDescription').value = ''
+        $('sceneCapacity').value = ''
+        await loadVenues()
+      } catch (err) {
+        setStatus(err.message || '新增场景失败', true)
       }
     }
 
@@ -1353,6 +1555,9 @@
     $('publishDemandSelect').addEventListener('change', loadDemandApplicationsForSelected)
     $('refreshBannersBtn').addEventListener('click', loadBanners)
     $('createBannerBtn').addEventListener('click', createBanner)
+    $('refreshVenuesBtn').addEventListener('click', loadVenues)
+    $('createVenueBtn').addEventListener('click', createVenue)
+    $('createSceneBtn').addEventListener('click', createScene)
     $('refreshReviewsBtn').addEventListener('click', loadReviews)
     $('refreshAvatarReviewsBtn').addEventListener('click', loadAvatarReviews)
 
@@ -1361,6 +1566,8 @@
     renderModuleMatrix()
     renderOverviewMetrics()
     renderBanners()
+    renderVenues()
+    renderVenueBookings()
     renderReviewTable('post')
     renderReviewTable('demand')
     renderAvatarReviews()
@@ -1369,6 +1576,7 @@
     fillForm(null)
     switchView('dashboard')
     loadEvents()
+    loadVenues()
     loadPublishDemands()
     checkSystemHealth()
   </script>

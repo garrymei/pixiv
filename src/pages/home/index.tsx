@@ -17,7 +17,8 @@ type MutualIconType = 'wig' | 'makeup' | 'camera'
 
 const QUICK_ENTRIES = [
   { id: 'events', title: '漫展活动', iconType: 'calendar' as const, url: '/pages/events/index' },
-  { id: 'market', title: '合作市集', iconType: 'handshake' as const, url: '/pages/discover/index' }
+  { id: 'market', title: '合作市集', iconType: 'handshake' as const, url: '/pages/discover/index' },
+  { id: 'venues', title: '场地预约', icon: '场', url: '/pages/venues/index' }
 ]
 
 const TAB_BAR_PAGES = new Set([

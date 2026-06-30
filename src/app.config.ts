@@ -5,6 +5,7 @@ export default {
     'pages/home/index',
     'pages/profile/index',
     'pages/discover/index',
+    'pages/venues/index',
     'pages/events/index',
     'pages/event-detail/index',
     'pages/post-detail/index',
