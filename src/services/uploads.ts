@@ -3,9 +3,9 @@ import { RequestError, ensureToken, getAuthHeader, isMockMode, mockResponse, res
 
 const UPLOAD_TIMEOUT = 60_000
 
-export async function uploadImage(filePath: string): Promise<{ url: string }> {
+export async function uploadImage(filePath: string): Promise<{ url: string; thumbnailUrl?: string }> {
   if (isMockMode()) {
-    return mockResponse({ url: filePath })
+    return mockResponse({ url: filePath, thumbnailUrl: filePath })
   }
 
   try {
@@ -30,7 +30,7 @@ export async function uploadImage(filePath: string): Promise<{ url: string }> {
       throw new RequestError('上传返回格式异常')
     }
 
-    const result = unwrapResponseData<{ url: string }>({
+    const result = unwrapResponseData<{ url: string; thumbnail_url?: string }>({
       statusCode: response.statusCode,
       data
     })
@@ -38,7 +38,10 @@ export async function uploadImage(filePath: string): Promise<{ url: string }> {
     if (!url) {
       throw new RequestError('上传成功但未返回图片地址')
     }
-    return { url: resolveAssetUrl(url) }
+    return {
+      url: resolveAssetUrl(url),
+      thumbnailUrl: resolveAssetUrl(result.thumbnail_url || url)
+    }
   } catch (error: any) {
     if (error instanceof RequestError) throw error
     throw new RequestError(error?.errMsg || error?.message || '图片上传失败，请重试')

@@ -18,6 +18,7 @@ type UploadItem = {
   id: string
   localPath: string
   remoteUrl: string
+  thumbnailUrl: string
   status: 'uploading' | 'success' | 'error'
   error: string
 }
@@ -42,14 +43,14 @@ export default function PublishPost() {
         const uploaded = await uploadImage(item.localPath)
         setImages((prev) => prev.map((image) => (
           image.id === item.id
-            ? { ...image, status: 'success', remoteUrl: uploaded.url, error: '' }
+            ? { ...image, status: 'success', remoteUrl: uploaded.url, thumbnailUrl: uploaded.thumbnailUrl || uploaded.url, error: '' }
             : image
         )))
         success += 1
       } catch (err: any) {
         setImages((prev) => prev.map((image) => (
           image.id === item.id
-            ? { ...image, status: 'error', remoteUrl: '', error: err?.message || '上传失败，请重试' }
+            ? { ...image, status: 'error', remoteUrl: '', thumbnailUrl: '', error: err?.message || '上传失败，请重试' }
             : image
         )))
         failed += 1
@@ -81,6 +82,7 @@ export default function PublishPost() {
         id: `${Date.now()}_${index}_${Math.random().toString(36).slice(2, 8)}`,
         localPath: filePath,
         remoteUrl: '',
+        thumbnailUrl: '',
         status: 'uploading' as const,
         error: ''
       }))
@@ -148,7 +150,8 @@ export default function PublishPost() {
         content: content.trim(),
         tags,
         location: location.trim(),
-        images: images.map((item) => item.remoteUrl).filter(Boolean)
+        images: images.map((item) => item.remoteUrl).filter(Boolean),
+        coverImage: images.find((item) => item.thumbnailUrl)?.thumbnailUrl
       })
       markPostListShouldRefresh()
       Taro.showToast({ title: '已提交，审核通过后展示', icon: 'none' })

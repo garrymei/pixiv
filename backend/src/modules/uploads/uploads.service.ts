@@ -1,11 +1,11 @@
 import { BadRequestException, Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
-import { openSync, readSync, closeSync, unlinkSync, renameSync } from 'fs'
-import { extname } from 'path'
+import { openSync, readSync, closeSync, unlinkSync } from 'fs'
+import { basename, dirname, extname, join } from 'path'
 import type { Express } from 'express'
 import sharp from 'sharp'
 
-const MAX_IMAGE_DIMENSION = 1600
+const THUMBNAIL_MAX_DIMENSION = 720
 const JPEG_QUALITY = 82
 const WEBP_QUALITY = 82
 
@@ -23,33 +23,32 @@ function isAllowedExt(ext: string) {
   return next === '.png' || next === '.jpg' || next === '.jpeg' || next === '.gif' || next === '.webp'
 }
 
-async function replaceWithOptimizedImage(filePath: string, detectedType: string) {
-  if (detectedType === 'gif') return
+function buildAssetUrl(base: string, filename: string) {
+  return base ? `${base.replace(/\/$/, '')}/uploads/${filename}` : `/uploads/${filename}`
+}
 
-  const tmpPath = `${filePath}.optimized`
+async function createThumbnail(filePath: string, filename: string, detectedType: string) {
+  if (detectedType === 'gif') return ''
+
+  const thumbnailFilename = `thumb-${basename(filename, extname(filename))}.jpg`
+  const thumbnailPath = join(dirname(filePath), thumbnailFilename)
   try {
-    let pipeline = sharp(filePath, { failOn: 'none' })
+    const pipeline = sharp(filePath, { failOn: 'none' })
       .rotate()
       .resize({
-        width: MAX_IMAGE_DIMENSION,
-        height: MAX_IMAGE_DIMENSION,
+        width: THUMBNAIL_MAX_DIMENSION,
+        height: THUMBNAIL_MAX_DIMENSION,
         fit: 'inside',
         withoutEnlargement: true
       })
+      .jpeg({ quality: detectedType === 'webp' ? WEBP_QUALITY : JPEG_QUALITY, mozjpeg: true })
 
-    if (detectedType === 'png') {
-      pipeline = pipeline.png({ compressionLevel: 9, palette: true })
-    } else if (detectedType === 'webp') {
-      pipeline = pipeline.webp({ quality: WEBP_QUALITY })
-    } else {
-      pipeline = pipeline.jpeg({ quality: JPEG_QUALITY, mozjpeg: true })
-    }
-
-    await pipeline.toFile(tmpPath)
-    await sharp(tmpPath).metadata()
-    renameSync(tmpPath, filePath)
+    await pipeline.toFile(thumbnailPath)
+    await sharp(thumbnailPath).metadata()
+    return thumbnailFilename
   } catch {
-    try { unlinkSync(tmpPath) } catch {}
+    try { unlinkSync(thumbnailPath) } catch {}
+    return ''
   }
 }
 
@@ -87,11 +86,11 @@ export class UploadsService {
       throw new BadRequestException('invalid image')
     }
 
-    await replaceWithOptimizedImage(file.path, detected)
-
     const configuredBase = this.config.get<string>('UPLOAD_BASE_URL')?.trim()
     const base = configuredBase && !configuredBase.includes('your-upload-base-url') ? configuredBase : ''
-    const url = base ? `${base.replace(/\/$/, '')}/uploads/${file.filename}` : `/uploads/${file.filename}`
-    return { url }
+    const thumbnailFilename = await createThumbnail(file.path, file.filename, detected)
+    const url = buildAssetUrl(base, file.filename)
+    const thumbnailUrl = thumbnailFilename ? buildAssetUrl(base, thumbnailFilename) : url
+    return { url, thumbnail_url: thumbnailUrl }
   }
 }

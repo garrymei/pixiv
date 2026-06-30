@@ -146,9 +146,10 @@ export async function createPost(payload: {
   tags?: string[]
   location?: string
   images?: string[]
+  coverImage?: string
 }) {
   const postType: 'work' | 'daily' = payload.tags?.includes('日常') ? 'daily' : 'work'
-  const cover_image = payload.images?.[0] || ''
+  const cover_image = payload.coverImage || payload.images?.[0] || ''
 
   if (isMockMode()) {
     const item: Post = {
