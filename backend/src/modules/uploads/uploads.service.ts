@@ -1,8 +1,13 @@
 import { BadRequestException, Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
-import { openSync, readSync, closeSync, unlinkSync } from 'fs'
+import { openSync, readSync, closeSync, unlinkSync, renameSync } from 'fs'
 import { extname } from 'path'
 import type { Express } from 'express'
+import sharp from 'sharp'
+
+const MAX_IMAGE_DIMENSION = 1600
+const JPEG_QUALITY = 82
+const WEBP_QUALITY = 82
 
 function detectImageType(header: Buffer) {
   if (header.length < 12) return ''
@@ -16,6 +21,36 @@ function detectImageType(header: Buffer) {
 function isAllowedExt(ext: string) {
   const next = ext.toLowerCase()
   return next === '.png' || next === '.jpg' || next === '.jpeg' || next === '.gif' || next === '.webp'
+}
+
+async function replaceWithOptimizedImage(filePath: string, detectedType: string) {
+  if (detectedType === 'gif') return
+
+  const tmpPath = `${filePath}.optimized`
+  try {
+    let pipeline = sharp(filePath, { failOn: 'none' })
+      .rotate()
+      .resize({
+        width: MAX_IMAGE_DIMENSION,
+        height: MAX_IMAGE_DIMENSION,
+        fit: 'inside',
+        withoutEnlargement: true
+      })
+
+    if (detectedType === 'png') {
+      pipeline = pipeline.png({ compressionLevel: 9, palette: true })
+    } else if (detectedType === 'webp') {
+      pipeline = pipeline.webp({ quality: WEBP_QUALITY })
+    } else {
+      pipeline = pipeline.jpeg({ quality: JPEG_QUALITY, mozjpeg: true })
+    }
+
+    await pipeline.toFile(tmpPath)
+    await sharp(tmpPath).metadata()
+    renameSync(tmpPath, filePath)
+  } catch {
+    try { unlinkSync(tmpPath) } catch {}
+  }
 }
 
 @Injectable()
@@ -51,6 +86,8 @@ export class UploadsService {
       try { unlinkSync(file.path) } catch {}
       throw new BadRequestException('invalid image')
     }
+
+    await replaceWithOptimizedImage(file.path, detected)
 
     const configuredBase = this.config.get<string>('UPLOAD_BASE_URL')?.trim()
     const base = configuredBase && !configuredBase.includes('your-upload-base-url') ? configuredBase : ''

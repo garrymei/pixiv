@@ -1,5 +1,6 @@
 import { View, Image, Text } from '@tarojs/components'
 import classNames from 'classnames'
+import { useState } from 'react'
 import { Avatar } from '../../base/Avatar'
 import './index.scss'
 
@@ -28,6 +29,9 @@ export function PostCard({
   onClick,
   className
 }: PostCardProps) {
+  const [imageFailed, setImageFailed] = useState(false)
+  const shouldShowCover = !!coverUrl && !imageFailed
+
   return (
     <View 
       className={classNames(
@@ -37,12 +41,13 @@ export function PostCard({
       )}
       onClick={onClick}
     >
-      {coverUrl && (
+      {shouldShowCover ? (
         <View className="business-post-card__cover-wrap">
           <Image 
             className="business-post-card__cover" 
             src={coverUrl} 
-            mode={isWaterfall ? "widthFix" : "aspectFill"} 
+            mode="aspectFill" 
+            onError={() => setImageFailed(true)}
           />
           {tags.length > 0 && (
             <View className="business-post-card__tags">
@@ -51,6 +56,10 @@ export function PostCard({
               ))}
             </View>
           )}
+        </View>
+      ) : (
+        <View className="business-post-card__cover-placeholder">
+          <Text>{coverUrl ? '图片加载失败' : '暂无图片'}</Text>
         </View>
       )}
 
