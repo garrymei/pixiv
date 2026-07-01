@@ -642,6 +642,12 @@
               </div>
               <button id="refreshVenuesBtn" class="secondary" style="max-width:140px;">刷新场地</button>
             </div>
+            <div class="row" style="margin-top:12px;">
+              <div style="max-width:420px;">
+                <label>后台 Token</label>
+                <input id="venueAdminToken" type="password" placeholder="ADMIN_TOKEN" />
+              </div>
+            </div>
           </div>
 
           <div class="card span-6">
@@ -872,11 +878,13 @@
     async function request(path, method = 'GET', body) {
       const headers = { 'Content-Type': 'application/json' }
       if (state.token) headers.Authorization = `Bearer ${state.token}`
-      const adminToken = ($('adminToken')?.value || state.adminToken || '').trim()
+      const adminToken = ($('adminToken')?.value || $('venueAdminToken')?.value || state.adminToken || '').trim()
       if (adminToken) {
         headers['x-admin-token'] = adminToken
         state.adminToken = adminToken
         localStorage.setItem('admin_api_token', adminToken)
+        if ($('adminToken')) $('adminToken').value = adminToken
+        if ($('venueAdminToken')) $('venueAdminToken').value = adminToken
       }
       const res = await fetch(`${apiBase()}${path}`, {
         method,
@@ -889,10 +897,16 @@
     }
 
     function requireAdminToken() {
-      const adminToken = ($('adminToken')?.value || state.adminToken || '').trim()
-      if (!adminToken) throw new Error('请先填写后台 Token')
+      const adminToken = ($('adminToken')?.value || $('venueAdminToken')?.value || state.adminToken || '').trim()
+      if (!adminToken) {
+        if ($('adminToken')) $('adminToken').focus()
+        if ($('venueAdminToken')) $('venueAdminToken').focus()
+        throw new Error('请先填写后台 Token')
+      }
       state.adminToken = adminToken
       localStorage.setItem('admin_api_token', adminToken)
+      if ($('adminToken')) $('adminToken').value = adminToken
+      if ($('venueAdminToken')) $('venueAdminToken').value = adminToken
       return adminToken
     }
 
@@ -1576,6 +1590,7 @@
 
     $('baseUrl').value = `${location.protocol}//${location.host}`
     $('adminToken').value = state.adminToken
+    $('venueAdminToken').value = state.adminToken
     renderModuleMatrix()
     renderOverviewMetrics()
     renderBanners()
