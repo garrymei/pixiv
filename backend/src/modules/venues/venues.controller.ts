@@ -17,10 +17,21 @@ export class VenuesController {
     return this.venuesService.getById(Number(id))
   }
 
+  @Get('venues/scenes/:id/availability')
+  async getSceneAvailability(@Param('id') id: string) {
+    return this.venuesService.getSceneAvailability(Number(id))
+  }
+
   @Post('venues/bookings')
   @UseGuards(JwtAuthGuard)
   async createBooking(@Req() req: any, @Body() body: { scene_id?: number; start_time?: number; end_time?: number; note?: string }) {
     return this.venuesService.createBooking(req.user.id, body || {})
+  }
+
+  @Patch('venues/bookings/:id/cancel')
+  @UseGuards(JwtAuthGuard)
+  async cancelBooking(@Req() req: any, @Param('id') id: string) {
+    return this.venuesService.cancelBooking(req.user.id, Number(id))
   }
 
   @Get('admin/venues')

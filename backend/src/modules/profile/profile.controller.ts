@@ -11,4 +11,10 @@ export class ProfileController {
   async summary(@Req() req: any) {
     return this.profileService.summary(req.user.id)
   }
+
+  @Get('my-bookings')
+  @UseGuards(JwtAuthGuard)
+  async myBookings(@Req() req: any) {
+    return this.profileService.myBookings(req.user.id)
+  }
 }

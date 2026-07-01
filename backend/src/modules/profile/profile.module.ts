@@ -8,6 +8,7 @@ import { EventsModule } from '../events/events.module'
 import { EventRegistrationModule } from '../event-registration/event-registration.module'
 import { DemandsModule } from '../demands/demands.module'
 import { DemandApplicationModule } from '../demand-application/demand-application.module'
+import { VenuesModule } from '../venues/venues.module'
 
 @Module({
   imports: [
@@ -17,7 +18,8 @@ import { DemandApplicationModule } from '../demand-application/demand-applicatio
     EventsModule,
     EventRegistrationModule,
     DemandsModule,
-    DemandApplicationModule
+    DemandApplicationModule,
+    VenuesModule
   ],
   controllers: [ProfileController],
   providers: [ProfileService]

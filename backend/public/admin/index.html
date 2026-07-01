@@ -1053,7 +1053,12 @@
             <td>${item.id}</td>
             <td><strong>${item.name || ''}</strong><br/><small>${item.description || ''}</small></td>
             <td>${item.city || ''}<br/><small>${item.address || ''}</small></td>
-            <td>${scenes.map((scene) => `#${scene.id} ${scene.name}${scene.status === 1 ? '' : '（停用）'}`).join('<br/>') || '<span class="muted">暂无场景</span>'}</td>
+            <td>${scenes.map((scene) => `
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px;">
+                <span>#${scene.id} ${scene.name}${scene.status === 1 ? '' : '（停用）'}</span>
+                <button class="secondary" data-toggle-scene="${scene.id}" style="max-width:88px;">${scene.status === 1 ? '停用场景' : '启用场景'}</button>
+              </div>
+            `).join('') || '<span class="muted">暂无场景</span>'}</td>
             <td>${item.status === 1 ? '<span class="chip ok">启用</span>' : '<span class="chip warn">停用</span>'}</td>
             <td><button class="secondary" data-toggle-venue="${item.id}">${item.status === 1 ? '停用' : '启用'}</button></td>
           </tr>
@@ -1064,6 +1069,14 @@
           const id = Number(btn.getAttribute('data-toggle-venue'))
           const item = state.venues.find((venue) => venue.id === id)
           await request(`/admin/venues/${id}`, 'PATCH', { status: item?.status === 1 ? 0 : 1 })
+          await loadVenues()
+        })
+      })
+      tbody.querySelectorAll('[data-toggle-scene]').forEach((btn) => {
+        btn.addEventListener('click', async () => {
+          const id = Number(btn.getAttribute('data-toggle-scene'))
+          const item = state.venueScenes.find((scene) => scene.id === id)
+          await request(`/admin/venue-scenes/${id}`, 'PATCH', { status: item?.status === 1 ? 0 : 1 })
           await loadVenues()
         })
       })

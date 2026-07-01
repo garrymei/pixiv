@@ -1,4 +1,4 @@
-import { get, post, resolveAssetUrl } from './request'
+import { get, patch, post, resolveAssetUrl } from './request'
 
 export type VenueScene = {
   id: number
@@ -21,6 +21,17 @@ export type Venue = {
   scenes: VenueScene[]
 }
 
+export type VenueBookingSlot = {
+  id: number
+  venueId: number
+  sceneId: number
+  userId: number
+  startTime: number
+  endTime: number
+  note: string
+  status: string
+}
+
 type VenueSceneRecord = {
   id: number
   venue_id: number
@@ -40,6 +51,23 @@ type VenueRecord = {
   description?: string
   status: number
   scenes?: VenueSceneRecord[]
+}
+
+type VenueBookingRecord = {
+  id: number
+  venue_id: number
+  scene_id: number
+  user_id: number
+  start_time?: number | null
+  end_time?: number | null
+  note?: string
+  status?: string
+}
+
+type VenueSceneAvailabilityRecord = {
+  bookings?: VenueBookingRecord[]
+  window_start?: number
+  window_end?: number
 }
 
 function mapScene(item: VenueSceneRecord): VenueScene {
@@ -68,6 +96,19 @@ function mapVenue(item: VenueRecord): Venue {
   }
 }
 
+function mapBooking(item: VenueBookingRecord): VenueBookingSlot {
+  return {
+    id: item.id,
+    venueId: item.venue_id,
+    sceneId: item.scene_id,
+    userId: item.user_id,
+    startTime: Number(item.start_time || 0),
+    endTime: Number(item.end_time || 0),
+    note: item.note || '',
+    status: item.status || ''
+  }
+}
+
 export async function listVenues() {
   const data = await get<{ list: VenueRecord[] }>('/venues')
   return (data.list || []).map(mapVenue)
@@ -89,4 +130,17 @@ export async function createVenueBooking(payload: {
     },
     { requireAuth: true }
   )
+}
+
+export async function getSceneAvailability(sceneId: number) {
+  const data = await get<VenueSceneAvailabilityRecord>(`/venues/scenes/${sceneId}/availability`)
+  return {
+    bookings: (data.bookings || []).map(mapBooking),
+    windowStart: Number(data.window_start || 0),
+    windowEnd: Number(data.window_end || 0)
+  }
+}
+
+export async function cancelVenueBooking(bookingId: number) {
+  return patch<{ cancelled: boolean }>(`/venues/bookings/${bookingId}/cancel`, {}, { requireAuth: true })
 }

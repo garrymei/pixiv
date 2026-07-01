@@ -29,19 +29,6 @@
   margin-top: var(--space-md);
 }
 
-.my-participation__summary-strip {
-  display: flex;
-  align-items: center;
-  gap: 10rpx;
-  margin-top: var(--space-sm);
-}
-
-.my-participation__summary-text,
-.my-participation__summary-dot {
-  font-size: var(--font-size-sm);
-  color: var(--color-text-secondary);
-}
-
 .my-participation__stat-card {
   flex: 1;
   padding: var(--space-md);
@@ -62,68 +49,6 @@
   display: block;
   margin-top: 8rpx;
   font-size: var(--font-size-xs);
-  color: var(--color-text-secondary);
-}
-
-.my-participation__tabs {
-  display: flex;
-  gap: var(--space-sm);
-  margin-bottom: var(--space-md);
-}
-
-.my-participation__tab {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 84rpx;
-  border-radius: 999rpx;
-  border: 1rpx solid rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.03);
-  color: var(--color-text-secondary);
-  transition: all 0.2s ease;
-
-  &.is-active {
-    background: rgba(255, 64, 129, 0.14);
-    border-color: rgba(255, 64, 129, 0.22);
-    color: var(--color-text-primary);
-    box-shadow: 0 12rpx 32rpx rgba(255, 64, 129, 0.12);
-  }
-}
-
-.my-participation__list {
-  display: flex;
-  flex-direction: column;
-}
-
-.my-participation__event-note {
-  display: block;
-  margin: 0 0 var(--space-md);
-  color: var(--color-text-secondary);
-  font-size: var(--font-size-sm);
-}
-
-.my-participation__schedule {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-lg);
-}
-
-.my-participation__section-head {
-  margin-bottom: var(--space-sm);
-}
-
-.my-participation__section-title {
-  display: block;
-  font-size: var(--font-size-lg);
-  font-weight: var(--font-weight-bold);
-  color: var(--color-text-primary);
-}
-
-.my-participation__section-desc {
-  display: block;
-  margin-top: 6rpx;
-  font-size: var(--font-size-sm);
   color: var(--color-text-secondary);
 }
 
@@ -186,6 +111,33 @@
   color: var(--color-text-primary);
 }
 
+.my-participation__schedule-main {
+  display: flex;
+  gap: var(--space-sm);
+  align-items: stretch;
+}
+
+.my-participation__schedule-cover {
+  width: 172rpx;
+  height: 172rpx;
+  flex-shrink: 0;
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.my-participation__schedule-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.my-participation__schedule-subtitle {
+  display: block;
+  margin-top: 8rpx;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+}
+
 .my-participation__schedule-meta {
   display: flex;
   gap: 16rpx;
@@ -207,8 +159,23 @@
 
 .my-participation__schedule-footer {
   display: flex;
+  align-items: center;
+  gap: var(--space-sm);
   justify-content: flex-end;
   margin-top: var(--space-sm);
+}
+
+.my-participation__schedule-cancel {
+  padding: 8rpx 18rpx;
+  border-radius: 999rpx;
+  border: 1rpx solid rgba(255, 122, 168, 0.28);
+  background: rgba(255, 122, 168, 0.1);
+  color: #ff7aa8;
+  font-size: var(--font-size-xs);
+}
+
+.my-participation__schedule-cancel.is-disabled {
+  opacity: 0.6;
 }
 
 .my-participation__schedule-action {
@@ -224,15 +191,7 @@
     box-shadow: 0 18rpx 54rpx rgba(17, 10, 36, 0.1);
   }
 
-  .my-participation__tab {
-    background: rgba(255, 255, 255, 0.72);
-    border-color: rgba(20, 16, 31, 0.08);
-    color: rgba(20, 16, 31, 0.56);
-
-    &.is-active {
-      background: rgba(255, 64, 129, 0.1);
-      border-color: rgba(255, 64, 129, 0.18);
-      color: rgba(20, 16, 31, 0.9);
-    }
+  .my-participation__schedule-cover {
+    background: rgba(20, 16, 31, 0.06);
   }
 }

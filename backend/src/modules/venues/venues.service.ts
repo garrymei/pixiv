@@ -75,6 +75,14 @@ function toBookingResponse(item: VenueBooking) {
   }
 }
 
+function getAvailabilityWindow() {
+  const now = Date.now()
+  return {
+    now,
+    latest: now + 24 * 60 * 60 * 1000
+  }
+}
+
 function normalizeInt(value: unknown, fallback = 0) {
   const next = Number(value)
   return Number.isFinite(next) ? Math.trunc(next) : fallback
@@ -128,6 +136,33 @@ export class VenuesService {
     return toVenueResponse(venue, scenes)
   }
 
+  async getSceneAvailability(sceneId: number) {
+    const scene = await this.scenesRepo.findOne({ where: { id: sceneId, status: 1 } })
+    if (!scene) throw new NotFoundException('scene not found')
+
+    const venue = await this.venuesRepo.findOne({ where: { id: scene.venueId, status: 1 } })
+    if (!venue) throw new NotFoundException('venue not found')
+
+    const { now, latest } = getAvailabilityWindow()
+    const bookings = await this.bookingsRepo
+      .createQueryBuilder('booking')
+      .where('booking.scene_id = :sceneId', { sceneId })
+      .andWhere('booking.status = :status', { status: 'CONFIRMED' })
+      .andWhere('booking.end_time > :now', { now: new Date(now) })
+      .andWhere('booking.start_time < :latest', { latest: new Date(latest) })
+      .orderBy('booking.start_time', 'ASC')
+      .addOrderBy('booking.id', 'DESC')
+      .getMany()
+
+    return {
+      venue: toVenueResponse(venue, [scene]),
+      scene: toSceneResponse(scene),
+      bookings: bookings.map(toBookingResponse),
+      window_start: now,
+      window_end: latest
+    }
+  }
+
   async listForAdmin() {
     const [venues, scenes, bookings] = await Promise.all([
       this.venuesRepo.find({ order: { sortOrder: 'ASC', id: 'DESC' } }),
@@ -142,6 +177,52 @@ export class VenuesService {
       venues: venues.map((venue) => toVenueResponse(venue, scenes.filter((scene) => scene.venueId === venue.id))),
       scenes: scenes.map(toSceneResponse),
       bookings: bookings.map(toBookingResponse)
+    }
+  }
+
+  async listByUser(userId: number) {
+    const bookings = await this.bookingsRepo.find({
+      where: { userId, status: 'CONFIRMED' },
+      order: { startTime: 'ASC', id: 'DESC' }
+    })
+    if (!bookings.length) return { list: [] }
+
+    const venueIds = Array.from(new Set(bookings.map((item) => item.venueId)))
+    const sceneIds = Array.from(new Set(bookings.map((item) => item.sceneId)))
+    const [venues, scenes] = await Promise.all([
+      venueIds.length ? this.venuesRepo.find({ where: venueIds.map((id) => ({ id })) }) : [],
+      sceneIds.length ? this.scenesRepo.find({ where: sceneIds.map((id) => ({ id })) }) : []
+    ])
+    const venueMap = new Map(venues.map((item) => [item.id, item]))
+    const sceneMap = new Map(scenes.map((item) => [item.id, item]))
+
+    return {
+      list: bookings.map((item) => ({
+        ...toBookingResponse(item),
+        venue_name: venueMap.get(item.venueId)?.name || '',
+        venue_city: venueMap.get(item.venueId)?.city || '',
+        venue_address: venueMap.get(item.venueId)?.address || '',
+        venue_cover_image: venueMap.get(item.venueId)?.coverImage || '',
+        scene_name: sceneMap.get(item.sceneId)?.name || '',
+        scene_image_url: sceneMap.get(item.sceneId)?.imageUrl || ''
+      }))
+    }
+  }
+
+  async cancelBooking(userId: number, bookingId: number) {
+    const booking = await this.bookingsRepo.findOne({ where: { id: bookingId } })
+    if (!booking) throw new NotFoundException('booking not found')
+    if (booking.userId !== userId) throw new NotFoundException('booking not found')
+    if (booking.status !== 'CONFIRMED') throw new BadRequestException('booking already cancelled')
+    if ((booking.startTime?.getTime?.() || 0) <= Date.now()) {
+      throw new BadRequestException('booking already started')
+    }
+
+    booking.status = 'CANCELLED'
+    await this.bookingsRepo.save(booking)
+    return {
+      cancelled: true,
+      booking: toBookingResponse(booking)
     }
   }
 
@@ -226,8 +307,7 @@ export class VenuesService {
 
     const startMs = normalizeTimestamp(payload.start_time)
     const endMs = normalizeTimestamp(payload.end_time)
-    const now = Date.now()
-    const latest = now + 24 * 60 * 60 * 1000
+    const { now, latest } = getAvailabilityWindow()
     if (startMs < now - 60_000 || startMs > latest || endMs > latest) throw new BadRequestException('time out of range')
     if (endMs <= startMs) throw new BadRequestException('invalid time range')
     if (endMs - startMs > 24 * 60 * 60 * 1000) throw new BadRequestException('invalid time range')

@@ -94,7 +94,7 @@ export default function Profile() {
         items={[
           { id: 's1', label: '发布', value: stats?.postsCount ?? 0, onClick: () => (isGuest ? promptLogin('登录后查看我的发布') : Taro.navigateTo({ url: '/pages/my-posts/index' })) },
           { id: 's2', label: '需求', value: stats?.demandsCount ?? 0, onClick: () => (isGuest ? promptLogin('登录后查看我的需求') : Taro.navigateTo({ url: '/pages/my-demands/index' })) },
-          { id: 's3', label: '参与', value: participationCount, onClick: () => (isGuest ? promptLogin('登录后查看参与记录') : Taro.navigateTo({ url: '/pages/my-events/index' })) }
+          { id: 's3', label: '预约', value: participationCount, onClick: () => (isGuest ? promptLogin('登录后查看预约记录') : Taro.navigateTo({ url: '/pages/my-events/index' })) }
         ]}
       />
 
@@ -104,7 +104,7 @@ export default function Profile() {
       <View className="profile-menu">
         <View className="profile-menu__item" onClick={() => (isGuest ? promptLogin('登录后查看我的发布') : Taro.navigateTo({ url: '/pages/my-posts/index' }))}><Text>我的发布</Text></View>
         <View className="profile-menu__item" onClick={() => (isGuest ? promptLogin('登录后查看我的需求') : Taro.navigateTo({ url: '/pages/my-demands/index' }))}><Text>我的需求</Text></View>
-        <View className="profile-menu__item" onClick={() => (isGuest ? promptLogin('登录后查看参与记录') : Taro.navigateTo({ url: '/pages/my-events/index' }))}><Text>参与</Text></View>
+        <View className="profile-menu__item" onClick={() => (isGuest ? promptLogin('登录后查看预约记录') : Taro.navigateTo({ url: '/pages/my-events/index' }))}><Text>我的预约</Text></View>
         <View className="profile-menu__item" onClick={() => (isGuest ? promptLogin('登录后编辑资料') : Taro.navigateTo({ url: '/pages/edit-profile/index' }))}><Text>编辑资料</Text></View>
         <View className="profile-menu__item" onClick={() => Taro.navigateTo({ url: '/pages/settings/index' })}><Text>设置</Text></View>
       </View>

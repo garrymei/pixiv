@@ -1,4 +1,4 @@
 export default {
-  navigationBarTitleText: '参与',
+  navigationBarTitleText: '我的预约',
   enablePullDownRefresh: false
 }
