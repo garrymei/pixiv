@@ -36,7 +36,7 @@ CREATE TABLE IF NOT EXISTS `venue_bookings` (
   `id` BIGINT NOT NULL AUTO_INCREMENT,
   `venue_id` BIGINT NOT NULL,
   `scene_id` BIGINT NOT NULL,
-  `user_id` BIGINT NOT NULL,
+  `user_id` INT NOT NULL,
   `start_time` DATETIME NOT NULL,
   `end_time` DATETIME NOT NULL,
   `note` VARCHAR(255) NULL,
