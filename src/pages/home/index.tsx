@@ -152,7 +152,7 @@ export default function Home() {
             title={banners[0].title}
             subtitle={banners[0].subtitle}
             backgroundImage={banners[0].imageUrl}
-            ctaText={banners[0].linkUrl ? '查看详情' : undefined}
+            ctaText={banners[0].linkUrl && (banners[0].title || banners[0].subtitle) ? '查看详情' : undefined}
             onCtaClick={banners[0].linkUrl ? () => handleBannerClick(banners[0].linkUrl) : undefined}
             onClick={() => handleBannerClick(banners[0].linkUrl)}
           />

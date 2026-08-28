@@ -1,3 +1,5 @@
+import homeHeroImage from '../assets/home/home-hero.jpg'
+
 export interface Banner {
   id: string
   title: string
@@ -9,9 +11,9 @@ export interface Banner {
 export const mockBanners: Banner[] = [
   {
     id: 'b_1',
-    title: '广州 YACA 动漫展 2024',
-    subtitle: '年度最大同人盛会即将开幕！',
-    imageUrl: 'https://images.unsplash.com/photo-1612487528505-d2338264c821?auto=format&fit=crop&q=80&w=1000',
+    title: '',
+    subtitle: '',
+    imageUrl: homeHeroImage,
     linkUrl: '/pages/event-detail/index?id=e_1'
   },
   {
