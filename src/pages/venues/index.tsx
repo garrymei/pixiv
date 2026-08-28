@@ -1,4 +1,4 @@
-import { View, Text, Image, Picker, Textarea } from '@tarojs/components'
+import { View, Text, Image, Input, Picker, Swiper, SwiperItem, Textarea } from '@tarojs/components'
 import Taro, { useLoad, usePullDownRefresh } from '@tarojs/taro'
 import classNames from 'classnames'
 import { useCallback, useEffect, useMemo, useState } from 'react'
@@ -16,6 +16,7 @@ import {
 } from '../../services/venues'
 import { isGuestMode, promptLogin } from '../../services/request'
 import { markMyEventsShouldRefresh } from '../../services/events'
+import yueciyuanLogo from '../../assets/venues/yueciyuan-logo.jpg'
 import './index.scss'
 
 type TimeOption = {
@@ -24,6 +25,12 @@ type TimeOption = {
 }
 
 const HALF_HOUR_MS = 30 * 60 * 1000
+const PEOPLE_OPTIONS = Array.from({ length: 10 }, (_, index) => index + 1)
+const EXAMPLE_PLACEHOLDERS = ['全身构图', '半身人像', '氛围特写']
+const CLASSROOM_IMAGES = [
+  'https://www.pivix.top/uploads/venues/yueciyuan/classroom-1.jpg',
+  'https://www.pivix.top/uploads/venues/yueciyuan/classroom-2.jpg'
+]
 
 function formatTimeLabel(value: number) {
   return new Date(value).toLocaleString('zh-CN', {
@@ -67,6 +74,24 @@ function formatBookingRange(startTime: number, endTime: number) {
   })}`
 }
 
+function formatSlotTime(value: number) {
+  return new Date(value).toLocaleTimeString('zh-CN', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false
+  })
+}
+
+function formatSlotDate(value: number) {
+  const date = new Date(value)
+  const today = new Date()
+  const tomorrow = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1)
+  const day = new Date(date.getFullYear(), date.getMonth(), date.getDate())
+  if (day.getTime() === new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime()) return '今天'
+  if (day.getTime() === tomorrow.getTime()) return '明天'
+  return `${date.getMonth() + 1}月${date.getDate()}日`
+}
+
 export default function VenuesPage() {
   const { theme } = useThemeMode()
   const [venues, setVenues] = useState<Venue[]>([])
@@ -75,6 +100,10 @@ export default function VenuesPage() {
   const [startValue, setStartValue] = useState<number | null>(null)
   const [endValue, setEndValue] = useState<number | null>(null)
   const [note, setNote] = useState('')
+  const [peopleCount, setPeopleCount] = useState(1)
+  const [phone, setPhone] = useState('')
+  const [showExamples, setShowExamples] = useState(false)
+  const [currentSceneImage, setCurrentSceneImage] = useState(0)
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [availabilityLoading, setAvailabilityLoading] = useState(false)
@@ -86,6 +115,12 @@ export default function VenuesPage() {
   const activeVenue = venues.find((item) => item.id === activeVenueId) || venues[0]
   const scenes = activeVenue?.scenes || []
   const activeScene = scenes.find((item) => item.id === activeSceneId) || scenes[0]
+  const activeSceneImages = useMemo(() => {
+    if (activeVenue?.name === '粤次元摄影棚' && activeScene?.name === '校园') {
+      return CLASSROOM_IMAGES
+    }
+    return activeScene?.imageUrl ? [activeScene.imageUrl] : []
+  }, [activeScene?.imageUrl, activeScene?.name, activeVenue?.name])
   const timeOptions = useMemo(
     () => buildTimeOptions(availabilityWindow.start, availabilityWindow.end),
     [availabilityWindow.end, availabilityWindow.start]
@@ -104,10 +139,16 @@ export default function VenuesPage() {
     [canBookRange, timeOptions]
   )
 
-  const availableEndOptions = useMemo(() => {
-    if (!startValue) return []
-    return timeOptions.filter((option) => option.value > startValue && canBookRange(startValue, option.value))
-  }, [canBookRange, startValue, timeOptions])
+  const slotOptions = useMemo(() => timeOptions.slice(0, -1), [timeOptions])
+  const slotGroups = useMemo(() => {
+    return slotOptions.reduce<Array<{ label: string; slots: TimeOption[] }>>((groups, slot) => {
+      const label = formatSlotDate(slot.value)
+      const current = groups[groups.length - 1]
+      if (current?.label === label) current.slots.push(slot)
+      else groups.push({ label, slots: [slot] })
+      return groups
+    }, [])
+  }, [slotOptions])
 
   const loadData = useCallback(async () => {
     try {
@@ -139,6 +180,8 @@ export default function VenuesPage() {
   const loadAvailability = useCallback(async (sceneId: number) => {
     try {
       setAvailabilityLoading(true)
+      setStartValue(null)
+      setEndValue(null)
       const data = await getSceneAvailability(sceneId)
       setBookedSlots(data.bookings)
       setAvailabilityWindow({
@@ -177,6 +220,10 @@ export default function VenuesPage() {
   }, [activeSceneId, loadAvailability])
 
   useEffect(() => {
+    setCurrentSceneImage(0)
+  }, [activeSceneId])
+
+  useEffect(() => {
     if (!preferredSceneId || venues.length === 0) return
     const matchedVenue = venues.find((venue) => venue.id === (preferredVenueId || venue.id))
       || venues.find((venue) => (venue.scenes || []).some((scene) => scene.id === preferredSceneId))
@@ -184,28 +231,6 @@ export default function VenuesPage() {
     if (matchedVenue?.id) setActiveVenueId(matchedVenue.id)
     if (matchedScene?.id) setActiveSceneId(matchedScene.id)
   }, [preferredSceneId, preferredVenueId, venues])
-
-  useEffect(() => {
-    const nextStartValue = availableStartOptions.some((item) => item.value === startValue)
-      ? startValue
-      : (availableStartOptions[0]?.value ?? null)
-
-    if (nextStartValue !== startValue) {
-      setStartValue(nextStartValue)
-      return
-    }
-
-    const nextEndOptions = nextStartValue
-      ? timeOptions.filter((item) => item.value > nextStartValue && canBookRange(nextStartValue, item.value))
-      : []
-    const nextEndValue = nextEndOptions.some((item) => item.value === endValue)
-      ? endValue
-      : (nextEndOptions[0]?.value ?? null)
-
-    if (nextEndValue !== endValue) {
-      setEndValue(nextEndValue)
-    }
-  }, [availableStartOptions, canBookRange, endValue, startValue, timeOptions])
 
   const selectVenue = (venue: Venue) => {
     setActiveVenueId(venue.id)
@@ -216,10 +241,21 @@ export default function VenuesPage() {
     setActiveSceneId(scene.id)
   }
 
-  const handleStartChange = (value: number) => {
-    setStartValue(value)
-    const nextEnd = timeOptions.find((item) => item.value > value && canBookRange(value, item.value))
-    setEndValue(nextEnd?.value || null)
+  const handleSlotClick = (value: number) => {
+    const slotEnd = value + HALF_HOUR_MS
+    if (!canBookRange(value, slotEnd)) return
+    if (!startValue || (startValue && endValue) || value <= startValue) {
+      setStartValue(value)
+      setEndValue(null)
+      return
+    }
+    if (!canBookRange(startValue, slotEnd)) {
+      setStartValue(value)
+      setEndValue(null)
+      Taro.showToast({ title: '预约区间不能包含已占用时段', icon: 'none' })
+      return
+    }
+    setEndValue(slotEnd)
   }
 
   const submit = async () => {
@@ -235,13 +271,18 @@ export default function VenuesPage() {
       Taro.showToast({ title: '请选择有效时段', icon: 'none' })
       return
     }
+    const normalizedPhone = phone.trim()
+    if (!/^1[3-9]\d{9}$/.test(normalizedPhone)) {
+      Taro.showToast({ title: '请填写正确的11位手机号', icon: 'none' })
+      return
+    }
     setSubmitting(true)
     try {
       await createVenueBooking({
         sceneId: activeScene.id,
         startTime: startValue,
         endTime: endValue,
-        note: note.trim()
+        note: [`联系电话：${normalizedPhone}`, `预约人数：${peopleCount}人`, note.trim()].filter(Boolean).join('；')
       })
       Taro.showToast({ title: '预约成功', icon: 'success' })
       markMyEventsShouldRefresh()
@@ -282,30 +323,93 @@ export default function VenuesPage() {
             ))}
           </View>
 
-          <View className="page-venues__scene-list">
-            {scenes.map((scene) => (
-              <View
-                key={scene.id}
-                className={classNames('page-venues__scene-card', {
-                  'page-venues__scene-card--active': activeScene?.id === scene.id
-                })}
-                onClick={() => selectScene(scene)}
-              >
-                {scene.imageUrl ? <Image className="page-venues__scene-image" src={scene.imageUrl} mode="aspectFill" /> : null}
-                <View className="page-venues__scene-body">
-                  <Text className="page-venues__scene-name">{scene.name}</Text>
-                  <Text className="page-venues__scene-desc">{scene.description || activeVenue?.address || '可预约场景'}</Text>
-                  {scene.capacity ? <Text className="page-venues__scene-meta">建议人数：{scene.capacity}</Text> : null}
+          <View className="page-venues__venue-detail">
+            <View className="page-venues__venue-heading">
+              <View className="page-venues__venue-identity">
+                {activeVenue?.name === '粤次元摄影棚' ? (
+                  <Image className="page-venues__venue-logo" src={yueciyuanLogo} mode="aspectFill" />
+                ) : null}
+                <View className="page-venues__venue-copy">
+                  <Text className="page-venues__venue-name">{activeVenue?.name}</Text>
+                  <Text className="page-venues__venue-address">{activeVenue?.address || activeVenue?.city || '地址待补充'}</Text>
                 </View>
               </View>
-            ))}
+              <Text className="page-venues__venue-badge">摄影棚</Text>
+            </View>
+
+            <View className="page-venues__scene-hero">
+              {activeSceneImages.length > 0 ? (
+                <Swiper
+                  className="page-venues__scene-swiper"
+                  current={currentSceneImage}
+                  circular={activeSceneImages.length > 1}
+                  onChange={(event) => setCurrentSceneImage(Number((event.detail as any).current || 0))}
+                >
+                  {activeSceneImages.map((imageUrl, index) => (
+                    <SwiperItem key={`${activeScene?.id || 0}-${index}`}>
+                      <Image className="page-venues__scene-hero-image" src={imageUrl} mode="aspectFill" />
+                    </SwiperItem>
+                  ))}
+                </Swiper>
+              ) : (
+                <View className="page-venues__image-placeholder">
+                  <Text className="page-venues__image-placeholder-icon">＋</Text>
+                  <Text className="page-venues__image-placeholder-title">{activeScene?.name || '棚景'}图片</Text>
+                  <Text className="page-venues__image-placeholder-tip">预留棚景主图位置 · 建议 16:9</Text>
+                </View>
+              )}
+              <View className="page-venues__scene-caption">
+                <Text className="page-venues__scene-caption-name">{activeScene?.name || '请选择棚景'}</Text>
+                <Text className="page-venues__scene-caption-desc">{activeScene?.description || '棚景介绍待补充'}</Text>
+              </View>
+              {activeSceneImages.length > 1 ? (
+                <View className="page-venues__scene-pagination">
+                  <Text>{currentSceneImage + 1} / {activeSceneImages.length}</Text>
+                </View>
+              ) : null}
+            </View>
+
+            <Picker
+              mode="selector"
+              range={scenes.map((scene) => scene.name)}
+              value={Math.max(scenes.findIndex((scene) => scene.id === activeScene?.id), 0)}
+              onChange={(e) => {
+                const scene = scenes[Number((e.detail as any).value)]
+                if (scene) selectScene(scene)
+              }}
+            >
+              <View className="page-venues__selector-field">
+                <View>
+                  <Text className="page-venues__selector-label">选择棚景</Text>
+                  <Text className="page-venues__selector-value">{activeScene?.name || '请选择'}</Text>
+                </View>
+                <Text className="page-venues__selector-arrow">⌄</Text>
+              </View>
+            </Picker>
           </View>
 
           <View className="page-venues__booking-panel">
-            <Text className="page-venues__panel-title">选择预约时段</Text>
+            <Text className="page-venues__panel-title">预约信息</Text>
             <Text className="page-venues__panel-tip">
               {activeVenue?.name || '当前场馆'} {activeVenue?.address ? `· ${activeVenue.address}` : ''}
             </Text>
+
+            <Picker
+              mode="selector"
+              range={PEOPLE_OPTIONS.map((value) => `${value} 人`)}
+              value={Math.max(PEOPLE_OPTIONS.indexOf(peopleCount), 0)}
+              onChange={(e) => setPeopleCount(PEOPLE_OPTIONS[Number((e.detail as any).value)] || 1)}
+            >
+              <View className="page-venues__selector-field">
+                <View>
+                  <Text className="page-venues__selector-label">预约人数</Text>
+                  <Text className="page-venues__selector-value">{peopleCount} 人</Text>
+                </View>
+                <Text className="page-venues__selector-arrow">⌄</Text>
+              </View>
+            </Picker>
+
+            <Text className="page-venues__field-heading">选择预约时间</Text>
 
             {availabilityLoading ? (
               <Text className="page-venues__availability-tip">正在加载该场景的可预约时段...</Text>
@@ -330,41 +434,57 @@ export default function VenuesPage() {
                 <Text className="page-venues__no-slot-desc">请切换其他场景，或等待后台放出新的可预约时段。</Text>
               </View>
             ) : (
-              <View className="page-venues__time-row">
-                <Picker
-                  mode="selector"
-                  range={availableStartOptions.map((item) => item.label)}
-                  value={Math.max(
-                    availableStartOptions.findIndex((item) => item.value === startValue),
-                    0
-                  )}
-                  onChange={(e) => handleStartChange(availableStartOptions[Number((e.detail as any).value)]?.value)}
-                >
-                  <View className="page-venues__time-field">
-                    <Text className="page-venues__time-label">开始</Text>
-                    <Text className="page-venues__time-value">
-                      {availableStartOptions.find((item) => item.value === startValue)?.label || '请选择'}
-                    </Text>
+              <View className="page-venues__slot-picker">
+                <Text className="page-venues__slot-instruction">
+                  {!startValue || endValue ? '点击一个可用时段作为开始时间' : '继续点击结束时段，组成预约区间'}
+                </Text>
+                {slotGroups.map((group) => (
+                  <View key={group.label} className="page-venues__slot-group">
+                    <Text className="page-venues__slot-date">{group.label}</Text>
+                    <View className="page-venues__slot-grid">
+                      {group.slots.map((slot) => {
+                        const occupied = !canBookRange(slot.value, slot.value + HALF_HOUR_MS)
+                        const selected = Boolean(startValue && slot.value >= startValue && endValue && slot.value < endValue)
+                        const isStart = slot.value === startValue
+                        return (
+                          <View
+                            key={slot.value}
+                            className={classNames('page-venues__slot', {
+                              'page-venues__slot--occupied': occupied,
+                              'page-venues__slot--selected': selected || isStart
+                            })}
+                            onClick={() => handleSlotClick(slot.value)}
+                          >
+                            <Text>{formatSlotTime(slot.value)}</Text>
+                            <Text className="page-venues__slot-state">{occupied ? '已预约' : isStart && !endValue ? '起点' : selected ? '已选择' : '可预约'}</Text>
+                          </View>
+                        )
+                      })}
+                    </View>
                   </View>
-                </Picker>
-                <Picker
-                  mode="selector"
-                  range={availableEndOptions.map((item) => item.label)}
-                  value={Math.max(
-                    availableEndOptions.findIndex((item) => item.value === endValue),
-                    0
-                  )}
-                  onChange={(e) => setEndValue(availableEndOptions[Number((e.detail as any).value)]?.value || null)}
-                >
-                  <View className="page-venues__time-field">
-                    <Text className="page-venues__time-label">结束</Text>
-                    <Text className="page-venues__time-value">
-                      {availableEndOptions.find((item) => item.value === endValue)?.label || '请选择'}
-                    </Text>
-                  </View>
-                </Picker>
+                ))}
+                <View className="page-venues__selected-range">
+                  <Text className="page-venues__selected-range-label">已选时间</Text>
+                  <Text className="page-venues__selected-range-value">
+                    {startValue ? formatTimeLabel(startValue) : '请选择开始时间'}
+                    {endValue ? ` 至 ${formatTimeLabel(endValue)}` : startValue ? '（请选择结束时间）' : ''}
+                  </Text>
+                </View>
               </View>
             )}
+
+            <View className="page-venues__phone-field">
+              <Text className="page-venues__selector-label">联系电话 *</Text>
+              <Input
+                className="page-venues__phone-input"
+                type="number"
+                maxlength={11}
+                value={phone}
+                placeholder="请输入11位手机号"
+                onInput={(event) => setPhone(String((event.detail as any).value || '').replace(/\D/g, '').slice(0, 11))}
+              />
+              <Text className="page-venues__phone-tip">用于场地方确认预约，仅随本次预约保存</Text>
+            </View>
 
             <Textarea
               className="page-venues__note"
@@ -374,10 +494,14 @@ export default function VenuesPage() {
               onInput={(e) => setNote((e.detail as any).value)}
             />
 
+            <View className="page-venues__example-button" onClick={() => setShowExamples(true)}>
+              <Text>查看例图</Text>
+            </View>
+
             <PrimaryButton
               block
               loading={submitting}
-              disabled={!activeScene || submitting || availabilityLoading || !startValue || !endValue}
+              disabled={!activeScene || submitting || availabilityLoading || !startValue || !endValue || !/^1[3-9]\d{9}$/.test(phone.trim())}
               onClick={submit}
             >
               预约场地
@@ -385,6 +509,32 @@ export default function VenuesPage() {
           </View>
         </View>
       )}
+
+      {showExamples ? (
+        <View className="page-venues__examples-mask" onClick={() => setShowExamples(false)}>
+          <View className="page-venues__examples-modal" onClick={(event) => event.stopPropagation()}>
+            <View className="page-venues__examples-head">
+              <View>
+                <Text className="page-venues__examples-title">{activeScene?.name || '棚景'}拍摄例图</Text>
+                <Text className="page-venues__examples-subtitle">其他模特在当前棚景的拍摄效果</Text>
+              </View>
+              <Text className="page-venues__examples-close" onClick={() => setShowExamples(false)}>×</Text>
+            </View>
+            <View className="page-venues__examples-grid">
+              {EXAMPLE_PLACEHOLDERS.map((label, index) => (
+                <View key={label} className="page-venues__example-placeholder">
+                  <Text className="page-venues__example-index">0{index + 1}</Text>
+                  <Text className="page-venues__example-label">{label}</Text>
+                  <Text className="page-venues__example-tip">预留模特例图</Text>
+                </View>
+              ))}
+            </View>
+            <View className="page-venues__examples-done" onClick={() => setShowExamples(false)}>
+              <Text>返回预约</Text>
+            </View>
+          </View>
+        </View>
+      ) : null}
     </View>
   )
 }
