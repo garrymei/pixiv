@@ -638,7 +638,7 @@
             <div class="section-head">
               <div>
                 <h3>场地预约配置</h3>
-                <p>配置场馆、场景图片和可预约场景；用户可在小程序首页进入并预约未来 24 小时内的时段。</p>
+                <p>配置场馆、场景图片和可预约场景；用户可预约未来 30 天内每天 11:00–23:00 的连续时段。</p>
               </div>
               <button id="refreshVenuesBtn" class="secondary" style="max-width:140px;">刷新场地</button>
             </div>
@@ -835,7 +835,7 @@
       { id: 'discover', title: '发现', desc: '广场、市集、标签、推荐词、需求内容', status: '骨架已接入', monitor: '搜索成功率 / Mock 兜底 / 空结果率' },
       { id: 'publish', title: '发布', desc: '帖子、需求、审核、敏感词、频控', status: '规划中', monitor: '发布成功率 / 上传失败率 / 慢请求' },
       { id: 'events', title: '活动', desc: '活动 CRUD、可报名开关、报名名单', status: '已接入', monitor: '报名成功率 / 满额告警 / 截止告警' },
-      { id: 'venues', title: '场地预约', desc: '场馆、场景、24 小时时段预约', status: '已接入', monitor: '预约冲突 / 场景可用率 / 未来预约量' },
+      { id: 'venues', title: '场地预约', desc: '场馆、场景、未来 30 天时段预约', status: '已接入', monitor: '预约冲突 / 场景可用率 / 未来预约量' },
       { id: 'users', title: '用户', desc: '资料、状态、违规、封禁、内容总览', status: '规划中', monitor: '资料更新成功率 / 异常账号识别' },
       { id: 'auth', title: '登录会话', desc: '登录记录、Token、账号策略、会话状态', status: '规划中', monitor: '登录成功率 / 401 / 403 / 会话失败' },
       { id: 'uploads', title: '上传资源', desc: '资源管理、失效清理、审核、存储配置', status: '规划中', monitor: '上传成功率 / 404 / 非法资源告警' },

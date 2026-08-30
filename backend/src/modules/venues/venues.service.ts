@@ -32,6 +32,20 @@ type BookingPayload = {
   note?: string
 }
 
+const BOOKING_WINDOW_MS = 30 * 24 * 60 * 60 * 1000
+const HALF_HOUR_MS = 30 * 60 * 1000
+const BUSINESS_TIMEZONE_OFFSET_MS = 8 * 60 * 60 * 1000
+const OPENING_MINUTES = 11 * 60
+const CLOSING_MINUTES = 23 * 60
+
+function getBusinessTimeParts(timestamp: number) {
+  const date = new Date(timestamp + BUSINESS_TIMEZONE_OFFSET_MS)
+  return {
+    dateKey: `${date.getUTCFullYear()}-${date.getUTCMonth()}-${date.getUTCDate()}`,
+    minutes: date.getUTCHours() * 60 + date.getUTCMinutes()
+  }
+}
+
 function toVenueResponse(item: Venue, scenes: VenueScene[] = []) {
   return {
     id: item.id,
@@ -79,7 +93,7 @@ function getAvailabilityWindow() {
   const now = Date.now()
   return {
     now,
-    latest: now + 24 * 60 * 60 * 1000
+    latest: now + BOOKING_WINDOW_MS
   }
 }
 
@@ -308,9 +322,17 @@ export class VenuesService {
     const startMs = normalizeTimestamp(payload.start_time)
     const endMs = normalizeTimestamp(payload.end_time)
     const { now, latest } = getAvailabilityWindow()
-    if (startMs < now - 60_000 || startMs > latest || endMs > latest) throw new BadRequestException('time out of range')
+    if (startMs <= now || startMs > latest || endMs > latest) throw new BadRequestException('time out of range')
     if (endMs <= startMs) throw new BadRequestException('invalid time range')
-    if (endMs - startMs > 24 * 60 * 60 * 1000) throw new BadRequestException('invalid time range')
+    const duration = endMs - startMs
+    if (startMs % HALF_HOUR_MS !== 0 || endMs % HALF_HOUR_MS !== 0) throw new BadRequestException('invalid time range')
+    if (duration % HALF_HOUR_MS !== 0 || duration > 12 * 60 * 60 * 1000) throw new BadRequestException('invalid time range')
+    const startTime = getBusinessTimeParts(startMs)
+    const endTime = getBusinessTimeParts(endMs)
+    if (startTime.dateKey !== endTime.dateKey) throw new BadRequestException('invalid time range')
+    if (startTime.minutes < OPENING_MINUTES || endTime.minutes > CLOSING_MINUTES) {
+      throw new BadRequestException('outside business hours')
+    }
 
     const conflict = await this.bookingsRepo
       .createQueryBuilder('booking')

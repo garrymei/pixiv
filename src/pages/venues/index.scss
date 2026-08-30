@@ -325,6 +325,11 @@
     color: var(--color-text-tertiary);
   }
 
+  &__slot-time {
+    font-size: 20rpx;
+    white-space: nowrap;
+  }
+
   &__slot--selected {
     color: #fff;
     border-color: rgba(244, 63, 127, 0.72);

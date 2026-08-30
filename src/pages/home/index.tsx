@@ -7,7 +7,7 @@ import { SectionHeader } from '../../components/base/SectionHeader'
 import { QuickEntryGrid } from '../../components/business/QuickEntryGrid'
 import { PostCard } from '../../components/business/PostCard'
 import { HeroBanner } from '../../components/business/HeroBanner'
-import { listBanners } from '../../services/banners'
+import { listEvents, type ExtendedEvent } from '../../services/events'
 import { listPosts } from '../../services/posts'
 import { useThemeMode } from '../../config/theme'
 
@@ -41,6 +41,30 @@ function getCurrentWeekStart() {
   return start.getTime()
 }
 
+function selectRecentEvent(events: ExtendedEvent[]) {
+  const now = Date.now()
+  const byStartTime = (a: ExtendedEvent, b: ExtendedEvent) =>
+    (a.startTime || Number.MAX_SAFE_INTEGER) - (b.startTime || Number.MAX_SAFE_INTEGER)
+
+  const ongoing = events
+    .filter((event) => {
+      if (!event.startTime) return event.status === 'ongoing'
+      const endTime = event.endTime || event.startTime
+      return event.startTime <= now && endTime >= now
+    })
+    .sort(byStartTime)[0]
+  if (ongoing) return ongoing
+
+  const upcoming = events
+    .filter((event) => Boolean(event.startTime && event.startTime > now))
+    .sort(byStartTime)[0]
+  if (upcoming) return upcoming
+
+  return [...events].sort(
+    (a, b) => (b.endTime || b.startTime || 0) - (a.endTime || a.startTime || 0)
+  )[0]
+}
+
 const MUTUAL_HELP_TABS = [
   { id: 'seek', label: '我来找你' },
   { id: 'offer', label: '我能提供' }
@@ -72,7 +96,7 @@ function MutualIcon({ type }: { type: MutualIconType }) {
 export default function Home() {
   const [mutualHelpTab, setMutualHelpTab] = useState<'seek'|'offer'>('seek')
   const [feedPosts, setFeedPosts] = useState<any[]>([])
-  const [banners, setBanners] = useState<any[]>([])
+  const [recentEvent, setRecentEvent] = useState<ExtendedEvent>()
   const { theme } = useThemeMode()
 
   const openPage = useCallback((url?: string) => {
@@ -97,16 +121,11 @@ export default function Home() {
     Taro.navigateTo({ url: `/pages/post-detail/index?id=${id}` })
   }
 
-  const handleBannerClick = useCallback((linkUrl?: string) => {
-    if (!linkUrl) return
-    if (linkUrl.startsWith('/pages/')) openPage(linkUrl)
-  }, [openPage])
-
   const loadData = useCallback(async () => {
     try {
-      const [postsRes, bannersRes] = await Promise.all([
+      const [postsRes, eventsRes] = await Promise.all([
         listPosts(),
-        listBanners().catch(() => [])
+        listEvents().catch(() => [])
       ])
       const currentWeekStart = getCurrentWeekStart()
       const weeklyPosts = postsRes.filter((post) => (post.createdAt || 0) >= currentWeekStart)
@@ -119,7 +138,7 @@ export default function Home() {
         })
         .slice(0, 8)
       setFeedPosts(sortedPosts)
-      setBanners(bannersRes || [])
+      setRecentEvent(selectRecentEvent(eventsRes || []))
     } catch (error: any) {
       Taro.showToast({ title: error?.message || '首页加载失败', icon: 'none' })
     }
@@ -146,15 +165,20 @@ export default function Home() {
       </View>
 
       <View className="page-home__content">
-        {banners[0] ? (
+        <SectionHeader
+          title="近期活动"
+          actionText="全部活动"
+          onAction={() => openPage('/pages/events/index')}
+        />
+        {recentEvent ? (
           <HeroBanner
             className="page-home__banner"
-            title={banners[0].title}
-            subtitle={banners[0].subtitle}
-            backgroundImage={banners[0].imageUrl}
-            ctaText={banners[0].linkUrl && (banners[0].title || banners[0].subtitle) ? '查看详情' : undefined}
-            onCtaClick={banners[0].linkUrl ? () => handleBannerClick(banners[0].linkUrl) : undefined}
-            onClick={() => handleBannerClick(banners[0].linkUrl)}
+            title={recentEvent.title}
+            subtitle={[recentEvent.time, recentEvent.location].filter(Boolean).join(' · ')}
+            backgroundImage={recentEvent.coverUrl}
+            ctaText="查看活动"
+            onCtaClick={() => openPage(`/pages/event-detail/index?id=${recentEvent.id}`)}
+            onClick={() => openPage(`/pages/event-detail/index?id=${recentEvent.id}`)}
           />
         ) : null}
 

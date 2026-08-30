@@ -25,6 +25,9 @@ type TimeOption = {
 }
 
 const HALF_HOUR_MS = 30 * 60 * 1000
+const BOOKING_WINDOW_MS = 30 * 24 * 60 * 60 * 1000
+const OPENING_HOUR = 11
+const CLOSING_HOUR = 23
 const PEOPLE_OPTIONS = Array.from({ length: 10 }, (_, index) => index + 1)
 const EXAMPLE_PLACEHOLDERS = ['全身构图', '半身人像', '氛围特写']
 const CLASSROOM_IMAGES = [
@@ -42,10 +45,37 @@ function formatTimeLabel(value: number) {
   })
 }
 
-function buildTimeOptions(windowStart: number, windowEnd: number): TimeOption[] {
-  const start = Math.ceil(windowStart / HALF_HOUR_MS) * HALF_HOUR_MS
+function formatDateValue(value: number) {
+  const date = new Date(value)
+  const pad = (part: number) => String(part).padStart(2, '0')
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`
+}
+
+function parseDateValue(value: string) {
+  const [year, month, day] = value.split('-').map(Number)
+  return new Date(year, month - 1, day).getTime()
+}
+
+function formatDateLabel(value: string) {
+  const date = new Date(parseDateValue(value))
+  const today = new Date()
+  const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime()
+  const prefix = date.getTime() === todayStart ? '今天 · ' : ''
+  return `${prefix}${date.getMonth() + 1}月${date.getDate()}日`
+}
+
+function buildTimeOptions(dateValue: string, windowStart: number, windowEnd: number): TimeOption[] {
+  const dayStart = parseDateValue(dateValue)
+  const date = new Date(dayStart)
+  const openingTime = new Date(date.getFullYear(), date.getMonth(), date.getDate(), OPENING_HOUR).getTime()
+  const closingTime = new Date(date.getFullYear(), date.getMonth(), date.getDate(), CLOSING_HOUR).getTime()
+  const threshold = Math.max(windowStart, Date.now())
+  const start = openingTime > threshold
+    ? openingTime
+    : (Math.floor(threshold / HALF_HOUR_MS) + 1) * HALF_HOUR_MS
+  const end = Math.min(closingTime, windowEnd)
   const list: TimeOption[] = []
-  for (let value = start; value <= windowEnd; value += HALF_HOUR_MS) {
+  for (let value = start; value + HALF_HOUR_MS <= end; value += HALF_HOUR_MS) {
     list.push({
       value,
       label: formatTimeLabel(value)
@@ -58,7 +88,7 @@ function createDefaultWindow() {
   const now = Date.now()
   return {
     start: now,
-    end: now + 24 * 60 * 60 * 1000
+    end: now + BOOKING_WINDOW_MS
   }
 }
 
@@ -82,16 +112,6 @@ function formatSlotTime(value: number) {
   })
 }
 
-function formatSlotDate(value: number) {
-  const date = new Date(value)
-  const today = new Date()
-  const tomorrow = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1)
-  const day = new Date(date.getFullYear(), date.getMonth(), date.getDate())
-  if (day.getTime() === new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime()) return '今天'
-  if (day.getTime() === tomorrow.getTime()) return '明天'
-  return `${date.getMonth() + 1}月${date.getDate()}日`
-}
-
 export default function VenuesPage() {
   const { theme } = useThemeMode()
   const [venues, setVenues] = useState<Venue[]>([])
@@ -109,6 +129,7 @@ export default function VenuesPage() {
   const [availabilityLoading, setAvailabilityLoading] = useState(false)
   const [bookedSlots, setBookedSlots] = useState<VenueBookingSlot[]>([])
   const [availabilityWindow, setAvailabilityWindow] = useState(createDefaultWindow())
+  const [selectedDate, setSelectedDate] = useState(() => formatDateValue(Date.now()))
   const [preferredVenueId, setPreferredVenueId] = useState<number | null>(null)
   const [preferredSceneId, setPreferredSceneId] = useState<number | null>(null)
 
@@ -122,8 +143,8 @@ export default function VenuesPage() {
     return activeScene?.imageUrl ? [activeScene.imageUrl] : []
   }, [activeScene?.imageUrl, activeScene?.name, activeVenue?.name])
   const timeOptions = useMemo(
-    () => buildTimeOptions(availabilityWindow.start, availabilityWindow.end),
-    [availabilityWindow.end, availabilityWindow.start]
+    () => buildTimeOptions(selectedDate, availabilityWindow.start, availabilityWindow.end),
+    [availabilityWindow.end, availabilityWindow.start, selectedDate]
   )
 
   const canBookRange = useCallback(
@@ -132,23 +153,15 @@ export default function VenuesPage() {
   )
 
   const availableStartOptions = useMemo(
-    () =>
-      timeOptions.filter((option) =>
-        timeOptions.some((candidate) => candidate.value > option.value && canBookRange(option.value, candidate.value))
-      ),
+    () => timeOptions.filter((option) => canBookRange(option.value, option.value + HALF_HOUR_MS)),
     [canBookRange, timeOptions]
   )
 
-  const slotOptions = useMemo(() => timeOptions.slice(0, -1), [timeOptions])
-  const slotGroups = useMemo(() => {
-    return slotOptions.reduce<Array<{ label: string; slots: TimeOption[] }>>((groups, slot) => {
-      const label = formatSlotDate(slot.value)
-      const current = groups[groups.length - 1]
-      if (current?.label === label) current.slots.push(slot)
-      else groups.push({ label, slots: [slot] })
-      return groups
-    }, [])
-  }, [slotOptions])
+  const selectedDayBookings = useMemo(() => {
+    const dayStart = parseDateValue(selectedDate)
+    const dayEnd = new Date(new Date(dayStart).getFullYear(), new Date(dayStart).getMonth(), new Date(dayStart).getDate() + 1).getTime()
+    return bookedSlots.filter((item) => item.startTime < dayEnd && item.endTime > dayStart)
+  }, [bookedSlots, selectedDate])
 
   const loadData = useCallback(async () => {
     try {
@@ -188,6 +201,7 @@ export default function VenuesPage() {
         start: data.windowStart || createDefaultWindow().start,
         end: data.windowEnd || createDefaultWindow().end
       })
+      setSelectedDate(formatDateValue(Math.max(Date.now(), data.windowStart || 0)))
     } catch (error: any) {
       setBookedSlots([])
       setAvailabilityWindow(createDefaultWindow())
@@ -244,18 +258,22 @@ export default function VenuesPage() {
   const handleSlotClick = (value: number) => {
     const slotEnd = value + HALF_HOUR_MS
     if (!canBookRange(value, slotEnd)) return
-    if (!startValue || (startValue && endValue) || value <= startValue) {
+    if (!startValue || !endValue) {
       setStartValue(value)
-      setEndValue(null)
+      setEndValue(slotEnd)
       return
     }
-    if (!canBookRange(startValue, slotEnd)) {
-      setStartValue(value)
-      setEndValue(null)
-      Taro.showToast({ title: '预约区间不能包含已占用时段', icon: 'none' })
+
+    const nextStart = value < startValue ? value : startValue
+    const nextEnd = value >= startValue && value < endValue
+      ? slotEnd
+      : Math.max(endValue, slotEnd)
+    if (!canBookRange(nextStart, nextEnd)) {
+      Taro.showToast({ title: '只能连续选择，中间不能包含已预约时段', icon: 'none' })
       return
     }
-    setEndValue(slotEnd)
+    setStartValue(nextStart)
+    setEndValue(nextEnd)
   }
 
   const submit = async () => {
@@ -300,7 +318,7 @@ export default function VenuesPage() {
       <View className="page-venues__hero">
         <Text className="page-venues__eyebrow">VENUE BOOKING</Text>
         <Text className="page-venues__title">场地预约</Text>
-        <Text className="page-venues__subtitle">场地与场景由平台统一配置，用户只能预约未来 24 小时内的可用时段，不能自行发布场地。</Text>
+        <Text className="page-venues__subtitle">营业时间 11:00–23:00，可连续选择当前时间之后 30 天内的多个半小时时段。</Text>
       </View>
 
       {loading ? (
@@ -411,13 +429,33 @@ export default function VenuesPage() {
 
             <Text className="page-venues__field-heading">选择预约时间</Text>
 
+            <Picker
+              mode="date"
+              value={selectedDate}
+              start={formatDateValue(availabilityWindow.start)}
+              end={formatDateValue(availabilityWindow.end)}
+              onChange={(event) => {
+                setSelectedDate(String((event.detail as any).value || selectedDate))
+                setStartValue(null)
+                setEndValue(null)
+              }}
+            >
+              <View className="page-venues__selector-field">
+                <View>
+                  <Text className="page-venues__selector-label">预约日期</Text>
+                  <Text className="page-venues__selector-value">{formatDateLabel(selectedDate)}</Text>
+                </View>
+                <Text className="page-venues__selector-arrow">⌄</Text>
+              </View>
+            </Picker>
+
             {availabilityLoading ? (
               <Text className="page-venues__availability-tip">正在加载该场景的可预约时段...</Text>
-            ) : bookedSlots.length > 0 ? (
+            ) : selectedDayBookings.length > 0 ? (
               <View className="page-venues__occupied-list">
-                <Text className="page-venues__occupied-title">已占用时段</Text>
+                <Text className="page-venues__occupied-title">当日已占用时段</Text>
                 <View className="page-venues__occupied-tags">
-                  {bookedSlots.map((item) => (
+                  {selectedDayBookings.map((item) => (
                     <View key={item.id} className="page-venues__occupied-tag">
                       <Text>{formatBookingRange(item.startTime, item.endTime)}</Text>
                     </View>
@@ -425,49 +463,45 @@ export default function VenuesPage() {
                 </View>
               </View>
             ) : (
-              <Text className="page-venues__availability-tip">未来 24 小时内暂无已占用时段，可直接预约。</Text>
+              <Text className="page-venues__availability-tip">所选日期暂无已占用时段，可直接预约。</Text>
             )}
 
             {availableStartOptions.length === 0 ? (
               <View className="page-venues__no-slot">
-                <Text className="page-venues__no-slot-title">当前场景未来 24 小时已约满</Text>
-                <Text className="page-venues__no-slot-desc">请切换其他场景，或等待后台放出新的可预约时段。</Text>
+                <Text className="page-venues__no-slot-title">所选日期暂无可预约时段</Text>
+                <Text className="page-venues__no-slot-desc">请选择未来 30 天内的其他日期或切换场景。</Text>
               </View>
             ) : (
               <View className="page-venues__slot-picker">
                 <Text className="page-venues__slot-instruction">
-                  {!startValue || endValue ? '点击一个可用时段作为开始时间' : '继续点击结束时段，组成预约区间'}
+                  可连续选择多个半小时时段，营业时间为 11:00–23:00
                 </Text>
-                {slotGroups.map((group) => (
-                  <View key={group.label} className="page-venues__slot-group">
-                    <Text className="page-venues__slot-date">{group.label}</Text>
-                    <View className="page-venues__slot-grid">
-                      {group.slots.map((slot) => {
-                        const occupied = !canBookRange(slot.value, slot.value + HALF_HOUR_MS)
-                        const selected = Boolean(startValue && slot.value >= startValue && endValue && slot.value < endValue)
-                        const isStart = slot.value === startValue
-                        return (
-                          <View
-                            key={slot.value}
-                            className={classNames('page-venues__slot', {
-                              'page-venues__slot--occupied': occupied,
-                              'page-venues__slot--selected': selected || isStart
-                            })}
-                            onClick={() => handleSlotClick(slot.value)}
-                          >
-                            <Text>{formatSlotTime(slot.value)}</Text>
-                            <Text className="page-venues__slot-state">{occupied ? '已预约' : isStart && !endValue ? '起点' : selected ? '已选择' : '可预约'}</Text>
-                          </View>
-                        )
-                      })}
-                    </View>
+                <View className="page-venues__slot-group">
+                  <Text className="page-venues__slot-date">{formatDateLabel(selectedDate)}</Text>
+                  <View className="page-venues__slot-grid">
+                    {timeOptions.map((slot) => {
+                      const occupied = !canBookRange(slot.value, slot.value + HALF_HOUR_MS)
+                      const selected = Boolean(startValue && endValue && slot.value >= startValue && slot.value < endValue)
+                      return (
+                        <View
+                          key={slot.value}
+                          className={classNames('page-venues__slot', {
+                            'page-venues__slot--occupied': occupied,
+                            'page-venues__slot--selected': selected
+                          })}
+                          onClick={() => handleSlotClick(slot.value)}
+                        >
+                          <Text className="page-venues__slot-time">{formatSlotTime(slot.value)} - {formatSlotTime(slot.value + HALF_HOUR_MS)}</Text>
+                          <Text className="page-venues__slot-state">{occupied ? '已预约' : selected ? '已选择' : '可预约'}</Text>
+                        </View>
+                      )
+                    })}
                   </View>
-                ))}
+                </View>
                 <View className="page-venues__selected-range">
                   <Text className="page-venues__selected-range-label">已选时间</Text>
                   <Text className="page-venues__selected-range-value">
-                    {startValue ? formatTimeLabel(startValue) : '请选择开始时间'}
-                    {endValue ? ` 至 ${formatTimeLabel(endValue)}` : startValue ? '（请选择结束时间）' : ''}
+                    {startValue && endValue ? formatBookingRange(startValue, endValue) : '请选择一个或多个连续时段'}
                   </Text>
                 </View>
               </View>

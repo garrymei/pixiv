@@ -99,6 +99,12 @@
 
 活动列表 → 活动详情 → 报名 → 我的活动
 
+🏢 场地预约主线
+
+场馆与场景 → 选择日期 → 连续选择 11:00–23:00 内的半小时时段 → 提交预约
+
+固定营业时间及预约边界见 [`docs/product/venue-booking-rules.md`](docs/product/venue-booking-rules.md)。
+
 🤝 需求主线
 
 需求列表 → 需求详情 → 参与 → 我的需求

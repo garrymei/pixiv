@@ -4,8 +4,7 @@ import { useEffect, useState } from 'react'
 import classNames from 'classnames'
 
 import { PrimaryButton, SecondaryButton } from '../../components/base/Button'
-import defaultLoginPoster from '../../assets/login/login-poster.jpg'
-import { listBanners } from '../../services/banners'
+import loginPoster from '../../assets/login/login-poster.jpg'
 import { bootstrapSession, enterGuestMode, getSessionUser, hasAuthenticatedSession, loginWithWechatProfile } from '../../services/request'
 import { updateCurrentUser } from '../../services/user'
 import { uploadImage } from '../../services/uploads'
@@ -16,7 +15,6 @@ import './index.scss'
 export default function Login() {
   const [nickname, setNickname] = useState('')
   const [avatarPath, setAvatarPath] = useState('')
-  const [posterUrl, setPosterUrl] = useState('')
   const [showWechatModal, setShowWechatModal] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -30,14 +28,6 @@ export default function Login() {
         })
         .catch(() => undefined)
     }
-
-    listBanners('login_poster')
-      .then((list) => {
-        setPosterUrl(list[0]?.imageUrl || '')
-      })
-      .catch(() => {
-        setPosterUrl('')
-      })
   }, [])
 
   const enterHome = () => {
@@ -134,7 +124,7 @@ export default function Login() {
         <Text className="page-login__title anim-text-glow">就酱次元区</Text>
         <Text className="page-login__subtitle">游客模式仅浏览内容；正式登录后才可点赞、评论、发布和报名。</Text>
         <View className="page-login__poster">
-          <Image className="page-login__poster-image" src={posterUrl || defaultLoginPoster} mode="aspectFill" />
+          <Image className="page-login__poster-image" src={loginPoster} mode="aspectFit" />
         </View>
       </View>
 
