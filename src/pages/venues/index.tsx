@@ -24,6 +24,12 @@ type TimeOption = {
   value: number
 }
 
+type DatePickerGroup = {
+  key: string
+  label: string
+  dates: Array<{ value: string; label: string }>
+}
+
 const HALF_HOUR_MS = 30 * 60 * 1000
 const OPENING_HOUR = 11
 const CLOSING_HOUR = 23
@@ -61,6 +67,39 @@ function formatDateLabel(value: string) {
   const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime()
   const prefix = date.getTime() === todayStart ? '今天 · ' : ''
   return `${prefix}${date.getMonth() + 1}月${date.getDate()}日`
+}
+
+function buildDatePickerGroups(windowStart: number, windowEnd: number): DatePickerGroup[] {
+  const cursor = new Date(windowStart)
+  cursor.setHours(0, 0, 0, 0)
+  const lastDay = new Date(windowEnd)
+  lastDay.setHours(0, 0, 0, 0)
+  const groups: DatePickerGroup[] = []
+
+  while (cursor.getTime() <= lastDay.getTime()) {
+    const key = `${cursor.getFullYear()}-${cursor.getMonth() + 1}`
+    let group = groups[groups.length - 1]
+    if (group?.key !== key) {
+      group = {
+        key,
+        label: `${cursor.getFullYear()}年${cursor.getMonth() + 1}月`,
+        dates: []
+      }
+      groups.push(group)
+    }
+    group.dates.push({
+      value: formatDateValue(cursor.getTime()),
+      label: `${cursor.getDate()}日`
+    })
+    cursor.setDate(cursor.getDate() + 1)
+  }
+  return groups
+}
+
+function findDatePickerValue(groups: DatePickerGroup[], dateValue: string): [number, number] {
+  const monthIndex = Math.max(groups.findIndex((group) => group.dates.some((date) => date.value === dateValue)), 0)
+  const dayIndex = Math.max(groups[monthIndex]?.dates.findIndex((date) => date.value === dateValue) ?? 0, 0)
+  return [monthIndex, dayIndex]
 }
 
 function buildTimeOptions(dateValue: string, windowStart: number, windowEnd: number): TimeOption[] {
@@ -144,6 +183,11 @@ export default function VenuesPage() {
     }
     return activeScene?.imageUrl ? [activeScene.imageUrl] : []
   }, [activeScene?.imageUrl, activeScene?.name, activeVenue?.name])
+  const datePickerGroups = useMemo(
+    () => buildDatePickerGroups(availabilityWindow.start, availabilityWindow.end),
+    [availabilityWindow.end, availabilityWindow.start]
+  )
+  const [datePickerValue, setDatePickerValue] = useState<[number, number]>([0, 0])
   const timeOptions = useMemo(
     () => buildTimeOptions(selectedDate, availabilityWindow.start, availabilityWindow.end),
     [availabilityWindow.end, availabilityWindow.start, selectedDate]
@@ -164,6 +208,10 @@ export default function VenuesPage() {
     const dayEnd = new Date(new Date(dayStart).getFullYear(), new Date(dayStart).getMonth(), new Date(dayStart).getDate() + 1).getTime()
     return bookedSlots.filter((item) => item.startTime < dayEnd && item.endTime > dayStart)
   }, [bookedSlots, selectedDate])
+
+  useEffect(() => {
+    setDatePickerValue(findDatePickerValue(datePickerGroups, selectedDate))
+  }, [datePickerGroups, selectedDate])
 
   const loadData = useCallback(async () => {
     try {
@@ -432,15 +480,27 @@ export default function VenuesPage() {
             <Text className="page-venues__field-heading">选择预约时间</Text>
 
             <Picker
-              mode="date"
-              value={selectedDate}
-              start={formatDateValue(availabilityWindow.start)}
-              end={formatDateValue(availabilityWindow.end)}
+              mode="multiSelector"
+              range={[
+                datePickerGroups.map((group) => group.label),
+                datePickerGroups[datePickerValue[0]]?.dates.map((date) => date.label) || []
+              ]}
+              value={datePickerValue}
+              onColumnChange={(event) => {
+                const column = Number((event.detail as any).column)
+                const value = Number((event.detail as any).value)
+                setDatePickerValue((current) => column === 0 ? [value, 0] : [current[0], value])
+              }}
               onChange={(event) => {
-                setSelectedDate(String((event.detail as any).value || selectedDate))
+                const [monthIndex, rawDayIndex] = ((event.detail as any).value || datePickerValue).map(Number)
+                const dates = datePickerGroups[monthIndex]?.dates || []
+                const dayIndex = Math.min(rawDayIndex, Math.max(dates.length - 1, 0))
+                const nextDate = dates[dayIndex]?.value
+                if (nextDate) setSelectedDate(nextDate)
                 setStartValue(null)
                 setEndValue(null)
               }}
+              onCancel={() => setDatePickerValue(findDatePickerValue(datePickerGroups, selectedDate))}
             >
               <View className="page-venues__selector-field">
                 <View>
