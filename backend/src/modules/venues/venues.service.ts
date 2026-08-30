@@ -32,7 +32,6 @@ type BookingPayload = {
   note?: string
 }
 
-const BOOKING_WINDOW_MS = 30 * 24 * 60 * 60 * 1000
 const HALF_HOUR_MS = 30 * 60 * 1000
 const BUSINESS_TIMEZONE_OFFSET_MS = 8 * 60 * 60 * 1000
 const OPENING_MINUTES = 11 * 60
@@ -91,9 +90,16 @@ function toBookingResponse(item: VenueBooking) {
 
 function getAvailabilityWindow() {
   const now = Date.now()
+  const businessDate = new Date(now + BUSINESS_TIMEZONE_OFFSET_MS)
+  const latest = Date.UTC(
+    businessDate.getUTCFullYear(),
+    businessDate.getUTCMonth(),
+    businessDate.getUTCDate() + 30,
+    CLOSING_MINUTES / 60
+  ) - BUSINESS_TIMEZONE_OFFSET_MS
   return {
     now,
-    latest: now + BOOKING_WINDOW_MS
+    latest
   }
 }
 

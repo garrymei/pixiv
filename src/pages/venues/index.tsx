@@ -25,7 +25,6 @@ type TimeOption = {
 }
 
 const HALF_HOUR_MS = 30 * 60 * 1000
-const BOOKING_WINDOW_MS = 30 * 24 * 60 * 60 * 1000
 const OPENING_HOUR = 11
 const CLOSING_HOUR = 23
 const PEOPLE_OPTIONS = Array.from({ length: 10 }, (_, index) => index + 1)
@@ -86,9 +85,12 @@ function buildTimeOptions(dateValue: string, windowStart: number, windowEnd: num
 
 function createDefaultWindow() {
   const now = Date.now()
+  const end = new Date(now)
+  end.setDate(end.getDate() + 30)
+  end.setHours(CLOSING_HOUR, 0, 0, 0)
   return {
     start: now,
-    end: now + BOOKING_WINDOW_MS
+    end: end.getTime()
   }
 }
 
