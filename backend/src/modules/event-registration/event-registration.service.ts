@@ -19,6 +19,8 @@ export class EventRegistrationService {
     const event = await this.eventsService.getById(eventId)
     if (!event) throw new NotFoundException('event not found')
     if (!event.is_registerable) throw new ForbiddenException('not allow')
+    if (event.status === 'ENDED' || (event.end_time && Date.now() >= event.end_time))
+      throw new BadRequestException('event ended')
     if (event.registration_deadline && Date.now() > event.registration_deadline)
       throw new BadRequestException('deadline passed')
     const existing = await this.registrationsRepo.findOne({ where: { eventId, userId } })

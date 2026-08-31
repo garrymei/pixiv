@@ -7,6 +7,7 @@ import { ModerationStatus } from '../../types/enums'
 import { Post } from '../../database/entities/post.entity'
 import { PostImage } from '../../database/entities/post-image.entity'
 import { User } from '../../database/entities/user.entity'
+import { UploadsService } from '../uploads/uploads.service'
 
 type PostResponse = {
   id: number
@@ -15,7 +16,9 @@ type PostResponse = {
   content: string
   post_type: 'work' | 'daily'
   cover_image: string
+  cover_thumbnail: string
   images: string[]
+  image_thumbnails: string[]
   tags: string[]
   location: string
   created_at: number
@@ -54,7 +57,8 @@ export class PostsService {
     @InjectRepository(PostImage)
     private readonly postImagesRepo: Repository<PostImage>,
     @InjectRepository(User)
-    private readonly usersRepo: Repository<User>
+    private readonly usersRepo: Repository<User>,
+    private readonly uploadsService: UploadsService
   ) {}
 
   private normalizeTags(post: Post) {
@@ -87,9 +91,12 @@ export class PostsService {
     }
     const userMap = new Map(users.map((user) => [user.id, user]))
 
-    return items.map((item) => {
+    return Promise.all(items.map(async (item) => {
       const user = userMap.get(item.authorId)
       const itemImages = imageMap.get(item.id) || []
+      const coverImage = item.coverImage || itemImages[0] || ''
+      const coverThumbnail = await this.uploadsService.getThumbnailUrl(coverImage)
+      const imageThumbnails = itemImages.map((url, index) => index === 0 ? (coverThumbnail || url) : url)
       const tags = this.normalizeTags(item)
       return {
         id: item.id,
@@ -97,8 +104,10 @@ export class PostsService {
         title: item.title || '',
         content: item.content || '',
         post_type: item.postType as 'work' | 'daily',
-        cover_image: item.coverImage || itemImages[0] || '',
+        cover_image: coverImage,
+        cover_thumbnail: coverThumbnail,
         images: itemImages,
+        image_thumbnails: imageThumbnails,
         tags,
         location: item.location || '',
         created_at: item.createdAt?.getTime?.() || Date.now(),
@@ -112,7 +121,7 @@ export class PostsService {
           avatar: user?.avatarUrl || ''
         }
       }
-    })
+    }))
   }
 
   async list(params: { type?: 'work' | 'daily'; page?: number; pageSize?: number }) {

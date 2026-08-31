@@ -2,6 +2,7 @@ import Taro from '@tarojs/taro'
 import { get, isMockMode, mockResponse, post, resolveAssetUrl } from './request'
 import { mockEvents, type Event } from '../mocks/events'
 import { mockProfileTabs } from '../mocks/profile'
+import { formatDateTime, getTimestamp } from './date-time'
 
 const MY_EVENTS_REFRESH_KEY = 'my_events_should_refresh'
 
@@ -35,6 +36,7 @@ export type ExtendedEvent = Event & {
   registrationDeadlineText?: string
   eventType?: string
   isRegisterable?: boolean
+  registrationOpen?: boolean
   startTime?: number
   endTime?: number
   statusText?: string
@@ -42,23 +44,16 @@ export type ExtendedEvent = Event & {
   registeredAtText?: string
 }
 
-function formatDateTime(value?: number | string | null) {
-  if (value === null || value === undefined || value === '') return '待定'
-  const timestamp = typeof value === 'number' ? value : new Date(value).getTime()
-  if (!timestamp || Number.isNaN(timestamp)) return '待定'
-  return new Date(timestamp).toLocaleString('zh-CN', { hour12: false })
-}
-
 function formatOptionalDateTime(value?: number | string | null) {
   if (value === null || value === undefined || value === '') return ''
-  return formatDateTime(value)
+  return formatDateTime(value, '')
 }
 
 function formatEventTime(startTime?: number | string | null, endTime?: number | string | null) {
   if (!startTime) return '待定'
-  const start = formatDateTime(startTime)
+  const start = formatDateTime(startTime, '待定')
   if (!endTime) return start
-  const end = formatDateTime(endTime)
+  const end = formatDateTime(endTime, '待定')
   return `${start} - ${end}`
 }
 
@@ -68,8 +63,21 @@ function mapEventStatus(status: EventRecord['status']): Event['status'] {
   return 'upcoming'
 }
 
+function resolveEventStatus(item: EventRecord): Event['status'] {
+  const now = Date.now()
+  const startTime = getTimestamp(item.start_time)
+  const endTime = getTimestamp(item.end_time)
+
+  if (item.status === 'ENDED' || (endTime && endTime <= now)) return 'ended'
+  if (startTime && startTime <= now && (!endTime || endTime > now)) return 'ongoing'
+  if (startTime && startTime > now) return 'upcoming'
+  return mapEventStatus(item.status)
+}
+
 function mapEvent(item: EventRecord): ExtendedEvent {
-  const status = mapEventStatus(item.status)
+  const status = resolveEventStatus(item)
+  const registrationDeadline = getTimestamp(item.registration_deadline)
+  const isRegistrationOpen = status !== 'ended' && (!registrationDeadline || registrationDeadline >= Date.now())
   return {
     id: String(item.id),
     title: item.title,
@@ -81,14 +89,15 @@ function mapEvent(item: EventRecord): ExtendedEvent {
     organizer: item.organizer || '官方',
     description: item.description || undefined,
     capacity: item.capacity ?? undefined,
-    registrationDeadline: typeof item.registration_deadline === 'number' ? item.registration_deadline : item.registration_deadline ? new Date(item.registration_deadline).getTime() : undefined,
+    registrationDeadline,
     eventType: item.event_type,
     isRegisterable: item.is_registerable ?? item.event_type === 'official',
-    startTime: typeof item.start_time === 'number' ? item.start_time : item.start_time ? new Date(item.start_time).getTime() : undefined,
-    endTime: typeof item.end_time === 'number' ? item.end_time : item.end_time ? new Date(item.end_time).getTime() : undefined,
-    registrationDeadlineText: formatDateTime(item.registration_deadline),
+    registrationOpen: (item.is_registerable ?? item.event_type === 'official') && isRegistrationOpen,
+    startTime: getTimestamp(item.start_time),
+    endTime: getTimestamp(item.end_time),
+    registrationDeadlineText: formatDateTime(item.registration_deadline, '待定'),
     statusText: status === 'ongoing' ? '进行中' : status === 'ended' ? '已结束' : '即将开始',
-    registeredAt: typeof item.registered_at === 'number' ? item.registered_at : item.registered_at ? new Date(item.registered_at).getTime() : undefined,
+    registeredAt: getTimestamp(item.registered_at),
     registeredAtText: formatOptionalDateTime(item.registered_at)
   }
 }
@@ -108,6 +117,7 @@ export function getEventRegistrationErrorMessage(error: any) {
   const message = String(error?.message || '')
   if (message === 'already registered') return '你已经报名过该活动了'
   if (message === 'deadline passed') return '报名已截止'
+  if (message === 'event ended') return '活动已结束，无法报名'
   if (message === 'full') return '活动名额已满'
   if (message === 'not allow') return '该活动为资讯内容，暂不支持报名'
   if (message === 'event not found') return '活动不存在或已下线'

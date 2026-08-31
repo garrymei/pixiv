@@ -24,6 +24,7 @@ export default function PostDetail() {
   const [commentText, setCommentText] = useState('')
   const [submittingComment, setSubmittingComment] = useState(false)
   const [togglingLike, setTogglingLike] = useState(false)
+  const [heroLoaded, setHeroLoaded] = useState(false)
   const { theme } = useThemeMode()
 
   useLoad((options) => {
@@ -62,6 +63,10 @@ export default function PostDetail() {
   useEffect(() => {
     loadData()
   }, [loadData])
+
+  useEffect(() => {
+    setHeroLoaded(false)
+  }, [postId])
 
   const handleToggleLike = async () => {
     if (!postId || togglingLike) return
@@ -123,14 +128,32 @@ export default function PostDetail() {
   if (error || !post) return <EmptyState title="加载失败" description={error || '帖子不存在'} actionText="重试" onAction={loadData} />
 
   const galleryImages = Array.isArray(post.images) ? post.images : []
+  const thumbnailImages = Array.isArray(post.thumbnailUrls) ? post.thumbnailUrls : []
   const heroImage = galleryImages[0] || post.coverUrl
+  const heroThumbnail = thumbnailImages[0] || post.coverUrl
   const detailImages = galleryImages.length > 1 ? galleryImages.slice(1) : []
 
   return (
     <View className={`page-post-detail page-container theme-${theme}`} style={{ paddingBottom: 'var(--safe-area-bottom)' }}>
       {heroImage ? (
-        <View style={{ width: '100%', backgroundColor: 'var(--color-bg-card)' }}>
-          <Image src={heroImage} mode="widthFix" style={{ width: '100%' }} />
+        <View style={{ width: '100%', position: 'relative', backgroundColor: 'var(--color-bg-card)' }}>
+          {heroThumbnail && heroThumbnail !== heroImage ? (
+            <Image src={heroThumbnail} mode="widthFix" style={{ width: '100%', display: 'block' }} />
+          ) : null}
+          <Image
+            src={heroImage}
+            mode={heroThumbnail && heroThumbnail !== heroImage ? 'aspectFit' : 'widthFix'}
+            onLoad={() => setHeroLoaded(true)}
+            style={heroThumbnail && heroThumbnail !== heroImage
+              ? {
+                  position: 'absolute',
+                  inset: 0,
+                  width: '100%',
+                  height: '100%',
+                  opacity: heroLoaded ? 1 : 0
+                }
+              : { width: '100%', display: 'block' }}
+          />
         </View>
       ) : null}
       <View style={{ padding: 'var(--space-lg)' }}>

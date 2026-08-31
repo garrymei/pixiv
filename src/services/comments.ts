@@ -1,5 +1,6 @@
 import { get, isMockMode, mockResponse, post, resolveAssetUrl } from './request'
 import { mockComments, type Comment } from '../mocks/comments'
+import { formatDateTime } from './date-time'
 
 type RealComment = {
   id: number
@@ -21,12 +22,6 @@ type CommentListResponse = {
   total: number
 }
 
-function formatDateTime(value: number | string) {
-  const timestamp = typeof value === 'number' ? value : new Date(value).getTime()
-  if (!timestamp || Number.isNaN(timestamp)) return '刚刚'
-  return new Date(timestamp).toLocaleString('zh-CN', { hour12: false })
-}
-
 function mapComment(item: RealComment): Comment {
   const authorId = String(item.user?.id || item.user_id)
   return {
@@ -39,7 +34,7 @@ function mapComment(item: RealComment): Comment {
     likeCount: 0,
     isLiked: false,
     replyCount: 0,
-    createTime: formatDateTime(item.created_at)
+    createTime: formatDateTime(item.created_at, '刚刚')
   }
 }
 

@@ -1,9 +1,13 @@
 import Taro from '@tarojs/taro'
 import { get, isMockMode, mockResponse, post, resolveAssetUrl } from './request'
 import { mockPosts, type Post } from '../mocks/posts'
+import { formatDateTime, getTimestamp } from './date-time'
 
 const POST_LIST_REFRESH_KEY = 'post_list_should_refresh'
 const postEngagementOverrides = new Map<string, { likeCount?: number; commentCount?: number; liked?: boolean }>()
+const POST_CACHE_TTL = 30_000
+const postListCache = new Map<string, { expiresAt: number; data: Post[] }>()
+const postListRequests = new Map<string, Promise<Post[]>>()
 
 type PostRecord = {
   id: number
@@ -21,7 +25,9 @@ type PostRecord = {
   title: string
   content?: string
   cover_image?: string
+  cover_thumbnail?: string
   images?: string[] | string | null
+  image_thumbnails?: string[] | string | null
   tags?: string[] | string | null
   location?: string
   post_type?: 'work' | 'daily' | null
@@ -44,13 +50,6 @@ function normalizeStringArray(value?: string[] | string | null) {
   return []
 }
 
-function formatDateTime(value?: number | string | null) {
-  if (value === null || value === undefined || value === '') return ''
-  const timestamp = typeof value === 'number' ? value : new Date(value).getTime()
-  if (!timestamp || Number.isNaN(timestamp)) return ''
-  return new Date(timestamp).toLocaleString('zh-CN', { hour12: false })
-}
-
 function resolveAuthor(item: PostRecord) {
   const authorId = item.user?.id || item.authorId || item.author_id || 0
 
@@ -63,15 +62,12 @@ function resolveAuthor(item: PostRecord) {
 
 function mapPost(item: PostRecord): Post {
   const images = normalizeStringArray(item.images).map(resolveAssetUrl).filter(Boolean)
+  const thumbnailUrls = normalizeStringArray(item.image_thumbnails).map(resolveAssetUrl).filter(Boolean)
   const tags = normalizeStringArray(item.tags)
-  const cover = resolveAssetUrl(item.cover_image) || images[0] || 'https://images.unsplash.com/photo-1578632767115-351597cf2477?auto=format&fit=crop&q=80&w=600'
+  const cover = resolveAssetUrl(item.cover_thumbnail || item.cover_image) || thumbnailUrls[0] || images[0] || 'https://images.unsplash.com/photo-1578632767115-351597cf2477?auto=format&fit=crop&q=80&w=600'
   const author = resolveAuthor(item)
   const overrides = postEngagementOverrides.get(String(item.id))
-  const createdAt = item.created_at === null || item.created_at === undefined || item.created_at === ''
-    ? undefined
-    : typeof item.created_at === 'number'
-      ? item.created_at
-      : new Date(item.created_at).getTime()
+  const createdAt = getTimestamp(item.created_at)
   const likeCount = overrides?.likeCount ?? item.like_count ?? 0
   const commentCount = overrides?.commentCount ?? item.comment_count ?? 0
   return {
@@ -80,6 +76,7 @@ function mapPost(item: PostRecord): Post {
     content: item.content,
     coverUrl: cover,
     images,
+    thumbnailUrls,
     authorId: author.authorId,
     authorName: author.authorName,
     authorAvatar: author.authorAvatar,
@@ -88,12 +85,13 @@ function mapPost(item: PostRecord): Post {
     isLiked: overrides?.liked ?? item.is_liked ?? false,
     tags,
     createTime: formatDateTime(item.created_at) || '刚刚',
-    createdAt: createdAt && !Number.isNaN(createdAt) ? createdAt : undefined,
+    createdAt,
     hotScore: likeCount * 2 + commentCount
   }
 }
 
 export function markPostListShouldRefresh() {
+  postListCache.clear()
   Taro.setStorageSync(POST_LIST_REFRESH_KEY, '1')
 }
 
@@ -107,6 +105,12 @@ export function consumePostListShouldRefresh() {
 export function updatePostEngagement(postId: string, patch: { likeCount?: number; commentCount?: number; liked?: boolean }) {
   const prev = postEngagementOverrides.get(postId) || {}
   postEngagementOverrides.set(postId, { ...prev, ...patch })
+  for (const [key, cached] of postListCache) {
+    postListCache.set(key, {
+      ...cached,
+      data: cached.data.map((post) => post.id === postId ? { ...post, ...patch } : post)
+    })
+  }
 }
 
 export async function listPosts(type?: 'work' | 'daily'): Promise<Post[]> {
@@ -114,9 +118,23 @@ export async function listPosts(type?: 'work' | 'daily'): Promise<Post[]> {
     const data = type ? mockPosts.filter((p) => (type === 'work' ? (p.tags || []).includes('正片') : (p.tags || []).includes('日常'))) : mockPosts
     return mockResponse(data)
   }
+  const cacheKey = type || 'all'
+  const cached = postListCache.get(cacheKey)
+  if (cached && cached.expiresAt > Date.now()) return cached.data
+
+  const pending = postListRequests.get(cacheKey)
+  if (pending) return pending
+
   const suffix = type ? `?type=${type}` : ''
-  const data = await get<PostListResponse>(`/posts${suffix}`)
-  return (data.list || []).map(mapPost)
+  const request = get<PostListResponse>(`/posts${suffix}`)
+    .then((data) => {
+      const posts = (data.list || []).map(mapPost)
+      postListCache.set(cacheKey, { expiresAt: Date.now() + POST_CACHE_TTL, data: posts })
+      return posts
+    })
+    .finally(() => postListRequests.delete(cacheKey))
+  postListRequests.set(cacheKey, request)
+  return request
 }
 
 export async function listPostsByTag(tag: string): Promise<Post[]> {
@@ -184,5 +202,6 @@ export async function createPost(payload: {
     },
     { requireAuth: true }
   )
+  postListCache.clear()
   return mapPost(data)
 }

@@ -92,12 +92,12 @@ export default function EventDetail() {
   const typeText = ev.eventType === 'official' ? '官方活动' : '活动资讯'
   const disabledReason = joined
     ? '你已报名该活动，可在“我的活动”中查看'
-      : !ev.isRegisterable
-      ? '该内容为活动资讯，暂不支持报名'
       : ev.status === 'ended'
         ? '活动已结束'
         : ev.registrationDeadline && Date.now() > ev.registrationDeadline
           ? '报名已截止'
+          : !ev.isRegisterable
+            ? '该内容为活动资讯，暂不支持报名'
           : ''
   const actionText = joined ? '已报名' : disabledReason ? '暂不可报名' : '立即报名'
 

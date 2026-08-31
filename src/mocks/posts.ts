@@ -6,6 +6,7 @@ export interface Post {
   content?: string
   coverUrl: string
   images?: string[]
+  thumbnailUrls?: string[]
   authorId: string
   authorName: string
   authorAvatar?: string

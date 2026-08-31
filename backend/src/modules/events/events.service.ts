@@ -54,7 +54,20 @@ type EventResponse = {
   registration_deadline: number | null
 }
 
+function resolveEventStatus(item: Event, now = Date.now()): EventResponse['status'] {
+  const startTime = item.startTime?.getTime?.()
+  const endTime = item.endTime?.getTime?.()
+
+  if (item.status === 'ENDED' || (endTime && endTime <= now)) return 'ENDED'
+  if (startTime && startTime <= now && (!endTime || endTime > now)) return 'ONGOING'
+  if (startTime && startTime > now) return 'UPCOMING'
+  return item.status as EventResponse['status']
+}
+
 function toEventResponse(item: Event): EventResponse {
+  const now = Date.now()
+  const status = resolveEventStatus(item, now)
+  const registrationDeadline = item.registrationDeadline?.getTime?.() || null
   return {
     id: item.id,
     title: item.title || '',
@@ -65,11 +78,11 @@ function toEventResponse(item: Event): EventResponse {
     description: item.description || '',
     price: item.price !== undefined && item.price !== null ? Number(item.price) : null,
     organizer: item.organizer || '',
-    status: item.status as EventResponse['status'],
+    status,
     event_type: item.eventType as EventResponse['event_type'],
     is_registerable: item.eventType === 'official',
     capacity: item.capacity ?? null,
-    registration_deadline: item.registrationDeadline ? new Date(item.registrationDeadline).getTime() : null
+    registration_deadline: registrationDeadline
   }
 }
 

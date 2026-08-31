@@ -38,13 +38,23 @@ export class ProfileService {
   ) {}
 
   async summary(userId: number) {
-    const user = await this.users.getCurrentUser(userId)
-    const postsRes = await this.posts.listMine(userId, 1, 1)
-    const eventsRes = await this.registrations.listByUser(userId)
-    const demandsRes = await this.demands.listMine(userId, 1, 1)
-    const demandAppsRes = await this.demandApps.listByUser(userId)
-    const scheduledDemandsCount = await this.demands.countMineWithApplications(userId)
-    const venueBookingsRes = await this.venues.listByUser(userId)
+    const [
+      user,
+      postsRes,
+      eventsRes,
+      demandsRes,
+      demandAppsRes,
+      scheduledDemandsCount,
+      venueBookingsRes
+    ] = await Promise.all([
+      this.users.getCurrentUser(userId),
+      this.posts.listMine(userId, 1, 1),
+      this.registrations.listByUser(userId),
+      this.demands.listMine(userId, 1, 1),
+      this.demandApps.listByUser(userId),
+      this.demands.countMineWithApplications(userId),
+      this.venues.listByUser(userId)
+    ])
     const eventsCount = (eventsRes.list || []).length
     const demandApplicationsCount = (demandAppsRes.list || []).length
     const venueBookingsCount = (venueBookingsRes.list || []).length

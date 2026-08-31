@@ -2,6 +2,7 @@ import Taro from '@tarojs/taro'
 import { get, isMockMode, mockResponse, post, resolveAssetUrl } from './request'
 import { mockDemands, type Demand } from '../mocks/demands'
 import { currentUser } from '../mocks/user'
+import { formatDateTime, getTimestamp } from './date-time'
 
 const DEMAND_LIST_REFRESH_KEY = 'demand_list_should_refresh'
 const MY_APPLIED_DEMANDS_REFRESH_KEY = 'my_applied_demands_should_refresh'
@@ -144,19 +145,6 @@ function formatBudget(item: DemandRecord) {
   if (item.budget_type === 'negotiable') return '面议'
   if (item.budget_type === 'fixed') return '定价'
   return item.budget_type || undefined
-}
-
-function formatDateTime(value?: number | string | null) {
-  if (value === null || value === undefined || value === '') return ''
-  const timestamp = typeof value === 'number' ? value : new Date(value).getTime()
-  if (!timestamp || Number.isNaN(timestamp)) return ''
-  return new Date(timestamp).toLocaleString('zh-CN', { hour12: false })
-}
-
-function getTimestamp(value?: number | string | null) {
-  if (value === null || value === undefined || value === '') return undefined
-  const timestamp = typeof value === 'number' ? value : new Date(value).getTime()
-  return timestamp && !Number.isNaN(timestamp) ? timestamp : undefined
 }
 
 function resolveDemandStatusText(item: DemandRecord) {

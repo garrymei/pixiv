@@ -1,9 +1,10 @@
 import { BadRequestException, Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
-import { openSync, readSync, closeSync, unlinkSync } from 'fs'
+import { openSync, readSync, closeSync, existsSync, unlinkSync } from 'fs'
 import { basename, dirname, extname, join } from 'path'
 import type { Express } from 'express'
-import sharp from 'sharp'
+const sharp = require('sharp') as any
+import { getUploadDir } from '../../common/utils/upload-dir'
 
 const THUMBNAIL_MAX_DIMENSION = 720
 const JPEG_QUALITY = 82
@@ -54,7 +55,48 @@ async function createThumbnail(filePath: string, filename: string, detectedType:
 
 @Injectable()
 export class UploadsService {
+  private readonly thumbnailJobs = new Map<string, Promise<string>>()
+
   constructor(private readonly config: ConfigService) {}
+
+  async getThumbnailUrl(imageUrl?: string) {
+    const sourceUrl = String(imageUrl || '').trim()
+    if (!sourceUrl) return ''
+
+    const cleanUrl = sourceUrl.split(/[?#]/, 1)[0]
+    const encodedFilename = cleanUrl.slice(cleanUrl.lastIndexOf('/') + 1)
+    let filename = ''
+    try {
+      filename = decodeURIComponent(encodedFilename)
+    } catch {
+      return sourceUrl
+    }
+
+    if (!filename || basename(filename) !== filename || filename.startsWith('thumb-')) return sourceUrl
+    const ext = extname(filename).toLowerCase()
+    if (!isAllowedExt(ext) || ext === '.gif') return sourceUrl
+
+    const fileDir = getUploadDir()
+    const sourcePath = join(fileDir, filename)
+    if (!existsSync(sourcePath)) return sourceUrl
+
+    const thumbnailFilename = `thumb-${basename(filename, ext)}.jpg`
+    const thumbnailPath = join(fileDir, thumbnailFilename)
+    if (!existsSync(thumbnailPath)) {
+      let job = this.thumbnailJobs.get(sourcePath)
+      if (!job) {
+        job = createThumbnail(sourcePath, filename, ext.slice(1)).finally(() => {
+          this.thumbnailJobs.delete(sourcePath)
+        })
+        this.thumbnailJobs.set(sourcePath, job)
+      }
+      const created = await job
+      if (!created) return sourceUrl
+    }
+
+    return `${cleanUrl.slice(0, cleanUrl.lastIndexOf('/') + 1)}${thumbnailFilename}`
+  }
+
   async getUrl(file: Express.Multer.File) {
     if (!file?.filename || !file?.path) {
       throw new BadRequestException('file required')
