@@ -19,8 +19,10 @@ export default function Login() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const { theme } = useThemeMode()
+  const isLoginMode = Taro.getCurrentInstance().router?.params?.action === 'login'
 
   useEffect(() => {
+    Taro.setNavigationBarTitle({ title: isLoginMode ? '微信登录' : '就酱次元区' })
     if (hasAuthenticatedSession()) {
       bootstrapSession()
         .then(() => {
@@ -28,7 +30,7 @@ export default function Login() {
         })
         .catch(() => undefined)
     }
-  }, [])
+  }, [isLoginMode])
 
   const enterHome = () => {
     setShowWechatModal(false)
@@ -100,9 +102,13 @@ export default function Login() {
     }
   }
 
-  const handleSkip = () => {
+  const handleEnterCommunity = () => {
     enterGuestMode()
     Taro.switchTab({ url: '/pages/home/index' })
+  }
+
+  const handleOpenVenues = () => {
+    Taro.navigateTo({ url: '/pages/venues/index?source=login' })
   }
 
   const handleCompleteLater = () => {
@@ -129,22 +135,48 @@ export default function Login() {
       </View>
 
       <View className="page-login__panel">
-        <View className="page-login__section">
-          <Text className="page-login__section-title">WECHAT LOGIN // 正式登录</Text>
-          <Text className="page-login__login-desc">点击微信登录后弹出授权小窗，读取微信头像与微信昵称，再完成登录。</Text>
-        </View>
-
-        {error && <Text className="page-login__error">{error}</Text>}
-
-        <View className="page-login__actions">
-          <PrimaryButton className="page-login__action-button" block loading={loading} onClick={handleOpenWechatModal}>
-            微信登录
-          </PrimaryButton>
-
-          <View className="page-login__skip" onClick={handleSkip}>
-            <Text>以游客身份浏览 {'>'}</Text>
-          </View>
-        </View>
+        {isLoginMode ? (
+          <>
+            <View className="page-login__section">
+              <Text className="page-login__section-title">WECHAT LOGIN // 正式登录</Text>
+              <Text className="page-login__login-desc">登录后可点赞、评论、发布、报名和提交预约。</Text>
+            </View>
+            {error && <Text className="page-login__error">{error}</Text>}
+            <View className="page-login__actions">
+              <PrimaryButton className="page-login__action-button" block loading={loading} onClick={handleOpenWechatModal}>
+                微信一键登录
+              </PrimaryButton>
+              <View className="page-login__skip" onClick={handleEnterCommunity}>
+                <Text>暂不登录，进入社区 {'>'}</Text>
+              </View>
+            </View>
+          </>
+        ) : (
+          <>
+            <View className="page-login__section">
+              <Text className="page-login__section-title">CHOOSE SERVICE // 选择服务</Text>
+              <Text className="page-login__login-desc">无需登录即可浏览社区内容或查看场地的可预约时间。</Text>
+            </View>
+            <View className="page-login__actions page-login__actions--entry">
+              <View className="page-login__service-entry page-login__service-entry--community" onClick={handleEnterCommunity}>
+                <View className="page-login__service-icon"><Text>社</Text></View>
+                <View className="page-login__venue-copy">
+                  <Text className="page-login__venue-title">进入社区</Text>
+                  <Text className="page-login__venue-desc">游客模式浏览动态、活动与合作信息</Text>
+                </View>
+                <Text className="page-login__venue-arrow">›</Text>
+              </View>
+              <View className="page-login__service-entry page-login__service-entry--venue" onClick={handleOpenVenues}>
+                <View className="page-login__service-icon page-login__service-icon--venue"><Text>场</Text></View>
+                <View className="page-login__venue-copy">
+                  <Text className="page-login__venue-title">场地预约</Text>
+                  <Text className="page-login__venue-desc">无需登录，查看场馆、场景与可预约时间</Text>
+                </View>
+                <Text className="page-login__venue-arrow">›</Text>
+              </View>
+            </View>
+          </>
+        )}
       </View>
 
       {showWechatModal ? (

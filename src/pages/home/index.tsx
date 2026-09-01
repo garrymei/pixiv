@@ -1,5 +1,5 @@
 import { View, Text } from '@tarojs/components'
-import Taro from '@tarojs/taro'
+import Taro, { useDidShow } from '@tarojs/taro'
 import classNames from 'classnames'
 import { useCallback, useEffect, useState } from 'react'
 
@@ -10,6 +10,7 @@ import { HeroBanner } from '../../components/business/HeroBanner'
 import { listEvents, type ExtendedEvent } from '../../services/events'
 import { listPosts } from '../../services/posts'
 import { useThemeMode } from '../../config/theme'
+import { isGuestMode, loginWithWechatProfile } from '../../services/request'
 
 import './index.scss'
 
@@ -97,6 +98,8 @@ export default function Home() {
   const [mutualHelpTab, setMutualHelpTab] = useState<'seek'|'offer'>('seek')
   const [feedPosts, setFeedPosts] = useState<any[]>([])
   const [recentEvent, setRecentEvent] = useState<ExtendedEvent>()
+  const [isGuest, setIsGuest] = useState(isGuestMode())
+  const [authLoading, setAuthLoading] = useState(false)
   const { theme } = useThemeMode()
 
   const openPage = useCallback((url?: string) => {
@@ -148,6 +151,24 @@ export default function Home() {
     loadData()
   }, [loadData])
 
+  useDidShow(() => {
+    setIsGuest(isGuestMode())
+  })
+
+  const handleWechatLogin = async () => {
+    if (authLoading) return
+    setAuthLoading(true)
+    try {
+      await loginWithWechatProfile('')
+      setIsGuest(false)
+      Taro.showToast({ title: '登录成功', icon: 'success' })
+    } catch (error: any) {
+      Taro.showToast({ title: error?.message || '登录失败，请稍后重试', icon: 'none' })
+    } finally {
+      setAuthLoading(false)
+    }
+  }
+
   const leftCol = feedPosts.filter((_, i) => i % 2 === 0)
   const rightCol = feedPosts.filter((_, i) => i % 2 === 1)
 
@@ -159,9 +180,15 @@ export default function Home() {
           <Text className="page-home__headline">就酱次元区</Text>
           <Text className="page-home__subheadline">发现同城同好，连接创作、活动与合作。</Text>
         </View>
-        <View className="page-home__hero-badge">
-          <Text className="page-home__hero-badge-text">社区 Beta</Text>
-        </View>
+        {isGuest ? (
+          <View className={classNames('page-home__login-action', { 'page-home__login-action--loading': authLoading })} onClick={handleWechatLogin}>
+            <Text className="page-home__login-action-text">{authLoading ? '登录中...' : '微信一键登录'}</Text>
+          </View>
+        ) : (
+          <View className="page-home__hero-badge">
+            <Text className="page-home__hero-badge-text">社区 Beta</Text>
+          </View>
+        )}
       </View>
 
       <View className="page-home__content">

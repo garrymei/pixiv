@@ -12,6 +12,7 @@ type ApiResponse<T> = {
 type RequestOptions = {
   requireAuth?: boolean
   retryOnAuthFailure?: boolean
+  retryOnNetworkFailure?: boolean
   header?: Record<string, string>
 }
 
@@ -210,7 +211,7 @@ export function isGuestMode() {
 export function promptLogin(message = '请先登录后再操作') {
   Taro.showToast({ title: message, icon: 'none' })
   setTimeout(() => {
-    Taro.navigateTo({ url: '/pages/login/index' })
+    Taro.navigateTo({ url: '/pages/login/index?action=login' })
   }, 150)
 }
 
@@ -453,6 +454,7 @@ export async function ensureToken(forceRefresh = false) {
 
 async function request<T>(method: HttpMethod, path: string, data?: any, options?: RequestOptions): Promise<T> {
   const retryOnAuthFailure = options?.retryOnAuthFailure ?? true
+  const retryOnNetworkFailure = options?.retryOnNetworkFailure ?? true
   try {
     const requestContext = await applyRequestInterceptors({
       url: resolveApiUrl(path),
@@ -473,6 +475,15 @@ async function request<T>(method: HttpMethod, path: string, data?: any, options?
     if (options?.requireAuth && retryOnAuthFailure && isUnauthorizedError(normalized)) {
       clearAuthState()
       throw normalized
+    }
+    const isTransientReadFailure = method === 'GET' && (
+      !normalized.statusCode ||
+      normalized.statusCode === 408 ||
+      normalized.statusCode >= 500
+    )
+    if (retryOnNetworkFailure && isTransientReadFailure) {
+      await new Promise((resolve) => setTimeout(resolve, 350))
+      return request<T>(method, path, data, { ...options, retryOnNetworkFailure: false })
     }
     throw normalized
   }

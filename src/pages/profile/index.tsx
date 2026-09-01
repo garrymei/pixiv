@@ -7,7 +7,7 @@ import { Tag } from '../../components/base/Tag'
 import { EmptyState } from '../../components/base/EmptyState'
 import { LoadingState } from '../../components/base/LoadingState'
 import { getProfileSummary } from '../../services/profile'
-import { isGuestMode, promptLogin } from '../../services/request'
+import { isGuestMode, loginWithWechatProfile, promptLogin } from '../../services/request'
 import { useThemeMode } from '../../config/theme'
 import './index.scss'
 
@@ -16,6 +16,7 @@ export default function Profile() {
   const [stats, setStats] = useState<any>()
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [authLoading, setAuthLoading] = useState(false)
   const { theme } = useThemeMode()
 
   const loadData = useCallback(async () => {
@@ -48,15 +49,29 @@ export default function Profile() {
     stats?.participationCount ?? ((stats?.eventsCount ?? 0) + (stats?.demandApplicationsCount ?? 0))
   const isGuest = isGuestMode() || user?.roleType === 'guest'
 
+  const handleWechatLogin = async () => {
+    if (authLoading) return
+    setAuthLoading(true)
+    try {
+      await loginWithWechatProfile('')
+      Taro.showToast({ title: '登录成功', icon: 'success' })
+      await loadData()
+    } catch (err: any) {
+      Taro.showToast({ title: err?.message || '登录失败，请稍后重试', icon: 'none' })
+    } finally {
+      setAuthLoading(false)
+    }
+  }
+
   if (isGuest) {
     return (
       <View className={`page-profile page-container theme-${theme}`}>
         <View className="profile-guest">
           <EmptyState
             title="登录后查看个人中心"
-            description="游客模式仅支持浏览内容。登录后可点赞、评论、发布、报名、查看个人数据并编辑资料。"
-            actionText="去登录"
-            onAction={() => promptLogin('请先登录')}
+            description="当前未登录，不展示用户资料。登录后可查看个人数据、发布和预约记录。"
+            actionText={authLoading ? '登录中...' : '微信一键登录'}
+            onAction={handleWechatLogin}
           />
         </View>
       </View>
