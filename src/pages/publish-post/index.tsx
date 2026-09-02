@@ -1,11 +1,12 @@
 import { View, Text, Image } from '@tarojs/components'
-import Taro from '@tarojs/taro'
+import Taro, { useDidShow } from '@tarojs/taro'
 import { useState } from 'react'
 import { Input } from '../../components/base/Input'
 import { Textarea } from '../../components/base/Textarea'
 import { Tag } from '../../components/base/Tag'
 import { PrimaryButton } from '../../components/base/Button'
 import { createPost, markPostListShouldRefresh } from '../../services/posts'
+import { redirectWhenPublishDisabled } from '../../services/app-settings'
 import { isGuestMode, promptLogin } from '../../services/request'
 import { uploadImage } from '../../services/uploads'
 import { useThemeMode } from '../../config/theme'
@@ -33,6 +34,10 @@ export default function PublishPost() {
   const [submitting, setSubmitting] = useState(false)
   const uploading = images.some((item) => item.status === 'uploading')
   const { theme } = useThemeMode()
+
+  useDidShow(() => {
+    void redirectWhenPublishDisabled()
+  })
 
   const uploadImages = async (items: UploadItem[]) => {
     let success = 0

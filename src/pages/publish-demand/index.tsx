@@ -1,10 +1,11 @@
 import { View, Text, Picker } from '@tarojs/components'
-import Taro, { useLoad } from '@tarojs/taro'
+import Taro, { useDidShow, useLoad } from '@tarojs/taro'
 import { useState } from 'react'
 import { Input } from '../../components/base/Input'
 import { Textarea } from '../../components/base/Textarea'
 import { Tag } from '../../components/base/Tag'
 import { PrimaryButton } from '../../components/base/Button'
+import { redirectWhenPublishDisabled } from '../../services/app-settings'
 import { createDemand } from '../../services/demands'
 import { isGuestMode, promptLogin } from '../../services/request'
 import { useThemeMode } from '../../config/theme'
@@ -36,6 +37,10 @@ export default function PublishDemand() {
   const [contact, setContact] = useState('')
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [submitting, setSubmitting] = useState(false)
+
+  useDidShow(() => {
+    void redirectWhenPublishDisabled()
+  })
 
   const submit = async () => {
     if (isGuestMode()) {

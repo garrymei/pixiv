@@ -5,6 +5,7 @@ import { PostsService } from '../posts/posts.service'
 import { DemandsService } from '../demands/demands.service'
 import { UsersService } from '../users/users.service'
 import { BannersService } from '../banners/banners.service'
+import { AppSettingsService } from '../app-settings/app-settings.service'
 import { AdminTokenGuard } from '../../common/guards/admin-token.guard'
 import { DemandStatus, ModerationStatus } from '../../types/enums'
 
@@ -14,7 +15,8 @@ export class AdminController {
     private readonly postsService: PostsService,
     private readonly demandsService: DemandsService,
     private readonly usersService: UsersService,
-    private readonly bannersService: BannersService
+    private readonly bannersService: BannersService,
+    private readonly appSettingsService: AppSettingsService
   ) {}
 
   @Get()
@@ -111,5 +113,17 @@ export class AdminController {
       sortOrder: body?.sort_order,
       status: body?.status
     })
+  }
+
+  @Get('app-settings')
+  @UseGuards(AdminTokenGuard)
+  async getAppSettings() {
+    return this.appSettingsService.getAdminSettings()
+  }
+
+  @Patch('app-settings')
+  @UseGuards(AdminTokenGuard)
+  async updateAppSettings(@Body() body: { publish_enabled?: number | boolean }) {
+    return this.appSettingsService.updateSettings(body || {})
   }
 }

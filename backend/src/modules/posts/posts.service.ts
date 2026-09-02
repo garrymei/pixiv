@@ -8,6 +8,7 @@ import { Post } from '../../database/entities/post.entity'
 import { PostImage } from '../../database/entities/post-image.entity'
 import { User } from '../../database/entities/user.entity'
 import { UploadsService } from '../uploads/uploads.service'
+import { AppSettingsService } from '../app-settings/app-settings.service'
 
 type PostResponse = {
   id: number
@@ -58,7 +59,8 @@ export class PostsService {
     private readonly postImagesRepo: Repository<PostImage>,
     @InjectRepository(User)
     private readonly usersRepo: Repository<User>,
-    private readonly uploadsService: UploadsService
+    private readonly uploadsService: UploadsService,
+    private readonly appSettingsService: AppSettingsService
   ) {}
 
   private normalizeTags(post: Post) {
@@ -160,6 +162,7 @@ export class PostsService {
   }
 
   async create(authorId: number, dto: CreatePostDto) {
+    await this.appSettingsService.assertPublishEnabled()
     const now = Date.now()
     const submissionKey = buildPostSubmissionKey(authorId, dto)
     const recentSubmitAt = recentPostSubmissions.get(submissionKey)

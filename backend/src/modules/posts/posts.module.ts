@@ -7,9 +7,10 @@ import { Post } from '../../database/entities/post.entity'
 import { PostImage } from '../../database/entities/post-image.entity'
 import { User } from '../../database/entities/user.entity'
 import { UploadsModule } from '../uploads/uploads.module'
+import { AppSettingsModule } from '../app-settings/app-settings.module'
 
 @Module({
-  imports: [AuthModule, UploadsModule, TypeOrmModule.forFeature([Post, PostImage, User])],
+  imports: [AuthModule, UploadsModule, AppSettingsModule, TypeOrmModule.forFeature([Post, PostImage, User])],
   providers: [PostsService],
   controllers: [PostsController],
   exports: [PostsService]

@@ -7,6 +7,7 @@ SET FOREIGN_KEY_CHECKS = 0;
 
 DROP TABLE IF EXISTS `post_tags`;
 DROP TABLE IF EXISTS `tags`;
+DROP TABLE IF EXISTS `app_settings`;
 DROP TABLE IF EXISTS `banners`;
 DROP TABLE IF EXISTS `demand_applications`;
 DROP TABLE IF EXISTS `demands`;
@@ -211,6 +212,17 @@ CREATE TABLE `banners` (
   PRIMARY KEY (`id`),
   KEY `idx_banners_position_status` (`position`, `status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE `app_settings` (
+  `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `publish_enabled` TINYINT NOT NULL DEFAULT 0 COMMENT '0-关闭发布入口，1-开启发布入口',
+  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT INTO `app_settings` (`id`, `publish_enabled`)
+VALUES (1, 0);
 
 CREATE TABLE `tags` (
   `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,

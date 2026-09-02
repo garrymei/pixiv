@@ -451,6 +451,12 @@ async function main() {
         created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
+      `CREATE TABLE IF NOT EXISTS app_settings (
+        id BIGINT UNSIGNED NOT NULL PRIMARY KEY,
+        publish_enabled TINYINT NOT NULL DEFAULT 0,
+        created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
       `CREATE TABLE IF NOT EXISTS tags (
         id BIGINT UNSIGNED NOT NULL PRIMARY KEY,
         tag_name VARCHAR(32) NOT NULL,
@@ -471,6 +477,7 @@ async function main() {
     await execMany(conn, [
       'DELETE FROM post_tags',
       'DELETE FROM tags',
+      'DELETE FROM app_settings',
       'DELETE FROM banners',
       'DELETE FROM demand_applications',
       'DELETE FROM demands',
@@ -552,6 +559,11 @@ async function main() {
         [item.id, item.title, item.image_url, item.jump_link, item.position, item.sort_order, item.status]
       )
     }
+
+    await conn.query(
+      'INSERT INTO app_settings (id, publish_enabled) VALUES (?, ?)',
+      [1, 0]
+    )
 
     for (const item of tags) {
       await conn.query(

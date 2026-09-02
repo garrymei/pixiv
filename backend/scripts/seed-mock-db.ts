@@ -12,6 +12,7 @@ import { EventRegistration } from '../src/database/entities/event-registration.e
 import { Demand } from '../src/database/entities/demand.entity'
 import { DemandApplication } from '../src/database/entities/demand-application.entity'
 import { Banner } from '../src/database/entities/banner.entity'
+import { AppSetting } from '../src/database/entities/app-setting.entity'
 
 import { currentUser, mockUsers } from '../../src/mocks/user'
 import { mockPosts } from '../../src/mocks/posts'
@@ -199,7 +200,7 @@ async function main() {
     database: requiredEnv('DB_NAME'),
     synchronize: true,
     logging: false,
-    entities: [User, Post, PostImage, Comment, Like, Event, EventRegistration, Demand, DemandApplication, Banner]
+    entities: [User, Post, PostImage, Comment, Like, Event, EventRegistration, Demand, DemandApplication, Banner, AppSetting]
   })
 
   await dataSource.initialize()
@@ -214,6 +215,7 @@ async function main() {
   const demandRepo = dataSource.getRepository(Demand)
   const demandApplicationRepo = dataSource.getRepository(DemandApplication)
   const bannerRepo = dataSource.getRepository(Banner)
+  const appSettingRepo = dataSource.getRepository(AppSetting)
 
   await userRepo.save(userSeeds.map((item) => userRepo.create(item)))
 
@@ -227,6 +229,7 @@ async function main() {
   await eventRepo.clear()
   await demandRepo.clear()
   await bannerRepo.clear()
+  await appSettingRepo.clear()
   await dataSource.query('SET FOREIGN_KEY_CHECKS = 1')
 
   const posts = mockPosts.map((item) => {
@@ -358,6 +361,13 @@ async function main() {
   )
   await bannerRepo.save(banners)
 
+  await appSettingRepo.save(
+    appSettingRepo.create({
+      id: 1,
+      publishEnabled: 0
+    })
+  )
+
   console.log(
     JSON.stringify(
       {
@@ -373,7 +383,8 @@ async function main() {
           eventRegistrations: 1,
           demands: demands.length,
           demandApplications: 1,
-          banners: banners.length
+          banners: banners.length,
+          appSettings: 1
         }
       },
       null,

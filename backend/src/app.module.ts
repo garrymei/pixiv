@@ -16,6 +16,7 @@ import { Banner } from './database/entities/banner.entity'
 import { Venue } from './database/entities/venue.entity'
 import { VenueScene } from './database/entities/venue-scene.entity'
 import { VenueBooking } from './database/entities/venue-booking.entity'
+import { AppSetting } from './database/entities/app-setting.entity'
 import { AuthModule } from './modules/auth/auth.module'
 import { UsersModule } from './modules/users/users.module'
 import { PostsModule } from './modules/posts/posts.module'
@@ -28,6 +29,7 @@ import { DemandApplicationModule } from './modules/demand-application/demand-app
 import { ProfileModule } from './modules/profile/profile.module'
 import { UploadsModule } from './modules/uploads/uploads.module'
 import { AdminModule } from './modules/admin/admin.module'
+import { AppSettingsModule } from './modules/app-settings/app-settings.module'
 import { BannersModule } from './modules/banners/banners.module'
 import { VenuesModule } from './modules/venues/venues.module'
 
@@ -53,6 +55,7 @@ const hasDb =
     ProfileModule,
     UploadsModule,
     AdminModule,
+    AppSettingsModule,
     BannersModule,
     VenuesModule,
     ...(hasDb
@@ -66,7 +69,7 @@ const hasDb =
               password: process.env.DB_PASSWORD,
               database: process.env.DB_NAME,
               synchronize: false,
-              entities: [User, Post, PostImage, Comment, Like, Event, EventRegistration, Demand, DemandApplication, Banner, Venue, VenueScene, VenueBooking]
+              entities: [User, Post, PostImage, Comment, Like, Event, EventRegistration, Demand, DemandApplication, Banner, Venue, VenueScene, VenueBooking, AppSetting]
             })
           })
         ]

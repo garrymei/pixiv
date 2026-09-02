@@ -1,6 +1,7 @@
 import { View, Text } from '@tarojs/components'
-import Taro from '@tarojs/taro'
+import Taro, { useDidShow } from '@tarojs/taro'
 import { isGuestMode, promptLogin } from '../../services/request'
+import { redirectWhenPublishDisabled } from '../../services/app-settings'
 import { useThemeMode } from '../../config/theme'
 import './index.scss'
 
@@ -25,6 +26,11 @@ const PUBLISH_ENTRIES = [
 
 export default function PublishHub() {
   const { theme } = useThemeMode()
+
+  useDidShow(() => {
+    void redirectWhenPublishDisabled()
+  })
+
   const handleOpen = (url: string) => {
     if (isGuestMode()) {
       promptLogin('游客模式下不能发布内容')

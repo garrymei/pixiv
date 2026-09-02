@@ -8,6 +8,7 @@ import { mapScheduleStatusText, resolveScheduleStatusByHour } from '../demand-ap
 import { Demand } from '../../database/entities/demand.entity'
 import { DemandApplication } from '../../database/entities/demand-application.entity'
 import { User } from '../../database/entities/user.entity'
+import { AppSettingsService } from '../app-settings/app-settings.service'
 
 type DemandResponse = {
   id: number
@@ -79,7 +80,8 @@ export class DemandsService implements OnModuleInit, OnModuleDestroy {
     @InjectRepository(DemandApplication)
     private readonly applicationsRepo: Repository<DemandApplication>,
     @InjectRepository(User)
-    private readonly usersRepo: Repository<User>
+    private readonly usersRepo: Repository<User>,
+    private readonly appSettingsService: AppSettingsService
   ) {}
 
   onModuleInit() {
@@ -276,6 +278,7 @@ export class DemandsService implements OnModuleInit, OnModuleDestroy {
   }
 
   async create(authorId: number, dto: CreateDemandDto) {
+    await this.appSettingsService.assertPublishEnabled()
     const now = Date.now()
     const submissionKey = buildDemandSubmissionKey(authorId, dto)
     const recentSubmitAt = recentDemandSubmissions.get(submissionKey)

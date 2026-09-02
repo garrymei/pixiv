@@ -7,9 +7,10 @@ import { DemandApplicationModule } from '../demand-application/demand-applicatio
 import { Demand } from '../../database/entities/demand.entity'
 import { DemandApplication } from '../../database/entities/demand-application.entity'
 import { User } from '../../database/entities/user.entity'
+import { AppSettingsModule } from '../app-settings/app-settings.module'
 
 @Module({
-  imports: [AuthModule, forwardRef(() => DemandApplicationModule), TypeOrmModule.forFeature([Demand, DemandApplication, User])],
+  imports: [AuthModule, AppSettingsModule, forwardRef(() => DemandApplicationModule), TypeOrmModule.forFeature([Demand, DemandApplication, User])],
   providers: [DemandsService],
   controllers: [DemandsController],
   exports: [DemandsService]
