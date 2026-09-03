@@ -11,6 +11,7 @@ import { listEvents, type ExtendedEvent } from '../../services/events'
 import { listPosts } from '../../services/posts'
 import { useThemeMode } from '../../config/theme'
 import { isGuestMode, loginWithWechatProfile } from '../../services/request'
+import { getAppSettings } from '../../services/app-settings'
 
 import './index.scss'
 
@@ -22,10 +23,16 @@ const QUICK_ENTRIES = [
   { id: 'venues', title: '场地预约', icon: '场', url: '/pages/venues/index' }
 ]
 
+const PUBLISH_ENTRY = {
+  id: 'publish',
+  title: '发布',
+  icon: '发',
+  url: '/pages/publish-hub/index'
+}
+
 const TAB_BAR_PAGES = new Set([
   '/pages/home/index',
   '/pages/discover/index',
-  '/pages/publish-hub/index',
   '/pages/events/index',
   '/pages/profile/index'
 ])
@@ -100,6 +107,7 @@ export default function Home() {
   const [recentEvent, setRecentEvent] = useState<ExtendedEvent>()
   const [isGuest, setIsGuest] = useState(isGuestMode())
   const [authLoading, setAuthLoading] = useState(false)
+  const [publishEnabled, setPublishEnabled] = useState(false)
   const { theme } = useThemeMode()
 
   const openPage = useCallback((url?: string) => {
@@ -153,6 +161,9 @@ export default function Home() {
 
   useDidShow(() => {
     setIsGuest(isGuestMode())
+    void getAppSettings(true).then((settings) => {
+      setPublishEnabled(settings.publishEnabled)
+    })
   })
 
   const handleWechatLogin = async () => {
@@ -216,7 +227,7 @@ export default function Home() {
         />
         <QuickEntryGrid
           className="page-home__quick-grid"
-          items={QUICK_ENTRIES}
+          items={publishEnabled ? [...QUICK_ENTRIES, PUBLISH_ENTRY] : QUICK_ENTRIES}
           onItemClick={(item) => openPage(item.url)}
         />
 

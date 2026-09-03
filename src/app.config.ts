@@ -41,12 +41,6 @@ export default {
         selectedIconPath: 'assets/tabbar/discover-active.png'
       },
       {
-        pagePath: 'pages/publish-hub/index',
-        text: '发布',
-        iconPath: 'assets/tabbar/publish.png',
-        selectedIconPath: 'assets/tabbar/publish-active.png'
-      },
-      {
         pagePath: 'pages/events/index',
         text: '活动',
         iconPath: 'assets/tabbar/events.png',

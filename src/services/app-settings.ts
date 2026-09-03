@@ -6,7 +6,6 @@ type AppSettingsResponse = {
 }
 
 const SETTINGS_CACHE_KEY = 'app_settings_cache'
-const PUBLISH_TAB_INDEX = 2
 
 let settingsPromise: Promise<AppSettingsResponse> | null = null
 
@@ -59,24 +58,12 @@ export async function getAppSettings(forceRefresh = false) {
     const data = await settingsPromise
     return normalizeSettings(data)
   } catch {
-    return readCachedSettings()
+    const disabled = { publish_enabled: false }
+    writeCachedSettings(disabled)
+    return normalizeSettings(disabled)
   } finally {
     settingsPromise = null
   }
-}
-
-export async function syncPublishTabEntry(forceRefresh = false) {
-  const settings = await getAppSettings(forceRefresh)
-  try {
-    if (settings.publishEnabled) {
-      await Taro.removeTabBarBadge({ index: PUBLISH_TAB_INDEX })
-    } else {
-      await Taro.setTabBarBadge({ index: PUBLISH_TAB_INDEX, text: '关' })
-    }
-  } catch {
-    // Ignore tab bar sync failures on unsupported environments.
-  }
-  return settings
 }
 
 export async function guardPublishAccess(message = '当前版本暂未开放发布入口') {
