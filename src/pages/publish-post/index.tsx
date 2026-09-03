@@ -6,7 +6,7 @@ import { Textarea } from '../../components/base/Textarea'
 import { Tag } from '../../components/base/Tag'
 import { PrimaryButton } from '../../components/base/Button'
 import { createPost, markPostListShouldRefresh } from '../../services/posts'
-import { redirectWhenPublishDisabled } from '../../services/app-settings'
+import { guardPublishAccess, redirectWhenPublishDisabled } from '../../services/app-settings'
 import { isGuestMode, promptLogin } from '../../services/request'
 import { uploadImage } from '../../services/uploads'
 import { useThemeMode } from '../../config/theme'
@@ -25,6 +25,7 @@ type UploadItem = {
 }
 
 export default function PublishPost() {
+  const [accessAllowed, setAccessAllowed] = useState(false)
   const [images, setImages] = useState<UploadItem[]>([])
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
@@ -36,7 +37,8 @@ export default function PublishPost() {
   const { theme } = useThemeMode()
 
   useDidShow(() => {
-    void redirectWhenPublishDisabled()
+    setAccessAllowed(false)
+    void redirectWhenPublishDisabled().then(setAccessAllowed)
   })
 
   const uploadImages = async (items: UploadItem[]) => {
@@ -65,6 +67,7 @@ export default function PublishPost() {
   }
 
   const chooseImage = async () => {
+    if (!(await guardPublishAccess())) return
     if (isGuestMode()) {
       promptLogin('登录后才能上传图片和发布动态')
       return
@@ -129,6 +132,7 @@ export default function PublishPost() {
   }
 
   const submit = async () => {
+    if (!(await guardPublishAccess())) return
     if (isGuestMode()) {
       promptLogin('登录后才能发布动态')
       return
@@ -171,6 +175,8 @@ export default function PublishPost() {
   const successCount = images.filter((item) => item.status === 'success').length
   const failedCount = images.filter((item) => item.status === 'error').length
   const canSubmit = Boolean(title.trim() && content.trim() && tags.length > 0 && !uploading && !submitting)
+
+  if (!accessAllowed) return <View className={`page-publish-post page-container-full theme-${theme}`} />
 
   return (
     <View className={`page-publish-post page-container-full theme-${theme}`}>

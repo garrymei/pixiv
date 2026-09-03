@@ -5,7 +5,7 @@ import { Input } from '../../components/base/Input'
 import { Textarea } from '../../components/base/Textarea'
 import { Tag } from '../../components/base/Tag'
 import { PrimaryButton } from '../../components/base/Button'
-import { redirectWhenPublishDisabled } from '../../services/app-settings'
+import { guardPublishAccess, redirectWhenPublishDisabled } from '../../services/app-settings'
 import { createDemand } from '../../services/demands'
 import { isGuestMode, promptLogin } from '../../services/request'
 import { useThemeMode } from '../../config/theme'
@@ -16,6 +16,7 @@ const BUDGETS = ['无偿', '互勉', '面议', '¥ 100-300', '¥ 300-500', '¥ 5
 const COUNTS = ['1人', '2-3人', '4-6人', '6人以上']
 
 export default function PublishDemand() {
+  const [accessAllowed, setAccessAllowed] = useState(false)
   const [type, setType] = useState('')
   const [title, setTitle] = useState('')
   const { theme } = useThemeMode()
@@ -39,10 +40,12 @@ export default function PublishDemand() {
   const [submitting, setSubmitting] = useState(false)
 
   useDidShow(() => {
-    void redirectWhenPublishDisabled()
+    setAccessAllowed(false)
+    void redirectWhenPublishDisabled().then(setAccessAllowed)
   })
 
   const submit = async () => {
+    if (!(await guardPublishAccess())) return
     if (isGuestMode()) {
       promptLogin('登录后才能发布需求')
       return
@@ -73,6 +76,8 @@ export default function PublishDemand() {
       setSubmitting(false)
     }
   }
+
+  if (!accessAllowed) return <View className={`page-publish-demand page-container theme-${theme}`} />
 
   return (
     <View className={`page-publish-demand page-container theme-${theme}`}>

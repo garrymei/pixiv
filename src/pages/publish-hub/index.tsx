@@ -1,7 +1,8 @@
 import { View, Text } from '@tarojs/components'
 import Taro, { useDidShow } from '@tarojs/taro'
+import { useState } from 'react'
 import { isGuestMode, promptLogin } from '../../services/request'
-import { redirectWhenPublishDisabled } from '../../services/app-settings'
+import { guardPublishAccess, redirectWhenPublishDisabled } from '../../services/app-settings'
 import { useThemeMode } from '../../config/theme'
 import './index.scss'
 
@@ -25,19 +26,24 @@ const PUBLISH_ENTRIES = [
 ]
 
 export default function PublishHub() {
+  const [accessAllowed, setAccessAllowed] = useState(false)
   const { theme } = useThemeMode()
 
   useDidShow(() => {
-    void redirectWhenPublishDisabled()
+    setAccessAllowed(false)
+    void redirectWhenPublishDisabled().then(setAccessAllowed)
   })
 
-  const handleOpen = (url: string) => {
+  const handleOpen = async (url: string) => {
+    if (!(await guardPublishAccess())) return
     if (isGuestMode()) {
       promptLogin('游客模式下不能发布内容')
       return
     }
     Taro.navigateTo({ url })
   }
+
+  if (!accessAllowed) return <View className={`page-publish page-container theme-${theme}`} />
 
   return (
     <View className={`page-publish page-container theme-${theme}`}>
