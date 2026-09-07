@@ -54,10 +54,10 @@ export class AppSettingsService {
     }
   }
 
-  async assertPublishEnabled() {
+  async assertPublishEnabled(message = '当前版本暂未开放发布入口') {
     const item = await this.ensureRecord()
     if (item.publishEnabled !== 1) {
-      throw new ForbiddenException('当前版本暂未开放发布入口')
+      throw new ForbiddenException(message)
     }
   }
 }

@@ -11,9 +11,13 @@ import { createComment, listCommentsByPost } from '../../services/comments'
 import { getPostLikeStatus, likePost, unlikePost } from '../../services/likes'
 import { isGuestMode, promptLogin } from '../../services/request'
 import { useThemeMode } from '../../config/theme'
+import { usePublishEnabled } from '../../hooks/use-publish-enabled'
+import { guardPublishAccess } from '../../services/app-settings'
+import { usePageShare } from '../../hooks/use-page-share'
 import './index.scss'
 
 export default function PostDetail() {
+  const publishEnabled = usePublishEnabled()
   const [postId, setPostId] = useState('')
   const [post, setPost] = useState<any>()
   const [comments, setComments] = useState<any[]>([])
@@ -26,6 +30,7 @@ export default function PostDetail() {
   const [togglingLike, setTogglingLike] = useState(false)
   const [heroLoaded, setHeroLoaded] = useState(false)
   const { theme } = useThemeMode()
+  usePageShare({ title: post?.title || '帖子详情 - 就酱次元区', path: `/pages/post-detail/index?id=${postId}`, imageUrl: post?.coverUrl })
 
   useLoad((options) => {
     setPostId(String(options?.id || ''))
@@ -38,14 +43,16 @@ export default function PostDetail() {
     try {
       const [postRes, commentsRes, likeRes] = await Promise.all([
         getPostById(postId),
-        listCommentsByPost(postId),
-        getPostLikeStatus(postId).catch(() => ({ liked: false, like_count: 0 }))
+        publishEnabled ? listCommentsByPost(postId) : Promise.resolve([]),
+        publishEnabled && !isGuestMode()
+          ? getPostLikeStatus(postId).catch(() => ({ liked: false, like_count: 0 }))
+          : Promise.resolve({ liked: false, like_count: 0 })
       ])
       setPost(postRes)
       setComments(commentsRes)
       setLiked(likeRes.liked)
       setLikeCount(likeRes.like_count || postRes?.likeCount || 0)
-      if (postRes) {
+      if (postRes && publishEnabled) {
         updatePostEngagement(postId, {
           likeCount: likeRes.like_count || postRes.likeCount || 0,
           commentCount: commentsRes.length,
@@ -66,10 +73,11 @@ export default function PostDetail() {
 
   useEffect(() => {
     setHeroLoaded(false)
-  }, [postId])
+  }, [postId, publishEnabled])
 
   const handleToggleLike = async () => {
     if (!postId || togglingLike) return
+    if (!(await guardPublishAccess('当前暂未开放点赞和评论'))) return
     if (isGuestMode()) {
       promptLogin('登录后才能点赞')
       return
@@ -100,6 +108,8 @@ export default function PostDetail() {
   }
 
   const handleSubmitComment = async () => {
+    if (!postId || submittingComment) return
+    if (!(await guardPublishAccess('当前暂未开放点赞和评论'))) return
     if (isGuestMode()) {
       promptLogin('登录后才能评论')
       return
@@ -168,8 +178,8 @@ export default function PostDetail() {
         </View>
         <View style={{ display: 'flex', gap: '16rpx', marginBottom: '12rpx' }}>
           <Text style={{ color: 'var(--color-text-secondary)' }}>{post.createTime || ''}</Text>
-          <Text style={{ color: 'var(--color-text-secondary)' }}>点赞 {likeCount}</Text>
-          <Text style={{ color: 'var(--color-text-secondary)' }}>评论 {comments.length}</Text>
+          {publishEnabled && <Text style={{ color: 'var(--color-text-secondary)' }}>点赞 {likeCount}</Text>}
+          {publishEnabled && <Text style={{ color: 'var(--color-text-secondary)' }}>评论 {comments.length}</Text>}
         </View>
         <View style={{ display: 'flex', gap: '8rpx', marginTop: '12rpx', flexWrap: 'wrap' }}>
           {(post.tags || []).map((t: string) => (
@@ -188,15 +198,15 @@ export default function PostDetail() {
             ))}
           </View>
         )}
-        <View style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '16rpx' }}>
+        {publishEnabled && <View style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '16rpx' }}>
           <Button size="small" type={liked ? 'secondary' : 'primary'} loading={togglingLike} onClick={handleToggleLike}>
             {liked ? `已点赞 ${likeCount}` : `点赞 ${likeCount}`}
           </Button>
           <PrimaryButton size="small" onClick={() => Taro.pageScrollTo({ scrollTop: 99999, duration: 200 })}>去评论</PrimaryButton>
-        </View>
+        </View>}
       </View>
 
-      <View style={{ padding: '0 var(--space-lg) var(--space-lg)' }}>
+      {publishEnabled && <View style={{ padding: '0 var(--space-lg) var(--space-lg)' }}>
         <Text style={{ display: 'block', marginBottom: '12rpx' }}>评论</Text>
         <View style={{ display: 'flex', gap: '12rpx', marginBottom: '16rpx' }}>
           <Input
@@ -228,7 +238,7 @@ export default function PostDetail() {
             />
           ))
         )}
-      </View>
+      </View>}
     </View>
   )
 }

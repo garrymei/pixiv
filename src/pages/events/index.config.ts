@@ -1,4 +1,6 @@
 export default {
   navigationBarTitleText: '活动',
-  enablePullDownRefresh: true
+  enablePullDownRefresh: true,
+  enableShareAppMessage: true,
+  enableShareTimeline: true
 }

@@ -9,10 +9,14 @@ import { bootstrapSession, enterGuestMode, getSessionUser, hasAuthenticatedSessi
 import { updateCurrentUser } from '../../services/user'
 import { uploadImage } from '../../services/uploads'
 import { useThemeMode } from '../../config/theme'
+import { usePublishEnabled } from '../../hooks/use-publish-enabled'
+import { usePageShare } from '../../hooks/use-page-share'
 
 import './index.scss'
 
 export default function Login() {
+  usePageShare({ title: '就酱次元区', path: '/pages/login/index' })
+  const publishEnabled = usePublishEnabled()
   const [nickname, setNickname] = useState('')
   const [avatarPath, setAvatarPath] = useState('')
   const [showWechatModal, setShowWechatModal] = useState(false)
@@ -128,7 +132,7 @@ export default function Login() {
           <Text className="page-login__status-text">System Online / 次元区在线</Text>
         </View>
         <Text className="page-login__title anim-text-glow">就酱次元区</Text>
-        <Text className="page-login__subtitle">游客模式仅浏览内容；正式登录后才可点赞、评论、发布和报名。</Text>
+        <Text className="page-login__subtitle">{publishEnabled ? '游客模式仅浏览内容；正式登录后才可点赞、评论、发布和报名。' : '无需登录即可浏览社区内容和场地信息。'}</Text>
         <View className="page-login__poster">
           <Image className="page-login__poster-image" src={loginPoster} mode="aspectFit" />
         </View>
@@ -139,7 +143,7 @@ export default function Login() {
           <>
             <View className="page-login__section">
               <Text className="page-login__section-title">WECHAT LOGIN // 正式登录</Text>
-              <Text className="page-login__login-desc">登录后可点赞、评论、发布、报名和提交预约。</Text>
+              <Text className="page-login__login-desc">{publishEnabled ? '登录后可点赞、评论、发布、报名和提交预约。' : '登录后可报名和提交预约。'}</Text>
             </View>
             {error && <Text className="page-login__error">{error}</Text>}
             <View className="page-login__actions">

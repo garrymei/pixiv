@@ -6,6 +6,7 @@ import { Comment } from '../../database/entities/comment.entity'
 import { User } from '../../database/entities/user.entity'
 import { Post } from '../../database/entities/post.entity'
 import { ModerationStatus } from '../../types/enums'
+import { AppSettingsService } from '../app-settings/app-settings.service'
 
 function toCommentResponse(item: Comment) {
   const user = item.author
@@ -33,7 +34,8 @@ export class CommentsService {
     @InjectRepository(Post)
     private readonly postsRepo: Repository<Post>,
     @InjectRepository(User)
-    private readonly usersRepo: Repository<User>
+    private readonly usersRepo: Repository<User>,
+    private readonly appSettingsService: AppSettingsService
   ) {}
 
   async listByPost(postId: number) {
@@ -46,6 +48,7 @@ export class CommentsService {
   }
 
   async create(userId: number, dto: CreateCommentDto) {
+    await this.appSettingsService.assertPublishEnabled('当前暂未开放点赞和评论')
     const post = await this.postsRepo.findOne({ where: { id: dto.post_id } })
     if (!post || post.moderationStatus !== ModerationStatus.APPROVED) {
       throw new NotFoundException('post not found')

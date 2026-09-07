@@ -17,6 +17,7 @@ import {
 import { isGuestMode, promptLogin } from '../../services/request'
 import { markMyEventsShouldRefresh } from '../../services/events'
 import yueciyuanLogo from '../../assets/venues/yueciyuan-logo.jpg'
+import { usePageShare } from '../../hooks/use-page-share'
 import './index.scss'
 
 type TimeOption = {
@@ -154,6 +155,7 @@ function formatSlotTime(value: number) {
 }
 
 export default function VenuesPage() {
+  usePageShare({ title: '场地预约 - 就酱次元区', path: '/pages/venues/index' })
   const { theme } = useThemeMode()
   const [venues, setVenues] = useState<Venue[]>([])
   const [activeVenueId, setActiveVenueId] = useState<number | null>(null)

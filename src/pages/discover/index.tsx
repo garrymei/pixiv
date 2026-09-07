@@ -12,6 +12,8 @@ import { EmptyState } from '../../components/base/EmptyState'
 import { listPosts } from '../../services/posts'
 import { listDemands } from '../../services/demands'
 import { useThemeMode } from '../../config/theme'
+import { usePublishEnabled } from '../../hooks/use-publish-enabled'
+import { usePageShare } from '../../hooks/use-page-share'
 
 import './index.scss'
 
@@ -38,6 +40,8 @@ const MARKET_SUB_FILTERS = {
 }
 
 export default function Discover() {
+  usePageShare({ title: '发现同城同好 - 就酱次元区', path: '/pages/discover/index' })
+  const publishEnabled = usePublishEnabled()
   const [activeTab, setActiveTab] = useState('square')
   const { theme } = useThemeMode()
   const [search, setSearch] = useState('')
@@ -310,6 +314,7 @@ export default function Discover() {
                         authorName={p.authorName}
                         authorAvatar={p.authorAvatar}
                         likeCount={p.likeCount}
+                        showEngagement={publishEnabled}
                         commentCount={p.commentCount}
                         tags={p.tags}
                         isWaterfall
@@ -326,6 +331,7 @@ export default function Discover() {
                         authorName={p.authorName}
                         authorAvatar={p.authorAvatar}
                         likeCount={p.likeCount}
+                        showEngagement={publishEnabled}
                         commentCount={p.commentCount}
                         tags={p.tags}
                         isWaterfall

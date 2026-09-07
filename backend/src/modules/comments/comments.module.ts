@@ -3,12 +3,13 @@ import { TypeOrmModule } from '@nestjs/typeorm'
 import { CommentsService } from './comments.service'
 import { CommentsController } from './comments.controller'
 import { AuthModule } from '../auth/auth.module'
+import { AppSettingsModule } from '../app-settings/app-settings.module'
 import { Comment } from '../../database/entities/comment.entity'
 import { Post } from '../../database/entities/post.entity'
 import { User } from '../../database/entities/user.entity'
 
 @Module({
-  imports: [AuthModule, TypeOrmModule.forFeature([Comment, Post, User])],
+  imports: [AuthModule, AppSettingsModule, TypeOrmModule.forFeature([Comment, Post, User])],
   providers: [CommentsService],
   controllers: [CommentsController]
 })

@@ -6,9 +6,11 @@ import { EmptyState } from '../../components/base/EmptyState'
 import { LoadingState } from '../../components/base/LoadingState'
 import { listEvents } from '../../services/events'
 import { useThemeMode } from '../../config/theme'
+import { usePageShare } from '../../hooks/use-page-share'
 import './index.scss'
 
 export default function Events() {
+  usePageShare({ title: '近期活动 - 就酱次元区', path: '/pages/events/index' })
   const [tab, setTab] = useState<'info' | 'official'>('info')
   const [events, setEvents] = useState<any[]>([])
   const [loading, setLoading] = useState(true)

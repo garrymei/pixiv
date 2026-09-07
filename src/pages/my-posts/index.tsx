@@ -7,8 +7,10 @@ import { LoadingState } from '../../components/base/LoadingState'
 import { isGuestMode, promptLogin } from '../../services/request'
 import { listMyPosts } from '../../services/posts'
 import { useThemeMode } from '../../config/theme'
+import { usePublishEnabled } from '../../hooks/use-publish-enabled'
 
 export default function MyPosts() {
+  const publishEnabled = usePublishEnabled()
   const [posts, setPosts] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -55,6 +57,7 @@ export default function MyPosts() {
             authorName={post.authorName}
             authorAvatar={post.authorAvatar}
             likeCount={post.likeCount}
+            showEngagement={publishEnabled}
             commentCount={post.commentCount}
             tags={post.tags}
             onClick={() => Taro.navigateTo({ url: `/pages/post-detail/index?id=${post.id}` })}

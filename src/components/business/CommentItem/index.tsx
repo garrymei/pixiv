@@ -35,7 +35,7 @@ export function CommentItem({
       <View className="business-comment-item__main">
         <View className="business-comment-item__header">
           <Text className="business-comment-item__author">{authorName}</Text>
-          <View 
+          {onLike && <View
             className="business-comment-item__like-wrap"
             onClick={onLike}
           >
@@ -53,19 +53,19 @@ export function CommentItem({
                 {likeCount}
               </Text>
             )}
-          </View>
+          </View>}
         </View>
 
         <Text className="business-comment-item__content">{content}</Text>
 
         <View className="business-comment-item__footer">
           <Text className="business-comment-item__time">{time}</Text>
-          <Text 
+          {onReply && <Text
             className="business-comment-item__reply-btn"
             onClick={onReply}
           >
             回复 {replyCount > 0 ? `(${replyCount})` : ''}
-          </Text>
+          </Text>}
         </View>
       </View>
     </View>

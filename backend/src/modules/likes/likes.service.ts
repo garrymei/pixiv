@@ -4,6 +4,7 @@ import { Repository } from 'typeorm'
 import { Like } from '../../database/entities/like.entity'
 import { Post } from '../../database/entities/post.entity'
 import { ModerationStatus } from '../../types/enums'
+import { AppSettingsService } from '../app-settings/app-settings.service'
 
 @Injectable()
 export class LikesService {
@@ -11,10 +12,12 @@ export class LikesService {
     @InjectRepository(Like)
     private readonly likesRepo: Repository<Like>,
     @InjectRepository(Post)
-    private readonly postsRepo: Repository<Post>
+    private readonly postsRepo: Repository<Post>,
+    private readonly appSettingsService: AppSettingsService
   ) {}
 
   async like(postId: number, userId: number) {
+    await this.appSettingsService.assertPublishEnabled('当前暂未开放点赞和评论')
     const post = await this.postsRepo.findOne({ where: { id: postId } })
     if (!post || post.moderationStatus !== ModerationStatus.APPROVED) {
       throw new NotFoundException('post not found')
@@ -32,6 +35,7 @@ export class LikesService {
   }
 
   async unlike(postId: number, userId: number) {
+    await this.appSettingsService.assertPublishEnabled('当前暂未开放点赞和评论')
     const existing = await this.likesRepo.findOne({ where: { postId, userId } })
     if (existing) {
       await this.likesRepo.remove(existing)

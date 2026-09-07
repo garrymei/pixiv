@@ -13,6 +13,7 @@ import {
 } from '../../services/events'
 import { isGuestMode, promptLogin } from '../../services/request'
 import { useThemeMode } from '../../config/theme'
+import { usePageShare } from '../../hooks/use-page-share'
 import './index.scss'
 
 export default function EventDetail() {
@@ -23,6 +24,7 @@ export default function EventDetail() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const { theme } = useThemeMode()
+  usePageShare({ title: ev?.title || '活动详情 - 就酱次元区', path: `/pages/event-detail/index?id=${eventId}`, imageUrl: ev?.coverUrl })
 
   useLoad((options) => {
     setEventId(String(options?.id || ''))

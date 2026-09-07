@@ -11,7 +11,8 @@ import { listEvents, type ExtendedEvent } from '../../services/events'
 import { listPosts } from '../../services/posts'
 import { useThemeMode } from '../../config/theme'
 import { isGuestMode, loginWithWechatProfile } from '../../services/request'
-import { getAppSettings } from '../../services/app-settings'
+import { usePublishEnabled } from '../../hooks/use-publish-enabled'
+import { usePageShare } from '../../hooks/use-page-share'
 
 import './index.scss'
 
@@ -102,12 +103,13 @@ function MutualIcon({ type }: { type: MutualIconType }) {
 }
 
 export default function Home() {
+  usePageShare({ title: '就酱次元区', path: '/pages/home/index' })
   const [mutualHelpTab, setMutualHelpTab] = useState<'seek'|'offer'>('seek')
   const [feedPosts, setFeedPosts] = useState<any[]>([])
   const [recentEvent, setRecentEvent] = useState<ExtendedEvent>()
   const [isGuest, setIsGuest] = useState(isGuestMode())
   const [authLoading, setAuthLoading] = useState(false)
-  const [publishEnabled, setPublishEnabled] = useState(false)
+  const publishEnabled = usePublishEnabled()
   const { theme } = useThemeMode()
 
   const openPage = useCallback((url?: string) => {
@@ -161,9 +163,6 @@ export default function Home() {
 
   useDidShow(() => {
     setIsGuest(isGuestMode())
-    void getAppSettings(true).then((settings) => {
-      setPublishEnabled(settings.publishEnabled)
-    })
   })
 
   const handleWechatLogin = async () => {
@@ -287,6 +286,7 @@ export default function Home() {
                   authorName={post.authorName}
                   authorAvatar={post.authorAvatar}
                   likeCount={post.likeCount}
+                  showEngagement={publishEnabled}
                   commentCount={post.commentCount}
                   tags={post.tags}
                   isWaterfall
@@ -304,6 +304,7 @@ export default function Home() {
                   authorName={post.authorName}
                   authorAvatar={post.authorAvatar}
                   likeCount={post.likeCount}
+                  showEngagement={publishEnabled}
                   commentCount={post.commentCount}
                   tags={post.tags}
                   isWaterfall

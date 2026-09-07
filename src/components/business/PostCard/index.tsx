@@ -11,6 +11,7 @@ export interface PostCardProps {
   authorAvatar?: string
   likeCount?: number
   commentCount?: number
+  showEngagement?: boolean
   tags?: string[]
   isWaterfall?: boolean // 是否为瀑布流布局模式
   onClick?: () => void
@@ -24,6 +25,7 @@ export function PostCard({
   authorAvatar,
   likeCount = 0,
   commentCount = 0,
+  showEngagement = false,
   tags = [],
   isWaterfall = true,
   onClick,
@@ -72,7 +74,7 @@ export function PostCard({
             <Text className="business-post-card__author-name" numberOfLines={1}>{authorName}</Text>
           </View>
           
-          <View className="business-post-card__stats">
+          {showEngagement && <View className="business-post-card__stats">
             <View className="business-post-card__stat-item">
               <View className="business-post-card__icon-like" />
               <Text>{likeCount}</Text>
@@ -84,7 +86,7 @@ export function PostCard({
                 <Text>{commentCount}</Text>
               </View>
             )}
-          </View>
+          </View>}
         </View>
       </View>
     </View>

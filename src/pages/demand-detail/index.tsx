@@ -24,6 +24,7 @@ import {
 } from '../../services/demands'
 import { isGuestMode, promptLogin } from '../../services/request'
 import { useThemeMode } from '../../config/theme'
+import { usePageShare } from '../../hooks/use-page-share'
 import './index.scss'
 
 function getApplyErrorMessage(error: any) {
@@ -52,6 +53,7 @@ export default function DemandDetail() {
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
   const { theme } = useThemeMode()
+  usePageShare({ title: demand?.title || '合作需求 - 就酱次元区', path: `/pages/demand-detail/index?id=${id}${marketMain ? `&marketMain=${marketMain}` : ''}` })
 
   useLoad((options) => {
     setId(String(options?.id || ''))
