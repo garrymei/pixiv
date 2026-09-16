@@ -27,6 +27,10 @@
       height: 100vh;
       overflow-y: auto;
     }
+    .mobile-nav-toggle,
+    .nav-overlay {
+      display: none;
+    }
     .brand {
       margin-bottom: 18px;
       padding: 14px;
@@ -98,6 +102,30 @@
       font-size: 13px;
     }
     .status.error { color: #ff9db7; }
+    .toast-container {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 9999;
+      display: grid;
+      gap: 10px;
+      width: min(380px, calc(100vw - 40px));
+      pointer-events: none;
+    }
+    .toast {
+      padding: 13px 16px;
+      border-radius: 10px;
+      color: #f5f7ff;
+      background: #24304f;
+      border: 1px solid #43517d;
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+      opacity: 0;
+      transform: translateY(-8px);
+      transition: opacity 0.18s ease, transform 0.18s ease;
+    }
+    .toast.visible { opacity: 1; transform: translateY(0); }
+    .toast.success { background: #174a36; border-color: #46c187; }
+    .toast.error { background: #5b2034; border-color: #e06086; }
     .grid {
       display: grid;
       grid-template-columns: repeat(12, minmax(0, 1fr));
@@ -287,10 +315,37 @@
     .calendar-day:hover{border-color:#6c7bff}.calendar-day.has-booking{background:rgba(108,123,255,.18);border-color:#6c7bff}
     .calendar-day.selected{outline:2px solid #91ecb7}.calendar-day.empty{visibility:hidden}
     .calendar-count{display:block;margin-top:13px;color:#bfc8ff;font-size:11px}
-    .booking-timeline{display:grid;gap:10px;margin:10px 0 18px}.timeline-scene{padding:10px;background:#10172a;border:1px solid #2e3759;border-radius:10px}.timeline-slots{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:4px;margin-top:8px}.timeline-slot{padding:6px 3px;border-radius:6px;background:#26304f;text-align:center;font-size:10px;color:#cbd4ff}.timeline-slot.booked{background:#355dcc}.timeline-slot.blocked{background:#9a6630}.timeline-slot.free{opacity:.55}@media(max-width:980px){.booking-layout{grid-template-columns:1fr}.timeline-slots{grid-template-columns:repeat(6,minmax(0,1fr))}}
+    .booking-timeline{display:grid;gap:10px;margin:10px 0 18px}.timeline-scene{padding:10px;background:#10172a;border:1px solid #2e3759;border-radius:10px}.timeline-slots{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:4px;margin-top:8px}.timeline-slot{padding:6px 3px;border-radius:6px;background:#26304f;text-align:center;font-size:10px;color:#cbd4ff}.timeline-slot.booked{background:#355dcc}.timeline-slot.blocked{background:#9a6630}.timeline-slot.free{opacity:.55}
+    @media(max-width:980px){.booking-layout{grid-template-columns:1fr}.timeline-slots{grid-template-columns:repeat(6,minmax(0,1fr))}}
+    @media(max-width:760px){
+      body{overflow-x:hidden}
+      .app{display:block;min-height:100vh}
+      .sidebar{position:fixed;z-index:1001;top:0;left:0;width:min(84vw,320px);height:100dvh;transform:translateX(-105%);transition:transform .22s ease;box-shadow:16px 0 40px rgba(0,0,0,.45)}
+      .sidebar.open{transform:translateX(0)}
+      .nav-overlay{display:block;position:fixed;z-index:1000;inset:0;background:rgba(3,7,18,.68);opacity:0;pointer-events:none;transition:opacity .22s ease}
+      .nav-overlay.visible{opacity:1;pointer-events:auto}
+      .mobile-nav-toggle{display:block;flex:0 0 44px;width:44px;min-width:44px;height:44px;padding:0;font-size:22px}
+      .main{padding:12px;min-width:0}
+      .topbar{align-items:flex-start;justify-content:flex-start;gap:10px;margin-bottom:14px}
+      .topbar>div:first-of-type{min-width:0;flex:1}
+      .topbar h2{font-size:20px}.subtitle{line-height:1.45}.status{max-width:30%;text-align:right}
+      .grid{gap:10px}.span-3,.span-4,.span-5,.span-6,.span-7,.span-8{grid-column:span 12}
+      .card{padding:12px;overflow:hidden}.module-grid{grid-template-columns:1fr}
+      .row{gap:8px}.row>*{flex-basis:100%}
+      .section-head{align-items:stretch;flex-direction:column}.section-head button{max-width:none!important}
+      input,select,textarea,button{font-size:16px;min-height:44px}
+      table{display:block;overflow-x:auto;-webkit-overflow-scrolling:touch;white-space:nowrap}
+      table thead,table tbody{min-width:720px}
+      th,td{padding:9px 8px}
+      .booking-toolbar{align-items:stretch;flex-direction:column}.booking-toolbar button{max-width:none!important}
+      .booking-calendar{gap:3px}.calendar-weekday{font-size:10px;padding:5px 1px}.calendar-day{min-height:60px;padding:5px;font-size:12px}.calendar-count{margin-top:7px;font-size:9px;line-height:1.2}
+      .timeline-slots{grid-template-columns:repeat(4,minmax(0,1fr))}.timeline-slot{padding:8px 2px;font-size:10px}
+      .toast-container{top:12px;right:12px;width:calc(100vw - 24px)}
+    }
   </style>
 </head>
 <body>
+  <div id="toastContainer" class="toast-container" aria-live="polite"></div>
   <div class="app">
     <aside class="sidebar">
       <div class="brand">
@@ -320,9 +375,11 @@
         <button class="nav-btn" data-view="system">系统监控</button>
       </div>
     </aside>
+    <div id="navOverlay" class="nav-overlay"></div>
 
     <main class="main">
       <div class="topbar">
+        <button id="mobileNavToggle" class="mobile-nav-toggle" type="button" aria-label="打开导航" aria-expanded="false">☰</button>
         <div>
           <h2 id="pageTitle">驾驶舱</h2>
           <p id="pageSubtitle" class="subtitle">统一查看各小程序模块的管理入口、数据状态和异常监控。</p>
@@ -918,6 +975,37 @@
       statusEl.className = isError ? 'status error' : 'status'
     }
 
+    function setMobileNav(open) {
+      const sidebar = document.querySelector('.sidebar')
+      sidebar.classList.toggle('open', open)
+      $('navOverlay').classList.toggle('visible', open)
+      $('mobileNavToggle').setAttribute('aria-expanded', String(open))
+      $('mobileNavToggle').setAttribute('aria-label', open ? '关闭导航' : '打开导航')
+    }
+
+    function showToast(message, type = 'success') {
+      const toast = document.createElement('div')
+      toast.className = `toast ${type}`
+      toast.textContent = message
+      $('toastContainer').appendChild(toast)
+      requestAnimationFrame(() => toast.classList.add('visible'))
+      window.setTimeout(() => {
+        toast.classList.remove('visible')
+        window.setTimeout(() => toast.remove(), 200)
+      }, 3500)
+    }
+
+    function bookingErrorMessage(error) {
+      const message = String(error?.message || '创建预约失败')
+      if (message.includes('time already booked') || message.includes('时段已被预约')) {
+        return '所选时段已被预约，请选择其他时间'
+      }
+      if (message.includes('outside business hours')) return '预约时间必须在 11:00–23:00 内'
+      if (message.includes('invalid time range')) return '结束时间必须晚于开始时间，并以半小时为单位'
+      if (message.includes('customer name required')) return '请填写客户姓名'
+      return message
+    }
+
     function unwrap(json) {
       if (json && typeof json.code === 'number') {
         if (json.code !== 0) throw new Error(json.message || '请求失败')
@@ -1158,10 +1246,43 @@
       timeline.innerHTML=(state.venueScenes||[]).filter(scene=>scene.status===1).map(scene=>{const venue=state.venues.find(v=>v.id===scene.venue_id);const slots=[];for(let minute=660;minute<1380;minute+=30){const start=dayStart+minute*60000,end=start+1800000,item=rows.find(x=>x.scene_id===scene.id&&x.start_time<end&&x.end_time>start),label=String(Math.floor(minute/60)).padStart(2,'0')+':'+String(minute%60).padStart(2,'0'),cls=item?(item.booking_type==='BLOCKED'?'blocked':'booked'):'free',tip=item?(item.customer_name||item.user_nickname||'已预约'):'空闲';slots.push(`<span class="timeline-slot ${cls}" title="${escapeBookingHtml(tip)}">${label}</span>`)}return `<div class="timeline-scene"><strong>${escapeBookingHtml(venue?.name||'')} / ${escapeBookingHtml(scene.name)}</strong><div class="timeline-slots">${slots.join('')}</div></div>`}).join('')||'<span class="muted">暂无启用场景</span>';
 if(!rows.length){tbody.innerHTML='<tr><td colspan="7"><span class="muted">当天暂无预约</span></td></tr>';return}
       tbody.innerHTML=rows.map(x=>{const v=state.venues.find(y=>y.id===x.venue_id),s=state.venueScenes.find(y=>y.id===x.scene_id),fmt=t=>new Date(t).toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'}),kind=x.booking_type==='BLOCKED'?'管理员占用':x.booking_type==='ADMIN'?'代客预约':'用户预约',person=x.booking_type==='USER'?(x.user_nickname||`用户 #${x.user_id}`):x.customer_name;return `<tr><td><strong>${fmt(x.start_time)}–${fmt(x.end_time)}</strong></td><td>${escapeBookingHtml(v?.name||x.venue_id)}<br/><small>${escapeBookingHtml(s?.name||x.scene_id)}</small></td><td><span class="chip ${x.booking_type==='BLOCKED'?'warn':'ok'}">${kind}</span></td><td>${escapeBookingHtml(person||'-')}</td><td>${escapeBookingHtml(x.customer_phone||'-')}</td><td>${escapeBookingHtml(x.note||'')}</td><td><button class="danger" data-cancel-booking="${x.id}">取消</button></td></tr>`}).join('');
-      tbody.querySelectorAll('[data-cancel-booking]').forEach(b=>b.onclick=async()=>{if(!confirm('确定取消这条预约吗？'))return;try{await request(`/admin/venue-bookings/${b.dataset.cancelBooking}/cancel`,'PATCH');await loadVenueBookings()}catch(e){setStatus(e.message||'取消失败',true)}})
+      tbody.querySelectorAll('[data-cancel-booking]').forEach(b=>b.onclick=async()=>{if(!confirm('确定取消这条预约吗？'))return;try{await request(`/admin/venue-bookings/${b.dataset.cancelBooking}/cancel`,'PATCH');await loadVenueBookings();showToast('预约已取消')}catch(e){const message=e.message||'取消失败';setStatus(message,true);showToast(message,'error')}})
     }
     async function loadVenueBookings(){requireAdminToken();state.venueBookingMonth=$('bookingMonth').value||state.venueBookingMonth;const data=await request(`/admin/venue-bookings?month=${encodeURIComponent(state.venueBookingMonth)}`);state.venueBookings=data.list||[];renderBookingCalendar();renderVenueBookings();renderOverviewMetrics()}
-    async function createAdminBooking(){try{requireAdminToken();const date=$('bookingDate').value,start=$('bookingStartTime').value,end=$('bookingEndTime').value;if(!date)throw new Error('请选择日期');await request('/admin/venue-bookings','POST',{scene_id:Number($('bookingSceneSelect').value),booking_type:$('bookingType').value,customer_name:$('bookingCustomerName').value.trim(),customer_phone:$('bookingCustomerPhone').value.trim(),start_time:new Date(`${date}T${start}:00+08:00`).getTime(),end_time:new Date(`${date}T${end}:00+08:00`).getTime(),note:$('bookingNote').value.trim()});state.selectedBookingDate=date;state.venueBookingMonth=date.slice(0,7);$('bookingMonth').value=state.venueBookingMonth;await loadVenueBookings();setStatus('预约已创建')}catch(e){setStatus(e.message||'创建预约失败',true)}}
+    async function createAdminBooking(){
+      const button=$('createAdminBookingBtn')
+      try{
+        requireAdminToken()
+        const date=$('bookingDate').value,start=$('bookingStartTime').value,end=$('bookingEndTime').value
+        const sceneId=Number($('bookingSceneSelect').value)
+        if(!date)throw new Error('请选择日期')
+        if(!sceneId)throw new Error('请选择场景')
+        const startMs=new Date(`${date}T${start}:00+08:00`).getTime()
+        const endMs=new Date(`${date}T${end}:00+08:00`).getTime()
+        if(endMs<=startMs)throw new Error('结束时间必须晚于开始时间')
+        const conflict=(state.venueBookings||[]).find(item=>item.scene_id===sceneId&&item.start_time<endMs&&item.end_time>startMs)
+        if(conflict){
+          const fmt=value=>new Date(value).toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'})
+          throw new Error(`所选时段与现有预约冲突（${fmt(conflict.start_time)}–${fmt(conflict.end_time)}）`)
+        }
+        button.disabled=true
+        button.textContent='正在新增…'
+        await request('/admin/venue-bookings','POST',{scene_id:sceneId,booking_type:$('bookingType').value,customer_name:$('bookingCustomerName').value.trim(),customer_phone:$('bookingCustomerPhone').value.trim(),start_time:startMs,end_time:endMs,note:$('bookingNote').value.trim()})
+        state.selectedBookingDate=date
+        state.venueBookingMonth=date.slice(0,7)
+        $('bookingMonth').value=state.venueBookingMonth
+        await loadVenueBookings()
+        setStatus('预约新增成功')
+        showToast('预约新增成功')
+      }catch(e){
+        const message=bookingErrorMessage(e)
+        setStatus(message,true)
+        showToast(message,'error')
+      }finally{
+        button.disabled=false
+        button.textContent='确认新增'
+      }
+    }
     function toggleBookingCustomerFields(){$('bookingCustomerFields').classList.toggle('hidden',$('bookingType').value==='BLOCKED')}
 
     function renderVenueOptions() {
@@ -1662,7 +1783,20 @@ if(!rows.length){tbody.innerHTML='<tr><td colspan="7"><span class="muted">当天
     }
 
     document.querySelectorAll('.nav-btn').forEach((btn) => {
-      btn.addEventListener('click', () => switchView(btn.getAttribute('data-view')))
+      btn.addEventListener('click', () => {
+        switchView(btn.getAttribute('data-view'))
+        setMobileNav(false)
+      })
+    })
+    $('mobileNavToggle').addEventListener('click', () => {
+      setMobileNav(!document.querySelector('.sidebar').classList.contains('open'))
+    })
+    $('navOverlay').addEventListener('click', () => setMobileNav(false))
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') setMobileNav(false)
+    })
+    window.addEventListener('resize', () => {
+      if (window.innerWidth > 760) setMobileNav(false)
     })
     $('loginBtn').addEventListener('click', async () => {
       try { await login() } catch (err) { setStatus(err.message || '登录失败', true) }

@@ -389,7 +389,7 @@ export class VenuesService {
       .andWhere('booking.start_time < :endTime', { endTime: new Date(endMs) })
       .andWhere('booking.end_time > :startTime', { startTime: new Date(startMs) })
       .getOne()
-    if (conflict) throw new BadRequestException('time already booked')
+    if (conflict) throw new BadRequestException('所选时段已被预约，请选择其他时间')
     const item = this.bookingsRepo.create({
       venueId: scene.venueId,
       sceneId,
