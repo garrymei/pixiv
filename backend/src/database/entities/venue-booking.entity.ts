@@ -22,12 +22,24 @@ export class VenueBooking {
   @JoinColumn({ name: 'scene_id' })
   scene!: VenueScene
 
-  @Column({ name: 'user_id' })
-  userId!: number
+  @Column({ name: 'user_id', type: 'int', nullable: true })
+  userId?: number | null
 
-  @ManyToOne(() => User)
+  @ManyToOne(() => User, { nullable: true })
   @JoinColumn({ name: 'user_id' })
-  user!: User
+  user?: User | null
+
+  @Column({ name: 'booking_type', length: 16, default: 'USER' })
+  bookingType!: 'USER' | 'ADMIN' | 'BLOCKED'
+
+  @Column({ name: 'customer_name', type: 'varchar', length: 64, nullable: true })
+  customerName?: string | null
+
+  @Column({ name: 'customer_phone', type: 'varchar', length: 32, nullable: true })
+  customerPhone?: string | null
+
+  @Column({ name: 'created_by_admin', type: 'tinyint', default: 0 })
+  createdByAdmin!: number
 
   @Column({ name: 'start_time', type: 'datetime' })
   startTime!: Date

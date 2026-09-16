@@ -278,6 +278,16 @@
       color: #95a0cb;
       font-size: 13px;
     }
+
+    .booking-layout{display:grid;grid-template-columns:minmax(420px,1.15fr) minmax(340px,.85fr);gap:14px}
+    .booking-toolbar{display:flex;align-items:end;gap:10px;margin-bottom:12px}
+    .booking-toolbar>*{flex:1}.booking-calendar{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:7px}
+    .calendar-weekday{text-align:center;color:#8995c3;font-size:12px;padding:7px 4px}
+    .calendar-day{min-height:76px;padding:8px;text-align:left;background:#10172a;border:1px solid #2e3759}
+    .calendar-day:hover{border-color:#6c7bff}.calendar-day.has-booking{background:rgba(108,123,255,.18);border-color:#6c7bff}
+    .calendar-day.selected{outline:2px solid #91ecb7}.calendar-day.empty{visibility:hidden}
+    .calendar-count{display:block;margin-top:13px;color:#bfc8ff;font-size:11px}
+    .booking-timeline{display:grid;gap:10px;margin:10px 0 18px}.timeline-scene{padding:10px;background:#10172a;border:1px solid #2e3759;border-radius:10px}.timeline-slots{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:4px;margin-top:8px}.timeline-slot{padding:6px 3px;border-radius:6px;background:#26304f;text-align:center;font-size:10px;color:#cbd4ff}.timeline-slot.booked{background:#355dcc}.timeline-slot.blocked{background:#9a6630}.timeline-slot.free{opacity:.55}@media(max-width:980px){.booking-layout{grid-template-columns:1fr}.timeline-slots{grid-template-columns:repeat(6,minmax(0,1fr))}}
   </style>
 </head>
 <body>
@@ -717,12 +727,27 @@
             </table>
           </div>
 
+
           <div class="card span-12">
-            <h3>未来预约记录</h3>
-            <table id="venueBookingTable">
-              <thead><tr><th>ID</th><th>场馆</th><th>场景</th><th>用户</th><th>预约时间</th><th>备注</th></tr></thead>
-              <tbody><tr><td colspan="6"><span class="muted">暂无数据</span></td></tr></tbody>
-            </table>
+            <div class="section-head"><div><h3>预约日历</h3><p>高亮日期代表当天已有预约；点击日期查看时段和预约人。</p></div></div>
+            <div class="booking-layout">
+              <div>
+                <div class="booking-toolbar"><div><label>查看月份</label><input id="bookingMonth" type="month"/></div><button id="refreshBookingCalendarBtn" class="secondary" style="max-width:130px">刷新日历</button></div>
+                <div id="bookingCalendar" class="booking-calendar"></div>
+              </div>
+              <div>
+                <h4>后台新增预约 / 占用</h4>
+                <div class="row"><div><label>场景</label><select id="bookingSceneSelect"></select></div><div><label>类型</label><select id="bookingType"><option value="ADMIN">代客预约</option><option value="BLOCKED">管理员占用</option></select></div></div>
+                <div class="row"><div><label>日期</label><input id="bookingDate" type="date"/></div><div><label>开始</label><select id="bookingStartTime"></select></div><div><label>结束</label><select id="bookingEndTime"></select></div></div>
+                <div id="bookingCustomerFields" class="row"><div><label>客户姓名</label><input id="bookingCustomerName" maxlength="64"/></div><div><label>联系电话</label><input id="bookingCustomerPhone" maxlength="32"/></div></div>
+                <div><label>备注</label><textarea id="bookingNote" rows="2"></textarea></div>
+                <button id="createAdminBookingBtn">确认新增</button>
+              </div>
+            </div>
+          </div>
+          <div class="card span-12">
+            <h3 id="selectedBookingDateTitle">当天预约明细</h3><div id="bookingTimeline" class="booking-timeline"></div>
+            <table id="venueBookingTable"><thead><tr><th>时段</th><th>场馆 / 场景</th><th>类型</th><th>预约人</th><th>联系方式</th><th>备注</th><th>操作</th></tr></thead><tbody><tr><td colspan="7"><span class="muted">请在日历选择日期</span></td></tr></tbody></table>
           </div>
         </div>
       </section>
@@ -845,6 +870,8 @@
       venues: [],
       venueScenes: [],
       venueBookings: [],
+      venueBookingMonth: '',
+      selectedBookingDate: '',
       postReviews: [],
       demandReviews: [],
       avatarReviews: [],
@@ -1101,6 +1128,42 @@
       }
     }
 
+
+    function escapeBookingHtml(value){return String(value??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;')}
+    function bookingDateKey(ts){const d=new Date(Number(ts)+28800000);const p=n=>String(n).padStart(2,'0');return `${d.getUTCFullYear()}-${p(d.getUTCMonth()+1)}-${p(d.getUTCDate())}`}
+    function initBookingControls(){
+      const d=new Date(Date.now()+28800000),p=n=>String(n).padStart(2,'0'),today=`${d.getUTCFullYear()}-${p(d.getUTCMonth()+1)}-${p(d.getUTCDate())}`;
+      state.venueBookingMonth=state.venueBookingMonth||today.slice(0,7);state.selectedBookingDate=state.selectedBookingDate||today;
+      $('bookingMonth').value=state.venueBookingMonth;$('bookingDate').value=state.selectedBookingDate;
+      const slots=[];for(let m=660;m<=1380;m+=30)slots.push(`${p(Math.floor(m/60))}:${p(m%60)}`);
+      $('bookingStartTime').innerHTML=slots.slice(0,-1).map(v=>`<option>${v}</option>`).join('');$('bookingEndTime').innerHTML=slots.slice(1).map(v=>`<option>${v}</option>`).join('');$('bookingEndTime').value='12:00'
+    }
+    function renderBookingOptions(){
+      const venues=state.venues||[],scenes=state.venueScenes||[];
+      $('bookingSceneSelect').innerHTML=scenes.filter(s=>s.status===1).map(s=>{const v=venues.find(x=>x.id===s.venue_id);return `<option value="${s.id}">${escapeBookingHtml(v?.name||'')} / ${escapeBookingHtml(s.name)}</option>`}).join('')||'<option value="">暂无可预约场景</option>'
+    }
+    function renderBookingCalendar(){
+      const [year,month]=(state.venueBookingMonth||'').split('-').map(Number);if(!year||!month)return;
+      const counts={};(state.venueBookings||[]).forEach(x=>{const k=bookingDateKey(x.start_time);counts[k]=(counts[k]||0)+1});
+      const heads=['日','一','二','三','四','五','六'].map(x=>`<div class="calendar-weekday">周${x}</div>`).join('');
+      const blanks='<div class="calendar-day empty"></div>'.repeat(new Date(Date.UTC(year,month-1,1)).getUTCDay());
+      const days=new Date(Date.UTC(year,month,0)).getUTCDate();
+      $('bookingCalendar').innerHTML=heads+blanks+Array.from({length:days},(_,i)=>{const k=`${state.venueBookingMonth}-${String(i+1).padStart(2,'0')}`,n=counts[k]||0;return `<button class="calendar-day ${n?'has-booking':''} ${k===state.selectedBookingDate?'selected':''}" data-booking-date="${k}"><strong>${i+1}</strong><span class="calendar-count">${n?n+' 条预约':'暂无预约'}</span></button>`}).join('');
+      document.querySelectorAll('[data-booking-date]').forEach(b=>b.onclick=()=>{state.selectedBookingDate=b.dataset.bookingDate;$('bookingDate').value=state.selectedBookingDate;renderBookingCalendar();renderVenueBookings()})
+    }
+    function renderVenueBookings(){
+      const rows=(state.venueBookings||[]).filter(x=>bookingDateKey(x.start_time)===state.selectedBookingDate),tbody=document.querySelector('#venueBookingTable tbody');
+      $('selectedBookingDateTitle').textContent=`${state.selectedBookingDate||''} 预约明细`;
+      const timeline=$('bookingTimeline'),dayStart=new Date(`${state.selectedBookingDate}T00:00:00+08:00`).getTime();
+      timeline.innerHTML=(state.venueScenes||[]).filter(scene=>scene.status===1).map(scene=>{const venue=state.venues.find(v=>v.id===scene.venue_id);const slots=[];for(let minute=660;minute<1380;minute+=30){const start=dayStart+minute*60000,end=start+1800000,item=rows.find(x=>x.scene_id===scene.id&&x.start_time<end&&x.end_time>start),label=String(Math.floor(minute/60)).padStart(2,'0')+':'+String(minute%60).padStart(2,'0'),cls=item?(item.booking_type==='BLOCKED'?'blocked':'booked'):'free',tip=item?(item.customer_name||item.user_nickname||'已预约'):'空闲';slots.push(`<span class="timeline-slot ${cls}" title="${escapeBookingHtml(tip)}">${label}</span>`)}return `<div class="timeline-scene"><strong>${escapeBookingHtml(venue?.name||'')} / ${escapeBookingHtml(scene.name)}</strong><div class="timeline-slots">${slots.join('')}</div></div>`}).join('')||'<span class="muted">暂无启用场景</span>';
+if(!rows.length){tbody.innerHTML='<tr><td colspan="7"><span class="muted">当天暂无预约</span></td></tr>';return}
+      tbody.innerHTML=rows.map(x=>{const v=state.venues.find(y=>y.id===x.venue_id),s=state.venueScenes.find(y=>y.id===x.scene_id),fmt=t=>new Date(t).toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'}),kind=x.booking_type==='BLOCKED'?'管理员占用':x.booking_type==='ADMIN'?'代客预约':'用户预约',person=x.booking_type==='USER'?(x.user_nickname||`用户 #${x.user_id}`):x.customer_name;return `<tr><td><strong>${fmt(x.start_time)}–${fmt(x.end_time)}</strong></td><td>${escapeBookingHtml(v?.name||x.venue_id)}<br/><small>${escapeBookingHtml(s?.name||x.scene_id)}</small></td><td><span class="chip ${x.booking_type==='BLOCKED'?'warn':'ok'}">${kind}</span></td><td>${escapeBookingHtml(person||'-')}</td><td>${escapeBookingHtml(x.customer_phone||'-')}</td><td>${escapeBookingHtml(x.note||'')}</td><td><button class="danger" data-cancel-booking="${x.id}">取消</button></td></tr>`}).join('');
+      tbody.querySelectorAll('[data-cancel-booking]').forEach(b=>b.onclick=async()=>{if(!confirm('确定取消这条预约吗？'))return;try{await request(`/admin/venue-bookings/${b.dataset.cancelBooking}/cancel`,'PATCH');await loadVenueBookings()}catch(e){setStatus(e.message||'取消失败',true)}})
+    }
+    async function loadVenueBookings(){requireAdminToken();state.venueBookingMonth=$('bookingMonth').value||state.venueBookingMonth;const data=await request(`/admin/venue-bookings?month=${encodeURIComponent(state.venueBookingMonth)}`);state.venueBookings=data.list||[];renderBookingCalendar();renderVenueBookings();renderOverviewMetrics()}
+    async function createAdminBooking(){try{requireAdminToken();const date=$('bookingDate').value,start=$('bookingStartTime').value,end=$('bookingEndTime').value;if(!date)throw new Error('请选择日期');await request('/admin/venue-bookings','POST',{scene_id:Number($('bookingSceneSelect').value),booking_type:$('bookingType').value,customer_name:$('bookingCustomerName').value.trim(),customer_phone:$('bookingCustomerPhone').value.trim(),start_time:new Date(`${date}T${start}:00+08:00`).getTime(),end_time:new Date(`${date}T${end}:00+08:00`).getTime(),note:$('bookingNote').value.trim()});state.selectedBookingDate=date;state.venueBookingMonth=date.slice(0,7);$('bookingMonth').value=state.venueBookingMonth;await loadVenueBookings();setStatus('预约已创建')}catch(e){setStatus(e.message||'创建预约失败',true)}}
+    function toggleBookingCustomerFields(){$('bookingCustomerFields').classList.toggle('hidden',$('bookingType').value==='BLOCKED')}
+
     function renderVenueOptions() {
       const select = $('sceneVenueSelect')
       if (!select) return
@@ -1155,43 +1218,15 @@
       })
     }
 
-    function renderVenueBookings() {
-      const tbody = document.querySelector('#venueBookingTable tbody')
-      if (!tbody) return
-      const bookings = state.venueBookings || []
-      if (!bookings.length) {
-        tbody.innerHTML = '<tr><td colspan="6"><span class="muted">暂无未来预约</span></td></tr>'
-        return
-      }
-      const venues = state.venues || []
-      const scenes = state.venueScenes || []
-      tbody.innerHTML = bookings.map((item) => {
-        const venue = venues.find((v) => v.id === item.venue_id)
-        const scene = scenes.find((s) => s.id === item.scene_id)
-        const start = item.start_time ? new Date(item.start_time).toLocaleString() : ''
-        const end = item.end_time ? new Date(item.end_time).toLocaleString() : ''
-        return `
-          <tr>
-            <td>${item.id}</td>
-            <td>${venue?.name || item.venue_id}</td>
-            <td>${scene?.name || item.scene_id}</td>
-            <td>${item.user_id}</td>
-            <td>${start}<br/><small>${end}</small></td>
-            <td>${item.note || ''}</td>
-          </tr>
-        `
-      }).join('')
-    }
-
     async function loadVenues() {
       try {
         requireAdminToken()
         const data = await request('/admin/venues')
         state.venues = data.venues || []
         state.venueScenes = data.scenes || []
-        state.venueBookings = data.bookings || []
         renderVenues()
-        renderVenueBookings()
+        renderBookingOptions()
+        await loadVenueBookings()
         renderOverviewMetrics()
         setStatus(`已加载 ${state.venues.length} 个场馆`)
       } catch (err) {
@@ -1646,12 +1681,18 @@
     $('refreshVenuesBtn').addEventListener('click', loadVenues)
     $('createVenueBtn').addEventListener('click', createVenue)
     $('createSceneBtn').addEventListener('click', createScene)
+    $('refreshBookingCalendarBtn').addEventListener('click',()=>loadVenueBookings().catch(e=>setStatus(e.message,true)))
+    $('bookingMonth').addEventListener('change',()=>{state.venueBookingMonth=$('bookingMonth').value;state.selectedBookingDate=state.venueBookingMonth+'-01';$('bookingDate').value=state.selectedBookingDate;loadVenueBookings().catch(e=>setStatus(e.message,true))})
+    $('bookingType').addEventListener('change',toggleBookingCustomerFields)
+    $('createAdminBookingBtn').addEventListener('click',createAdminBooking)
     $('refreshReviewsBtn').addEventListener('click', loadReviews)
     $('refreshAvatarReviewsBtn').addEventListener('click', loadAvatarReviews)
 
     $('baseUrl').value = `${location.protocol}//${location.host}`
     $('adminToken').value = state.adminToken
     $('venueAdminToken').value = state.adminToken
+    initBookingControls()
+    toggleBookingCustomerFields()
     renderModuleMatrix()
     renderOverviewMetrics()
     renderBanners()

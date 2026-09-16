@@ -32,6 +32,12 @@ type BookingPayload = {
   note?: string
 }
 
+type AdminBookingPayload = BookingPayload & {
+  booking_type?: 'ADMIN' | 'BLOCKED'
+  customer_name?: string
+  customer_phone?: string
+}
+
 const HALF_HOUR_MS = 30 * 60 * 1000
 const BUSINESS_TIMEZONE_OFFSET_MS = 8 * 60 * 60 * 1000
 const OPENING_MINUTES = 11 * 60
@@ -79,7 +85,13 @@ function toBookingResponse(item: VenueBooking) {
     id: item.id,
     venue_id: item.venueId,
     scene_id: item.sceneId,
-    user_id: item.userId,
+    user_id: item.userId ?? null,
+    user_nickname: item.user?.nickname || '',
+    user_avatar_url: item.user?.avatarUrl || '',
+    booking_type: item.bookingType || 'USER',
+    customer_name: item.customerName || '',
+    customer_phone: item.customerPhone || '',
+    created_by_admin: item.createdByAdmin || 0,
     start_time: item.startTime?.getTime?.() || null,
     end_time: item.endTime?.getTime?.() || null,
     note: item.note || '',
@@ -316,6 +328,90 @@ export class VenuesService {
     if (payload.status !== undefined) item.status = normalizeInt(payload.status, 1)
     if (payload.sort_order !== undefined) item.sortOrder = normalizeInt(payload.sort_order, 0)
     return toSceneResponse(await this.scenesRepo.save(item))
+  }
+
+
+  async listBookingsForAdmin(month?: string) {
+    const businessNow = new Date(Date.now() + BUSINESS_TIMEZONE_OFFSET_MS)
+    const fallbackMonth = `${businessNow.getUTCFullYear()}-${String(businessNow.getUTCMonth() + 1).padStart(2, '0')}`
+    const monthKey = String(month || fallbackMonth)
+    const match = /^(\d{4})-(\d{2})$/.exec(monthKey)
+    if (!match) throw new BadRequestException('invalid month')
+    const year = Number(match[1])
+    const monthIndex = Number(match[2]) - 1
+    if (monthIndex < 0 || monthIndex > 11) throw new BadRequestException('invalid month')
+    const rangeStart = new Date(Date.UTC(year, monthIndex, 1) - BUSINESS_TIMEZONE_OFFSET_MS)
+    const rangeEnd = new Date(Date.UTC(year, monthIndex + 1, 1) - BUSINESS_TIMEZONE_OFFSET_MS)
+    const bookings = await this.bookingsRepo
+      .createQueryBuilder('booking')
+      .leftJoinAndSelect('booking.user', 'user')
+      .where('booking.status = :status', { status: 'CONFIRMED' })
+      .andWhere('booking.start_time < :rangeEnd', { rangeEnd })
+      .andWhere('booking.end_time > :rangeStart', { rangeStart })
+      .orderBy('booking.start_time', 'ASC')
+      .addOrderBy('booking.scene_id', 'ASC')
+      .getMany()
+    return {
+      month: monthKey,
+      range_start: rangeStart.getTime(),
+      range_end: rangeEnd.getTime(),
+      list: bookings.map(toBookingResponse)
+    }
+  }
+
+  async createBookingForAdmin(payload: AdminBookingPayload) {
+    const sceneId = normalizeInt(payload.scene_id, 0)
+    const scene = sceneId ? await this.scenesRepo.findOne({ where: { id: sceneId, status: 1 } }) : null
+    if (!scene) throw new BadRequestException('scene required')
+    const venue = await this.venuesRepo.findOne({ where: { id: scene.venueId, status: 1 } })
+    if (!venue) throw new BadRequestException('venue unavailable')
+    const bookingType = payload.booking_type === 'BLOCKED' ? 'BLOCKED' : 'ADMIN'
+    const customerName = String(payload.customer_name || '').trim()
+    const customerPhone = String(payload.customer_phone || '').trim()
+    if (bookingType === 'ADMIN' && !customerName) throw new BadRequestException('customer name required')
+    const startMs = normalizeTimestamp(payload.start_time)
+    const endMs = normalizeTimestamp(payload.end_time)
+    const maxTime = Date.now() + 365 * 24 * 60 * 60 * 1000
+    if (startMs <= Date.now() || startMs > maxTime || endMs > maxTime) throw new BadRequestException('time out of range')
+    if (endMs <= startMs || startMs % HALF_HOUR_MS !== 0 || endMs % HALF_HOUR_MS !== 0) {
+      throw new BadRequestException('invalid time range')
+    }
+    const startTimeParts = getBusinessTimeParts(startMs)
+    const endTimeParts = getBusinessTimeParts(endMs)
+    if (startTimeParts.dateKey !== endTimeParts.dateKey) throw new BadRequestException('invalid time range')
+    if (startTimeParts.minutes < OPENING_MINUTES || endTimeParts.minutes > CLOSING_MINUTES) {
+      throw new BadRequestException('outside business hours')
+    }
+    const conflict = await this.bookingsRepo
+      .createQueryBuilder('booking')
+      .where('booking.scene_id = :sceneId', { sceneId })
+      .andWhere('booking.status = :status', { status: 'CONFIRMED' })
+      .andWhere('booking.start_time < :endTime', { endTime: new Date(endMs) })
+      .andWhere('booking.end_time > :startTime', { startTime: new Date(startMs) })
+      .getOne()
+    if (conflict) throw new BadRequestException('time already booked')
+    const item = this.bookingsRepo.create({
+      venueId: scene.venueId,
+      sceneId,
+      userId: null,
+      bookingType,
+      customerName: bookingType === 'ADMIN' ? customerName : '管理员占用',
+      customerPhone: bookingType === 'ADMIN' ? customerPhone || null : null,
+      createdByAdmin: 1,
+      startTime: new Date(startMs),
+      endTime: new Date(endMs),
+      note: String(payload.note || '').trim() || undefined,
+      status: 'CONFIRMED'
+    })
+    return toBookingResponse(await this.bookingsRepo.save(item))
+  }
+
+  async cancelBookingForAdmin(bookingId: number) {
+    const booking = await this.bookingsRepo.findOne({ where: { id: bookingId } })
+    if (!booking) throw new NotFoundException('booking not found')
+    if (booking.status !== 'CONFIRMED') throw new BadRequestException('booking already cancelled')
+    booking.status = 'CANCELLED'
+    return toBookingResponse(await this.bookingsRepo.save(booking))
   }
 
   async createBooking(userId: number, payload: BookingPayload) {

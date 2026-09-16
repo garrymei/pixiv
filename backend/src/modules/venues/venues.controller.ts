@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post, Req, UseGuards } from '@nestjs/common'
+import { Body, Controller, Get, Param, Patch, Post, Query, Req, UseGuards } from '@nestjs/common'
 import { AdminTokenGuard } from '../../common/guards/admin-token.guard'
 import { JwtAuthGuard } from '../auth/jwt-auth.guard'
 import { VenuesService } from './venues.service'
@@ -62,5 +62,23 @@ export class VenuesController {
   @UseGuards(AdminTokenGuard)
   async updateScene(@Param('id') id: string, @Body() body: any) {
     return this.venuesService.updateScene(Number(id), body || {})
+  }
+
+  @Get('admin/venue-bookings')
+  @UseGuards(AdminTokenGuard)
+  async listBookingsForAdmin(@Query('month') month?: string) {
+    return this.venuesService.listBookingsForAdmin(month)
+  }
+
+  @Post('admin/venue-bookings')
+  @UseGuards(AdminTokenGuard)
+  async createBookingForAdmin(@Body() body: any) {
+    return this.venuesService.createBookingForAdmin(body || {})
+  }
+
+  @Patch('admin/venue-bookings/:id/cancel')
+  @UseGuards(AdminTokenGuard)
+  async cancelBookingForAdmin(@Param('id') id: string) {
+    return this.venuesService.cancelBookingForAdmin(Number(id))
   }
 }

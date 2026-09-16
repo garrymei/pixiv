@@ -7,6 +7,7 @@
     "start": "ts-node src/main.ts",
     "start:dev": "ts-node-dev --respawn --transpile-only src/main.ts",
     "build": "tsc -p tsconfig.json",
+    "migrate:venue-booking-admin": "node scripts/migrate-venue-booking-admin.js",
     "seed:mock-db": "ts-node --transpile-only scripts/seed-mock-db.ts"
   },
   "dependencies": {
