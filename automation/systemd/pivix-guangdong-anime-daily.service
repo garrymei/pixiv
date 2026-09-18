@@ -1,0 +1,17 @@
+[Unit]
+Description=Pivix Guangdong anime daily content workflow
+After=network-online.target pivix-backend.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=ubuntu
+WorkingDirectory=/home/ubuntu/Documents/pixiv
+ExecStart=/home/ubuntu/Documents/pixiv/automation/run-guangdong-anime-daily.sh
+Nice=10
+IOSchedulingClass=best-effort
+IOSchedulingPriority=6
+TimeoutStartSec=45min
+
+[Install]
+WantedBy=multi-user.target

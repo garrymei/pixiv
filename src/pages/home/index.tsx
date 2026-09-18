@@ -40,16 +40,6 @@ const TAB_BAR_PAGES = new Set([
 
 const DISCOVER_NAVIGATION_INTENT_KEY = 'discover_navigation_intent'
 
-function getCurrentWeekStart() {
-  const now = new Date()
-  const currentDay = now.getDay()
-  const diff = currentDay === 0 ? 6 : currentDay - 1
-  const start = new Date(now)
-  start.setDate(now.getDate() - diff)
-  start.setHours(0, 0, 0, 0)
-  return start.getTime()
-}
-
 function selectRecentEvent(events: ExtendedEvent[]) {
   const now = Date.now()
   const byStartTime = (a: ExtendedEvent, b: ExtendedEvent) =>
@@ -137,19 +127,12 @@ export default function Home() {
   const loadData = useCallback(async () => {
     try {
       const [postsRes, eventsRes] = await Promise.all([
-        listPosts(),
+        listPosts(undefined, { pageSize: 100 }),
         listEvents().catch(() => [])
       ])
-      const currentWeekStart = getCurrentWeekStart()
-      const weeklyPosts = postsRes.filter((post) => (post.createdAt || 0) >= currentWeekStart)
-      const visiblePosts = weeklyPosts.length > 0 ? weeklyPosts : postsRes
-      const sortedPosts = [...visiblePosts]
-        .sort((a, b) => {
-          const scoreDiff = (b.hotScore || 0) - (a.hotScore || 0)
-          if (scoreDiff !== 0) return scoreDiff
-          return (b.createdAt || 0) - (a.createdAt || 0)
-        })
-        .slice(0, 8)
+      const sortedPosts = [...postsRes].sort(
+        (a, b) => (b.createdAt || 0) - (a.createdAt || 0)
+      )
       setFeedPosts(sortedPosts)
       setRecentEvent(selectRecentEvent(eventsRes || []))
     } catch (error: any) {
@@ -269,10 +252,10 @@ export default function Home() {
         <View className="page-home__feed-panel">
           <View className="page-home__panel-header">
             <View className="page-home__panel-copy">
-              <Text className="page-home__panel-title">本周热帖</Text>
-              <Text className="page-home__panel-desc">最近更受欢迎的同好动态</Text>
+              <Text className="page-home__panel-title">最新活动资讯</Text>
+              <Text className="page-home__panel-desc">每日更新广东二次元活动，最新内容排在前面</Text>
             </View>
-            <View className="page-home__panel-chip">热门</View>
+            <View className="page-home__panel-chip">最新</View>
           </View>
 
           <View className="page-home__waterfall">

@@ -44,6 +44,11 @@ type PostListResponse = {
   pageSize: number
 }
 
+type PostListOptions = {
+  page?: number
+  pageSize?: number
+}
+
 function normalizeStringArray(value?: string[] | string | null) {
   if (Array.isArray(value)) return value.filter(Boolean)
   if (typeof value === 'string' && value) return [value]
@@ -113,19 +118,26 @@ export function updatePostEngagement(postId: string, patch: { likeCount?: number
   }
 }
 
-export async function listPosts(type?: 'work' | 'daily'): Promise<Post[]> {
+export async function listPosts(type?: 'work' | 'daily', options: PostListOptions = {}): Promise<Post[]> {
   if (isMockMode()) {
     const data = type ? mockPosts.filter((p) => (type === 'work' ? (p.tags || []).includes('正片') : (p.tags || []).includes('日常'))) : mockPosts
     return mockResponse(data)
   }
-  const cacheKey = type || 'all'
+  const page = Math.max(1, options.page || 1)
+  const pageSize = Math.max(1, options.pageSize || 10)
+  const cacheKey = `${type || 'all'}:${page}:${pageSize}`
   const cached = postListCache.get(cacheKey)
   if (cached && cached.expiresAt > Date.now()) return cached.data
 
   const pending = postListRequests.get(cacheKey)
   if (pending) return pending
 
-  const suffix = type ? `?type=${type}` : ''
+  const query = [
+    type ? `type=${type}` : '',
+    `page=${page}`,
+    `pageSize=${pageSize}`
+  ].filter(Boolean).join('&')
+  const suffix = query ? `?${query}` : ''
   const request = get<PostListResponse>(`/posts${suffix}`)
     .then((data) => {
       const posts = (data.list || []).map(mapPost)

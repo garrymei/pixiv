@@ -1,0 +1,11 @@
+[Unit]
+Description=Run Pivix Guangdong anime workflow every day at 09:00 Asia/Shanghai
+
+[Timer]
+OnCalendar=*-*-* 09:00:00 Asia/Shanghai
+Persistent=true
+RandomizedDelaySec=0
+Unit=pivix-guangdong-anime-daily.service
+
+[Install]
+WantedBy=timers.target

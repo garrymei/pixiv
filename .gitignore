@@ -16,6 +16,10 @@ yarn.lock
 logs
 *.log
 backend/tmp-*.js
+automation/generated-covers/
+automation/logs/
+automation/run-logs/
+automation/state/
 
 # Taro cache
 .taro4.0/
